@@ -44,6 +44,39 @@ class WhatsAppService:
             setting.value = session_id
         db.commit()
 
+    async def _resolve_session_id(self, client: httpx.AsyncClient, db: Session) -> Optional[str]:
+        """Resolve the active OpenWA session UUID, creating it if needed."""
+        # 1. Check saved session ID from system settings
+        saved_id = self._get_active_session_id(db)
+        if saved_id and saved_id != self.session_name:
+            check_res = await client.get(f"{self.base_url}/sessions/{saved_id}", headers=self._headers())
+            if check_res.status_code == 200:
+                return saved_id
+
+        # 2. Query OpenWA by session name
+        name_res = await client.get(f"{self.base_url}/sessions?name={self.session_name}", headers=self._headers())
+        if name_res.status_code == 200:
+            sessions = name_res.json()
+            if isinstance(sessions, list) and len(sessions) > 0:
+                session_uuid = sessions[0].get("id")
+                if session_uuid:
+                    self._save_active_session_id(db, session_uuid)
+                    return session_uuid
+
+        # 3. If no session exists by name, create one
+        create_res = await client.post(
+            f"{self.base_url}/sessions",
+            headers=self._headers(),
+            json={"name": self.session_name}
+        )
+        if create_res.status_code in (200, 201):
+            session_uuid = create_res.json().get("id")
+            if session_uuid:
+                self._save_active_session_id(db, session_uuid)
+                return session_uuid
+
+        return None
+
     async def get_status(self, db: Session) -> Dict[str, Any]:
         """Check the live connection status with OpenWA Gateway."""
         if self.simulator_mode:
@@ -56,10 +89,19 @@ class WhatsAppService:
                 "provider": "OpenWA"
             }
 
-        session_id = self._get_active_session_id(db)
         try:
-            async with httpx.AsyncClient(timeout=6.0) as client:
-                # First check OpenWA health/sessions
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    return {
+                        "connected": False,
+                        "status": "not_configured",
+                        "session_id": None,
+                        "qr_code": None,
+                        "details": "Could not locate or initialize session on OpenWA gateway.",
+                        "provider": "OpenWA"
+                    }
+
                 res = await client.get(
                     f"{self.base_url}/sessions/{session_id}",
                     headers=self._headers()
@@ -69,12 +111,24 @@ class WhatsAppService:
                     data = res.json()
                     status_val = str(data.get("status", "")).lower()
                     is_ready = status_val in ["ready", "connected", "authenticated"]
+                    qr_code = None
+
+                    # If status is qr_ready or created, attempt to fetch the QR code
+                    if not is_ready:
+                        qr_res = await client.get(
+                            f"{self.base_url}/sessions/{session_id}/qr",
+                            headers=self._headers()
+                        )
+                        if qr_res.status_code == 200:
+                            qr_json = qr_res.json() if "application/json" in qr_res.headers.get("content-type", "") else {}
+                            qr_code = qr_json.get("qrCode") or qr_json.get("qr") or qr_json.get("qrcode") or qr_res.text
+
                     return {
                         "connected": is_ready,
                         "status": status_val or "active",
                         "session_id": session_id,
-                        "qr_code": data.get("qr") or data.get("qrcode"),
-                        "details": f"Session {session_id} state: {status_val}",
+                        "qr_code": qr_code,
+                        "details": f"Session {self.session_name} ({session_id[:8]}...) state: {status_val}",
                         "provider": "OpenWA"
                     }
                 elif res.status_code == 404:
@@ -83,7 +137,7 @@ class WhatsAppService:
                         "status": "disconnected",
                         "session_id": session_id,
                         "qr_code": None,
-                        "details": f"Session '{session_id}' not created yet. Click 'Connect WhatsApp' to start.",
+                        "details": f"Session '{self.session_name}' not active. Click 'Connect WhatsApp' to start.",
                         "provider": "OpenWA"
                     }
                 else:
@@ -99,16 +153,16 @@ class WhatsAppService:
             return {
                 "connected": False,
                 "status": "gateway_offline",
-                "session_id": session_id,
+                "session_id": None,
                 "qr_code": None,
-                "details": f"OpenWA Gateway is offline or unreachable at {self.base_url}. Start OpenWA or use SIMULATOR_MODE.",
+                "details": f"OpenWA Gateway is offline or unreachable at {self.base_url}.",
                 "provider": "OpenWA"
             }
         except Exception as e:
             return {
                 "connected": False,
                 "status": "error",
-                "session_id": session_id,
+                "session_id": None,
                 "qr_code": None,
                 "details": str(e),
                 "provider": "OpenWA"
@@ -124,70 +178,65 @@ class WhatsAppService:
                 "message": "Connected successfully in Simulator Mode"
             }
 
-        session_id = self._get_active_session_id(db)
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                # 1. Create session if not exists
-                create_res = await client.post(
-                    f"{self.base_url}/sessions",
-                    headers=self._headers(),
-                    json={"name": session_id}
-                )
-                if create_res.status_code in (200, 201):
-                    created_data = create_res.json()
-                    new_id = created_data.get("sessionId") or created_data.get("id") or session_id
-                    self._save_active_session_id(db, new_id)
-                    session_id = new_id
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    return {
+                        "success": False,
+                        "status": "error",
+                        "error": "Failed to create or find session on OpenWA gateway."
+                    }
 
-                # 2. Start session
+                # Start session
                 start_res = await client.post(
                     f"{self.base_url}/sessions/{session_id}/start",
                     headers=self._headers()
                 )
 
-                # 3. Check for QR code
+                # Fetch QR code
+                qr_code = None
                 qr_res = await client.get(
                     f"{self.base_url}/sessions/{session_id}/qr",
                     headers=self._headers()
                 )
-                qr_data = None
                 if qr_res.status_code == 200:
-                    if "application/json" in qr_res.headers.get("content-type", ""):
-                        qr_data = qr_res.json().get("qr") or qr_res.json().get("qrcode")
-                    else:
-                        qr_data = qr_res.text
+                    qr_json = qr_res.json() if "application/json" in qr_res.headers.get("content-type", "") else {}
+                    qr_code = qr_json.get("qrCode") or qr_json.get("qr") or qr_json.get("qrcode") or qr_res.text
 
                 return {
                     "success": True,
                     "status": "starting",
                     "session_id": session_id,
-                    "qr_code": qr_data,
-                    "message": "Session started. Scan QR code if displayed."
+                    "qr_code": qr_code,
+                    "message": "Session started. Scan the companion QR code to connect."
                 }
         except Exception as e:
             return {
                 "success": False,
                 "status": "error",
-                "session_id": session_id,
+                "session_id": None,
                 "error": str(e)
             }
 
     async def get_qr_code(self, db: Session) -> Optional[str]:
         """Fetch latest QR code from OpenWA for companion linking."""
         if self.simulator_mode:
-            # Return a valid sample SVG/base64 data placeholder for dev testing
             return "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=PB08-TAXI-SIMULATED-OPENWA-QR"
 
-        session_id = self._get_active_session_id(db)
         try:
-            async with httpx.AsyncClient(timeout=6.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    return None
                 res = await client.get(
                     f"{self.base_url}/sessions/{session_id}/qr",
                     headers=self._headers()
                 )
                 if res.status_code == 200:
                     if "application/json" in res.headers.get("content-type", ""):
-                        return res.json().get("qr") or res.json().get("qrcode")
+                        data = res.json()
+                        return data.get("qrCode") or data.get("qr") or data.get("qrcode")
                     return res.text
         except Exception:
             pass
@@ -198,9 +247,11 @@ class WhatsAppService:
         if self.simulator_mode:
             return {"success": True, "message": "Disconnected (Simulator)"}
 
-        session_id = self._get_active_session_id(db)
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    return {"success": False, "error": "No active session found"}
                 res = await client.post(
                     f"{self.base_url}/sessions/{session_id}/stop",
                     headers=self._headers()
@@ -225,7 +276,6 @@ class WhatsAppService:
         Returns: (success: bool, error_detail: Optional[str])
         """
         chat_id = format_whatsapp_chat_id(phone)
-        session_id = self._get_active_session_id(db)
 
         # Create pending message log in Neon DB
         log_entry = WhatsAppMessage(
@@ -247,6 +297,14 @@ class WhatsAppService:
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    err = "OpenWA session not initialized"
+                    log_entry.status = "FAILED"
+                    log_entry.error_detail = err
+                    db.commit()
+                    return False, err
+
                 endpoint = f"{self.base_url}/sessions/{session_id}/messages/send-text"
                 payload = {
                     "chatId": chat_id,
