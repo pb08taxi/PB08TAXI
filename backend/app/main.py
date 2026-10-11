@@ -3,6 +3,7 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -152,6 +153,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compression setup for fast payload delivery
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Mount static uploads
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

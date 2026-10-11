@@ -14,7 +14,6 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { 
   getAdminSliders, 
   createSlider, 
@@ -22,10 +21,16 @@ import {
   deleteSlider, 
   uploadSliderImage 
 } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminSliderPage() {
-  const [slides, setSlides] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
+    'admin_sliders',
+    getAdminSliders,
+    { ttl: 3 * 60 * 1000 }
+  );
+
+  const slides = data || [];
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
 
@@ -37,22 +42,6 @@ export default function AdminSliderPage() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const fetchSlides = async () => {
-    setLoading(true);
-    try {
-      const data = await getAdminSliders();
-      setSlides(data);
-    } catch (err) {
-      console.error("Failed to load slides:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSlides();
-  }, []);
 
   const handleOpenAdd = () => {
     setEditingSlide(null);
@@ -113,7 +102,8 @@ export default function AdminSliderPage() {
       }
 
       setModalOpen(false);
-      fetchSlides();
+      refresh();
+      adminCache.invalidate('admin_sliders');
     } catch (err) {
       alert("Error saving slider image.");
     } finally {
@@ -125,7 +115,7 @@ export default function AdminSliderPage() {
     if (!window.confirm("Are you sure you want to delete this slide from the homepage?")) return;
     try {
       await deleteSlider(id);
-      setSlides((prev) => prev.filter((s) => s.id !== id));
+      mutate((prev) => (prev ? prev.filter((s) => s.id !== id) : []));
     } catch (err) {
       alert("Failed to delete slide.");
     }
@@ -134,15 +124,14 @@ export default function AdminSliderPage() {
   const handleToggleActive = async (slide) => {
     try {
       const updated = await updateSlider(slide.id, { is_active: !slide.is_active });
-      setSlides((prev) => prev.map((s) => (s.id === slide.id ? updated : s)));
+      mutate((prev) => (prev ? prev.map((s) => (s.id === slide.id ? updated : s)) : []));
     } catch (err) {
       alert("Failed to update slide status.");
     }
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -152,13 +141,23 @@ export default function AdminSliderPage() {
               Add, upload, reorder, and edit hero slides. Changes appear on the public website immediately without redeployment!
             </p>
           </div>
-          <button
-            onClick={handleOpenAdd}
-            className="inline-flex items-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellowHover text-black px-5 py-2.5 rounded-xl text-xs font-black shadow-md shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all self-start"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Add New Slide</span>
-          </button>
+          <div className="flex items-center space-x-3 self-start">
+            <button
+              onClick={() => refresh()}
+              disabled={loading || isRevalidating}
+              className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2.5 rounded-xl text-xs font-bold border border-zinc-800 transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+              <span>{isRevalidating ? 'Updating...' : 'Refresh'}</span>
+            </button>
+            <button
+              onClick={handleOpenAdd}
+              className="inline-flex items-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellowHover text-black px-5 py-2.5 rounded-xl text-xs font-black shadow-md shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Add New Slide</span>
+            </button>
+          </div>
         </div>
 
         {/* Live Notification Banner */}
@@ -388,6 +387,5 @@ export default function AdminSliderPage() {
         )}
 
       </div>
-    </AdminLayout>
   );
 }

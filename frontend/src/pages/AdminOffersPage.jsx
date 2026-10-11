@@ -11,8 +11,8 @@ import {
   RefreshCw,
   Info
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { getEligibleOffersCount, sendPromotionalOffer } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 const SAMPLE_TEMPLATES = [
   {
@@ -30,27 +30,15 @@ const SAMPLE_TEMPLATES = [
 ];
 
 export default function AdminOffersPage() {
-  const [counts, setCounts] = useState(null);
+  const { data: counts, loading: loadingCount, isRevalidating, refresh } = useAdminQuery(
+    'admin_offers_count',
+    getEligibleOffersCount,
+    { ttl: 3 * 60 * 1000 }
+  );
+
   const [messageText, setMessageText] = useState(SAMPLE_TEMPLATES[0].text);
-  const [loadingCount, setLoadingCount] = useState(true);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
-
-  const fetchCounts = async () => {
-    setLoadingCount(true);
-    try {
-      const data = await getEligibleOffersCount();
-      setCounts(data);
-    } catch (err) {
-      console.error("Failed to load eligible count:", err);
-    } finally {
-      setLoadingCount(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCounts();
-  }, []);
 
   const handleSendOffer = async (e) => {
     e.preventDefault();
@@ -87,8 +75,7 @@ export default function AdminOffersPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -99,11 +86,12 @@ export default function AdminOffersPage() {
             </p>
           </div>
           <button
-            onClick={fetchCounts}
+            onClick={() => refresh()}
+            disabled={loadingCount || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loadingCount ? 'animate-spin' : ''}`} />
-            <span>Refresh Count</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingCount || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh Count'}</span>
           </button>
         </div>
 
@@ -241,6 +229,5 @@ export default function AdminOffersPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }

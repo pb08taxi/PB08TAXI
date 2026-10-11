@@ -13,37 +13,30 @@ import {
   RefreshCw,
   Car
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { getAdminStats, getBookings } from '../api/client';
+import { useAdminQuery } from '../utils/adminCache';
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState(null);
-  const [recentBookings, setRecentBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [statsData, bookingsData] = await Promise.all([
-        getAdminStats(),
-        getBookings('', '')
-      ]);
-      setStats(statsData);
-      setRecentBookings(bookingsData.slice(0, 5));
-    } catch (err) {
-      console.error("Dashboard error:", err);
-    } finally {
-      setLoading(false);
-    }
+  const fetchDashboardData = async () => {
+    const [statsData, bookingsData] = await Promise.all([
+      getAdminStats(),
+      getBookings('', '')
+    ]);
+    return {
+      stats: statsData,
+      recentBookings: bookingsData.slice(0, 5)
+    };
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const { data, loading, isRevalidating, refresh } = useAdminQuery('admin_dashboard', fetchDashboardData, {
+    ttl: 3 * 60 * 1000
+  });
+
+  const stats = data?.stats;
+  const recentBookings = data?.recentBookings || [];
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -54,12 +47,12 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <button
-            onClick={loadData}
-            disabled={loading}
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Metrics</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh Metrics'}</span>
           </button>
         </div>
 
@@ -267,6 +260,5 @@ export default function AdminDashboardPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }

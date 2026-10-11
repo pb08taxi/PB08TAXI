@@ -1,47 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Users, Phone, Calendar, MessageCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { getCustomers, updateCustomerConsent } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminCustomersPage() {
-  const [customers, setCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  const fetchCustomerList = async (query = '') => {
-    setLoading(true);
-    try {
-      const data = await getCustomers(query);
-      setCustomers(data);
-    } catch (err) {
-      console.error("Failed to load customers:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchCustomerList(searchQuery);
-    }, 300);
+      setDebouncedSearch(searchQuery);
+    }, 250);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  const queryKey = `admin_customers_${debouncedSearch.trim().toLowerCase()}`;
+  const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
+    queryKey,
+    () => getCustomers(debouncedSearch),
+    { ttl: 2 * 60 * 1000 }
+  );
+
+  const customers = data || [];
 
   const handleToggleConsent = async (customer) => {
     try {
       const newStatus = !customer.marketing_consent;
       await updateCustomerConsent(customer.id, newStatus);
-      setCustomers((prev) =>
-        prev.map((c) => (c.id === customer.id ? { ...c, marketing_consent: newStatus } : c))
+      mutate((prev) =>
+        prev ? prev.map((c) => (c.id === customer.id ? { ...c, marketing_consent: newStatus } : c)) : []
       );
+      adminCache.invalidate('admin_dashboard');
     } catch (err) {
       alert("Failed to update consent status.");
     }
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -52,11 +48,12 @@ export default function AdminCustomersPage() {
             </p>
           </div>
           <button
-            onClick={() => fetchCustomerList(searchQuery)}
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh'}</span>
           </button>
         </div>
 
@@ -179,6 +176,5 @@ export default function AdminCustomersPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }

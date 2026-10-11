@@ -23,7 +23,6 @@ import {
   Clock,
   Sparkles
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { 
   getWhatsAppStatus, 
   connectWhatsApp, 
@@ -35,11 +34,30 @@ import {
   updateWhatsAppAdminSettings,
   sendTestMessage 
 } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminWhatsAppPage() {
-  const [statusData, setStatusData] = useState(null);
+  const fetchWhatsAppAll = async () => {
+    const [status, settings] = await Promise.all([
+      getWhatsAppStatus().catch(() => ({
+        connected: false,
+        status: 'gateway_offline',
+        details: 'Unable to reach backend or OpenWA Gateway.',
+        provider: 'OpenWA'
+      })),
+      getWhatsAppAdminSettings().catch(() => null)
+    ]);
+    return { status, settings };
+  };
+
+  const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
+    'admin_whatsapp_info',
+    fetchWhatsAppAll,
+    { ttl: 2 * 60 * 1000 }
+  );
+
+  const statusData = data?.status || null;
   const [qrCode, setQrCode] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshingQR, setRefreshingQR] = useState(false);
 
@@ -50,6 +68,23 @@ export default function AdminWhatsAppPage() {
   const [alertSettingsSuccess, setAlertSettingsSuccess] = useState('');
   const [alertSettingsError, setAlertSettingsError] = useState('');
 
+  // Sync settings when data changes
+  useEffect(() => {
+    if (data?.settings) {
+      setAdminAlertPhone(data.settings.admin_alert_whatsapp_number || '');
+      setAdminAlertEnabled(data.settings.admin_alert_whatsapp_enabled ?? true);
+    }
+  }, [data?.settings]);
+
+  // Sync QR code when status changes
+  useEffect(() => {
+    if (statusData?.connected) {
+      setQrCode(null);
+    } else if (statusData?.qr_code) {
+      setQrCode(statusData.qr_code);
+    }
+  }, [statusData]);
+
   // Test message states
   const [testPhone, setTestPhone] = useState('');
   const [testMessage, setTestMessage] = useState('PB08 TAXI: Automated dispatch connectivity test. Everything is working!');
@@ -57,52 +92,8 @@ export default function AdminWhatsAppPage() {
   const [sendingTest, setSendingTest] = useState(false);
 
   const fetchStatus = async () => {
-    setLoading(true);
-    try {
-      const data = await getWhatsAppStatus();
-      setStatusData(data);
-      if (data.connected) {
-        // When connected, never display QR code
-        setQrCode(null);
-      } else if (data.qr_code) {
-        setQrCode(data.qr_code);
-      } else {
-        // Attempt to fetch QR if available
-        const qrRes = await getWhatsAppQR().catch(() => null);
-        if (qrRes?.qr_code) {
-          setQrCode(qrRes.qr_code);
-        } else {
-          setQrCode(null);
-        }
-      }
-    } catch (err) {
-      setStatusData({
-        connected: false,
-        status: 'gateway_offline',
-        details: 'Unable to reach backend or OpenWA Gateway.',
-        provider: 'OpenWA'
-      });
-    } finally {
-      setLoading(false);
-    }
+    await refresh();
   };
-
-  const fetchAlertSettings = async () => {
-    try {
-      const settings = await getWhatsAppAdminSettings();
-      if (settings) {
-        setAdminAlertPhone(settings.admin_alert_whatsapp_number || '');
-        setAdminAlertEnabled(settings.admin_alert_whatsapp_enabled ?? true);
-      }
-    } catch (err) {
-      console.error("Failed to load WhatsApp alert settings:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchStatus();
-    fetchAlertSettings();
-  }, []);
 
   const handleConnect = async () => {
     setActionLoading(true);
@@ -158,6 +149,13 @@ export default function AdminWhatsAppPage() {
         admin_alert_whatsapp_number: adminAlertPhone,
         admin_alert_whatsapp_enabled: adminAlertEnabled
       });
+      mutate((prev) => ({
+        ...prev,
+        settings: {
+          admin_alert_whatsapp_number: adminAlertPhone,
+          admin_alert_whatsapp_enabled: adminAlertEnabled
+        }
+      }));
       setAlertSettingsSuccess('Admin booking alert settings updated successfully!');
       setTimeout(() => setAlertSettingsSuccess(''), 5000);
     } catch (err) {
@@ -193,8 +191,7 @@ export default function AdminWhatsAppPage() {
   const isConnected = statusData?.connected === true;
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -206,11 +203,11 @@ export default function AdminWhatsAppPage() {
           </div>
           <button
             onClick={fetchStatus}
-            disabled={loading || actionLoading}
+            disabled={loading || actionLoading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Status</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh Status'}</span>
           </button>
         </div>
 
@@ -692,6 +689,5 @@ export default function AdminWhatsAppPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }

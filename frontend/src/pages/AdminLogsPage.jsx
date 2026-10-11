@@ -1,32 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileText, RefreshCw, CheckCircle2, AlertCircle, Clock, Filter } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { getWhatsAppLogs } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminLogsPage() {
-  const [logs, setLogs] = useState([]);
   const [typeFilter, setTypeFilter] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      const data = await getWhatsAppLogs(100, typeFilter);
-      setLogs(data);
-    } catch (err) {
-      console.error("Failed to load message logs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, loading, isRevalidating, refresh } = useAdminQuery(
+    `admin_logs_${typeFilter}`,
+    () => getWhatsAppLogs(100, typeFilter),
+    { ttl: 2 * 60 * 1000 }
+  );
 
-  useEffect(() => {
-    fetchLogs();
-  }, [typeFilter]);
+  const logs = data || [];
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -37,11 +26,12 @@ export default function AdminLogsPage() {
             </p>
           </div>
           <button
-            onClick={fetchLogs}
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Logs</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh Logs'}</span>
           </button>
         </div>
 
@@ -148,6 +138,5 @@ export default function AdminLogsPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }

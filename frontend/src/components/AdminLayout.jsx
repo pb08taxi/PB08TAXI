@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,13 +11,14 @@ import {
   LogOut, 
   Car, 
   Menu, 
-  X,
-  ExternalLink,
-  Radio,
-  Settings
+  X, 
+  ExternalLink, 
+  Radio, 
+  Settings 
 } from 'lucide-react';
 import { getWhatsAppStatus } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { adminCache } from '../utils/adminCache';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
@@ -52,6 +53,7 @@ export default function AdminLayout({ children }) {
   }, []);
 
   const handleLogout = () => {
+    adminCache.clear();
     localStorage.removeItem('pb08_admin_token');
     localStorage.removeItem('pb08_admin_user');
     navigate('/admin/login');
@@ -168,7 +170,7 @@ export default function AdminLayout({ children }) {
       {/* Main Content Area */}
       <main className="flex-1 bg-black min-h-screen p-4 sm:p-6 lg:p-8 overflow-x-hidden">
         <div className="max-w-7xl mx-auto">
-          {children}
+          {children || <Outlet />}
         </div>
       </main>
 

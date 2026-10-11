@@ -15,16 +15,15 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { getBookings, updateBookingStatus } from '../api/client';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
 export default function AdminBookingsPage() {
-  const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Status edit modal
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -32,28 +31,21 @@ export default function AdminBookingsPage() {
   const [editNotes, setEditNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const fetchBookingsList = async () => {
-    setLoading(true);
-    try {
-      const data = await getBookings(activeTab, searchQuery);
-      setBookings(data);
-    } catch (err) {
-      console.error("Failed to load bookings:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBookingsList();
-  }, [activeTab]);
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchBookingsList();
-    }, 300);
+      setDebouncedSearch(searchQuery);
+    }, 250);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  const queryKey = `admin_bookings_${activeTab}_${debouncedSearch.trim().toLowerCase()}`;
+  const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
+    queryKey,
+    () => getBookings(activeTab, debouncedSearch),
+    { ttl: 2 * 60 * 1000 }
+  );
+
+  const bookings = data || [];
 
   const handleOpenEdit = (booking) => {
     setSelectedBooking(booking);
@@ -67,9 +59,11 @@ export default function AdminBookingsPage() {
     setSaving(true);
     try {
       const updated = await updateBookingStatus(selectedBooking.id, editStatus, editNotes);
-      setBookings((prev) =>
-        prev.map((b) => (b.id === updated.id ? updated : b))
+      mutate((prev) =>
+        prev ? prev.map((b) => (b.id === updated.id ? updated : b)) : [updated]
       );
+      // Invalidate dashboard metrics cache so stats reflect status change
+      adminCache.invalidate('admin_dashboard');
       setSelectedBooking(null);
     } catch (err) {
       alert("Failed to update booking status.");
@@ -79,8 +73,7 @@ export default function AdminBookingsPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -91,11 +84,12 @@ export default function AdminBookingsPage() {
             </p>
           </div>
           <button
-            onClick={fetchBookingsList}
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh'}</span>
           </button>
         </div>
 
@@ -333,6 +327,5 @@ export default function AdminBookingsPage() {
         )}
 
       </div>
-    </AdminLayout>
   );
 }

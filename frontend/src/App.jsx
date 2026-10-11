@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminCustomersPage from './pages/AdminCustomersPage';
 import AdminBookingsPage from './pages/AdminBookingsPage';
@@ -29,71 +30,24 @@ export default function App() {
       {/* Admin Authentication */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
-      {/* Admin Protected Routes */}
+      {/* Admin Protected Routes with Persistent AdminLayout */}
       <Route
         path="/admin"
         element={
           <ProtectedAdminRoute>
-            <AdminDashboardPage />
+            <AdminLayout />
           </ProtectedAdminRoute>
         }
-      />
-      <Route
-        path="/admin/customers"
-        element={
-          <ProtectedAdminRoute>
-            <AdminCustomersPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/bookings"
-        element={
-          <ProtectedAdminRoute>
-            <AdminBookingsPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/slider"
-        element={
-          <ProtectedAdminRoute>
-            <AdminSliderPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/whatsapp"
-        element={
-          <ProtectedAdminRoute>
-            <AdminWhatsAppPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/offers"
-        element={
-          <ProtectedAdminRoute>
-            <AdminOffersPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/logs"
-        element={
-          <ProtectedAdminRoute>
-            <AdminLogsPage />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/settings"
-        element={
-          <ProtectedAdminRoute>
-            <AdminSettingsPage />
-          </ProtectedAdminRoute>
-        }
-      />
+      >
+        <Route index element={<AdminDashboardPage />} />
+        <Route path="customers" element={<AdminCustomersPage />} />
+        <Route path="bookings" element={<AdminBookingsPage />} />
+        <Route path="slider" element={<AdminSliderPage />} />
+        <Route path="whatsapp" element={<AdminWhatsAppPage />} />
+        <Route path="offers" element={<AdminOffersPage />} />
+        <Route path="logs" element={<AdminLogsPage />} />
+        <Route path="settings" element={<AdminSettingsPage />} />
+      </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

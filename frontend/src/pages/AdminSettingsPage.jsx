@@ -17,7 +17,6 @@ import {
   ExternalLink,
   Trash2
 } from 'lucide-react';
-import AdminLayout from '../components/AdminLayout';
 import { 
   getAdminSettings, 
   updateAdminSettings, 
@@ -25,11 +24,17 @@ import {
   updateAdminCredentials 
 } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminSettingsPage() {
   const { refreshSettings: refreshGlobalSettings } = useSiteSettings();
 
-  const [loading, setLoading] = useState(true);
+  const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
+    'admin_site_settings',
+    getAdminSettings,
+    { ttl: 3 * 60 * 1000 }
+  );
+
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
   const [settingsError, setSettingsError] = useState('');
@@ -61,28 +66,17 @@ export default function AdminSettingsPage() {
   const [credMsg, setCredMsg] = useState('');
   const [credError, setCredError] = useState('');
 
-  const loadSettings = async () => {
-    setLoading(true);
-    setSettingsError('');
-    try {
-      const data = await getAdminSettings();
+  // Sync settings when data changes
+  useEffect(() => {
+    if (data) {
       setSupportPhone(data.support_phone || '+91 98765 43210');
       setWhatsappNumber(data.whatsapp_number || '919876543210');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
       setCurrentUsername(data.admin_username || 'admin');
-    } catch (err) {
-      console.error("Failed to load admin settings:", err);
-      setSettingsError("Failed to fetch settings from server.");
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
+  }, [data]);
 
   // Handle saving general site settings (phone, whatsapp, logo, favicon, hint)
   const handleSaveSiteSettings = async (e) => {
@@ -92,13 +86,15 @@ export default function AdminSettingsPage() {
     setSettingsError('');
 
     try {
-      await updateAdminSettings({
+      const payload = {
         support_phone: supportPhone,
         whatsapp_number: whatsappNumber,
         site_logo_url: siteLogoUrl,
         site_favicon_url: siteFaviconUrl,
         show_credentials_hint: showCredentialsHint
-      });
+      };
+      await updateAdminSettings(payload);
+      mutate((prev) => ({ ...prev, ...payload }));
       await refreshGlobalSettings();
       setSettingsSavedMsg('Site settings updated and published successfully!');
       setTimeout(() => setSettingsSavedMsg(''), 4000);
@@ -192,8 +188,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl">
         
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -204,12 +199,12 @@ export default function AdminSettingsPage() {
             </p>
           </div>
           <button
-            onClick={loadSettings}
-            disabled={loading}
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
             className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Reload</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Reload'}</span>
           </button>
         </div>
 
@@ -683,6 +678,5 @@ export default function AdminSettingsPage() {
         </div>
 
       </div>
-    </AdminLayout>
   );
 }
