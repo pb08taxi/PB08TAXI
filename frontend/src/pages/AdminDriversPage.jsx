@@ -31,6 +31,17 @@ import {
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 
+const DEFAULT_PRESET_CARS = [
+  { id: 'c1', name: 'Swift Dzire', category: 'Sedan', seating_capacity: '4+1 Seater', is_active: true },
+  { id: 'c2', name: 'Toyota Innova Crysta', category: 'SUV', seating_capacity: '6+1 Seater', is_active: true },
+  { id: 'c3', name: 'Maruti Ertiga', category: 'SUV', seating_capacity: '6+1 Seater', is_active: true },
+  { id: 'c4', name: 'Hyundai Aura', category: 'Sedan', seating_capacity: '4+1 Seater', is_active: true },
+  { id: 'c5', name: 'Honda City', category: 'Sedan', seating_capacity: '4+1 Seater', is_active: true },
+  { id: 'c6', name: 'Mahindra Scorpio', category: 'SUV', seating_capacity: '7+1 Seater', is_active: true },
+  { id: 'c7', name: 'Toyota Fortuner', category: 'Luxury', seating_capacity: '6+1 Seater', is_active: true },
+  { id: 'c8', name: 'Tempo Traveller', category: 'Tempo Traveller', seating_capacity: '12+1 Seater', is_active: true },
+];
+
 export default function AdminDriversPage() {
   const { showSuccess, showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,7 +66,7 @@ export default function AdminDriversPage() {
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   // Fleet Cars Management States
-  const [carsList, setCarsList] = useState([]);
+  const [carsList, setCarsList] = useState(DEFAULT_PRESET_CARS);
   const [loadingCars, setLoadingCars] = useState(false);
   const [isCarsModalOpen, setIsCarsModalOpen] = useState(false);
   const [carSearchTerm, setCarSearchTerm] = useState('');
@@ -77,9 +88,14 @@ export default function AdminDriversPage() {
     try {
       setLoadingCars(true);
       const data = await getFleetCars();
-      setCarsList(data || []);
+      if (Array.isArray(data) && data.length > 0) {
+        setCarsList(data);
+      } else {
+        setCarsList(DEFAULT_PRESET_CARS);
+      }
     } catch (err) {
-      console.warn("Could not fetch fleet cars:", err);
+      console.warn("Could not fetch fleet cars, using catalog presets:", err);
+      setCarsList((prev) => (prev && prev.length > 0 ? prev : DEFAULT_PRESET_CARS));
     } finally {
       setLoadingCars(false);
     }
@@ -189,9 +205,11 @@ export default function AdminDriversPage() {
         showSuccess(`New car model "${created.name}" added to fleet!`, 'Car Added');
       }
       handleOpenAddCar();
-      refresh();
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Failed to save car model.';
+      const is405 = err.response?.status === 405 || (typeof err.response?.data?.detail === 'string' && err.response.data.detail.toLowerCase().includes('method not allowed'));
+      const msg = is405 
+        ? 'Render API sync in progress. Please click "Manual Deploy > Deploy latest commit" on your Render dashboard and refresh in 2 minutes.'
+        : (err.response?.data?.detail || 'Failed to save car model.');
       setCarFormError(msg);
       showError(msg, 'Save Error');
     } finally {
@@ -209,7 +227,11 @@ export default function AdminDriversPage() {
       setDeletingCar(null);
       refresh();
     } catch (err) {
-      showError(err.response?.data?.detail || 'Failed to remove car model.', 'Delete Error');
+      const is405 = err.response?.status === 405;
+      const msg = is405
+        ? 'Render API sync in progress. Please deploy latest commit on Render.'
+        : (err.response?.data?.detail || 'Failed to remove car model.');
+      showError(msg, 'Delete Error');
     } finally {
       setDeleteCarSubmitting(false);
     }

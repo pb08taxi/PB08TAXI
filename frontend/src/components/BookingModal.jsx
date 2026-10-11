@@ -38,6 +38,17 @@ export const POPULAR_COUNTRY_CODES = [
   { code: 'OTHER', flag: '🌐', label: 'Other (+...)' },
 ];
 
+export const DEFAULT_PRESET_CARS = [
+  { id: 'c1', name: 'Swift Dzire', category: 'Sedan', seating_capacity: '4+1 Seater' },
+  { id: 'c2', name: 'Toyota Innova Crysta', category: 'SUV', seating_capacity: '6+1 Seater' },
+  { id: 'c3', name: 'Maruti Ertiga', category: 'SUV', seating_capacity: '6+1 Seater' },
+  { id: 'c4', name: 'Hyundai Aura', category: 'Sedan', seating_capacity: '4+1 Seater' },
+  { id: 'c5', name: 'Honda City', category: 'Sedan', seating_capacity: '4+1 Seater' },
+  { id: 'c6', name: 'Mahindra Scorpio', category: 'SUV', seating_capacity: '7+1 Seater' },
+  { id: 'c7', name: 'Toyota Fortuner', category: 'Luxury', seating_capacity: '6+1 Seater' },
+  { id: 'c8', name: 'Tempo Traveller', category: 'Tempo Traveller', seating_capacity: '12+1 Seater' },
+];
+
 export default function BookingModal({ isOpen, onClose }) {
   const { showSuccess, showError } = useToast();
   const { settings } = useSiteSettings();
@@ -68,7 +79,7 @@ export default function BookingModal({ isOpen, onClose }) {
   });
 
   // Fleet Cars selection & search state
-  const [fleetCars, setFleetCars] = useState([]);
+  const [fleetCars, setFleetCars] = useState(DEFAULT_PRESET_CARS);
   const [loadingFleetCars, setLoadingFleetCars] = useState(false);
   const [carSearchQuery, setCarSearchQuery] = useState('');
   const [isCarPickerOpen, setIsCarPickerOpen] = useState(false);
@@ -80,11 +91,14 @@ export default function BookingModal({ isOpen, onClose }) {
         try {
           setLoadingFleetCars(true);
           const data = await getPublicFleetCars();
-          if (isMounted && Array.isArray(data)) {
+          if (isMounted && Array.isArray(data) && data.length > 0) {
             setFleetCars(data);
+          } else if (isMounted) {
+            setFleetCars(DEFAULT_PRESET_CARS);
           }
         } catch (e) {
-          console.warn("Could not load fleet cars for booking modal:", e);
+          console.warn("Could not load fleet cars for booking modal, using presets:", e);
+          if (isMounted) setFleetCars(DEFAULT_PRESET_CARS);
         } finally {
           if (isMounted) setLoadingFleetCars(false);
         }
