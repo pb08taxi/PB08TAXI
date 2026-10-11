@@ -72,8 +72,12 @@ export const uploadSliderImage = (file) => {
 // Admin WhatsApp Settings & Offers
 export const getWhatsAppStatus = () => api.get('/api/admin/whatsapp/status').then(r => r.data);
 export const connectWhatsApp = () => api.post('/api/admin/whatsapp/connect').then(r => r.data);
+export const refreshWhatsAppQR = () => api.post('/api/admin/whatsapp/refresh-qr').then(r => r.data);
 export const getWhatsAppQR = () => api.get('/api/admin/whatsapp/qr').then(r => r.data);
 export const disconnectWhatsApp = () => api.post('/api/admin/whatsapp/disconnect').then(r => r.data);
+export const logoutWhatsApp = () => api.post('/api/admin/whatsapp/logout').then(r => r.data);
+export const getWhatsAppAdminSettings = () => api.get('/api/admin/whatsapp/settings').then(r => r.data);
+export const updateWhatsAppAdminSettings = (payload) => api.post('/api/admin/whatsapp/settings', payload).then(r => r.data);
 export const sendTestMessage = (phone, message) => 
   api.post('/api/admin/whatsapp/test-message', { phone, message }).then(r => r.data);
 export const getEligibleOffersCount = () => api.get('/api/admin/whatsapp/offers/eligible-count').then(r => r.data);

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
-from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage
+from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting
 from app.schemas import BookingCreate, BookingOut, SliderImageOut
 from app.services.whatsapp_service import whatsapp_service
 
@@ -124,7 +124,43 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
         customer_id=customer.id
     )
 
-    # 5. Return booking details with customer info
+    # 5. Automated WhatsApp Notification Alert for Admin
+    try:
+        admin_phone_setting = db.query(SystemSetting).filter(SystemSetting.key == "admin_alert_whatsapp_number").first()
+        admin_enabled_setting = db.query(SystemSetting).filter(SystemSetting.key == "admin_alert_whatsapp_enabled").first()
+
+        is_admin_alert_enabled = True
+        if admin_enabled_setting and admin_enabled_setting.value is not None:
+            is_admin_alert_enabled = admin_enabled_setting.value.lower() in ("true", "1", "yes")
+
+        admin_target_phone = admin_phone_setting.value.strip() if admin_phone_setting and admin_phone_setting.value else None
+
+        if is_admin_alert_enabled and admin_target_phone:
+            booking_time_str = booking.created_at.strftime("%d-%b-%Y, %I:%M %p")
+            admin_alert_text = (
+                f"🚖 *PB08 TAXI — New Booking Alert!*\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                f"👤 *Customer Name:* {customer.name}\n"
+                f"📞 *Contact Number:* {customer.whatsapp_number}\n"
+                f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}\n"
+                f"🏁 *Destination:* {booking.destination or 'Not specified'}\n"
+                f"⏰ *Date & Time:* {booking_time_str}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"👉 _Please contact customer promptly to confirm the booking._"
+            )
+            await whatsapp_service.send_text_message(
+                db=db,
+                phone=admin_target_phone,
+                message=admin_alert_text,
+                message_type="ADMIN_BOOKING_ALERT",
+                customer_id=customer.id
+            )
+    except Exception:
+        # Gracefully handle any admin alert issue without blocking customer booking
+        pass
+
+    # 6. Return booking details with customer info
     return BookingOut(
         id=booking.id,
         booking_reference=booking.booking_reference,

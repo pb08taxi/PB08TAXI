@@ -124,9 +124,18 @@ class WhatsAppStatusOut(BaseModel):
     connected: bool
     status: str  # connected, qr_ready, disconnected, starting, offline
     session_id: Optional[str] = None
+    phone: Optional[str] = None
     qr_code: Optional[str] = None
     details: Optional[str] = None
     provider: str = "OpenWA"
+
+class WhatsAppSettingsIn(BaseModel):
+    admin_alert_whatsapp_number: Optional[str] = None
+    admin_alert_whatsapp_enabled: bool = True
+
+class WhatsAppSettingsOut(BaseModel):
+    admin_alert_whatsapp_number: Optional[str] = None
+    admin_alert_whatsapp_enabled: bool = True
 
 class DashboardStats(BaseModel):
     total_customers: int

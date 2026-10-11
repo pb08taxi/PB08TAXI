@@ -4,6 +4,7 @@ backend/.env
 frontend/.env
 frontend/.env.local
 frontend/.env.production
+PB08TAXI.txt
 
 # Dependencies
 node_modules/

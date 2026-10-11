@@ -287,6 +287,26 @@ export default function AdminSettingsPage() {
                 </p>
               </div>
 
+              {/* Quick Link to WhatsApp Admin Booking Alerts */}
+              <div className="md:col-span-2 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-taxi-yellow/10 text-taxi-yellow flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">Automated Admin Booking WhatsApp Alerts</p>
+                    <p className="text-[11px] text-zinc-400">Configure admin mobile number to receive instant WhatsApp alerts with full customer and trip details.</p>
+                  </div>
+                </div>
+                <a
+                  href="/admin/whatsapp"
+                  className="inline-flex items-center space-x-1.5 bg-zinc-800 hover:bg-zinc-750 text-taxi-yellow px-4 py-2 rounded-xl text-xs font-bold transition-all border border-zinc-700 self-start sm:self-auto hover:border-taxi-yellow"
+                >
+                  <span>WhatsApp Settings</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
             </div>
           </div>
 
