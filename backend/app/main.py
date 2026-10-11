@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -81,6 +82,37 @@ def initialize_database():
     finally:
         db.close()
 
+import asyncio
+import httpx
+
+async def keep_alive_background_worker():
+    """
+    Background worker that runs every 10 minutes to cross-ping
+    the OpenWA WhatsApp gateway and the backend itself to keep services active.
+    """
+    await asyncio.sleep(60)  # Wait 1 minute after boot before starting pings
+    openwa_health = f"{settings.OPENWA_BASE_URL.rstrip('/')}/health"
+    backend_health = "https://pb08-taxi-api.onrender.com/api/health"
+
+    while True:
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                try:
+                    res_wa = await client.get(openwa_health)
+                    print(f"[KeepAlive] Pinged OpenWA: HTTP {res_wa.status_code}")
+                except Exception as ex:
+                    print(f"[KeepAlive] OpenWA ping notice: {ex}")
+
+                try:
+                    res_be = await client.get(backend_health)
+                    print(f"[KeepAlive] Pinged Backend: HTTP {res_be.status_code}")
+                except Exception as ex:
+                    print(f"[KeepAlive] Backend ping notice: {ex}")
+        except Exception as e:
+            print(f"[KeepAlive] Worker loop exception: {e}")
+
+        await asyncio.sleep(600)  # Ping every 10 minutes (600s)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: ensure tables and seed initial data
@@ -88,7 +120,18 @@ async def lifespan(app: FastAPI):
         initialize_database()
     except Exception as e:
         print(f"[PB08 TAXI] Warning during startup database init: {e}")
+
+    # Start 24/7 background keep-alive task
+    bg_task = asyncio.create_task(keep_alive_background_worker())
+
     yield
+
+    # Graceful shutdown
+    bg_task.cancel()
+    try:
+        await bg_task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(
     title="PB08 TAXI API",
@@ -128,5 +171,32 @@ def root():
     return {
         "message": "Welcome to PB08 TAXI API Gateway",
         "docs": "/docs",
-        "health": "/api/health"
+        "health": "/api/health",
+        "keepalive": "/api/keepalive"
     }
+
+@app.get("/api/keepalive")
+async def keepalive():
+    """
+    Public 24/7 Keep-Alive heartbeat endpoint.
+    When pinged, it keeps the backend alive and actively pings OpenWA to keep it awake too.
+    """
+    openwa_health = f"{settings.OPENWA_BASE_URL.rstrip('/')}/health"
+    wa_status = "offline"
+    wa_code = 0
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(openwa_health)
+            wa_code = res.status_code
+            wa_status = "online" if res.status_code == 200 else f"http_{res.status_code}"
+    except Exception as e:
+        wa_status = f"unreachable: {str(e)}"
+
+    return {
+        "status": "awake",
+        "backend": "online",
+        "openwa_gateway": wa_status,
+        "openwa_code": wa_code,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
