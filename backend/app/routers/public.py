@@ -234,5 +234,5 @@ async def create_booking(
         status=booking.status,
         notes=booking.notes,
         created_at=booking.created_at,
-        whatsapp_status="SENT" if wa_success else "FAILED"
+        whatsapp_status="PENDING"
     )
