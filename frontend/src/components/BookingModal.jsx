@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { createBooking } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -38,6 +39,8 @@ export const POPULAR_COUNTRY_CODES = [
 
 export default function BookingModal({ isOpen, onClose }) {
   const { showSuccess, showError } = useToast();
+  const { settings } = useSiteSettings();
+  const modalAnimation = settings?.booking_modal_animation || 'golden-glow';
   const getTodayDateString = () => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -184,8 +187,47 @@ export default function BookingModal({ isOpen, onClose }) {
         onClick={handleReset}
       />
 
-      {/* Modal Dialog */}
-      <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-white z-10 animate-pulse-subtle max-h-[92vh] overflow-y-auto">
+      {/* Outer Wrapper for Dialog + Ambient Animation Presets */}
+      <div className="relative max-w-lg w-full z-10 my-auto">
+        {/* Outer Background Animation Layer (Applied exclusively outside; inner form stays 100% stable) */}
+        {modalAnimation === 'golden-glow' && (
+          <>
+            <div className="absolute -inset-3 sm:-inset-5 bg-gradient-to-r from-taxi-yellow/45 via-amber-400/40 to-yellow-500/45 rounded-[36px] animate-outer-golden-glow pointer-events-none -z-10" />
+            <div className="absolute -inset-1 bg-taxi-yellow/20 rounded-3xl blur-md pointer-events-none -z-10" />
+          </>
+        )}
+
+        {modalAnimation === 'cyber-neon' && (
+          <>
+            <div className="absolute -inset-1 sm:-inset-1.5 rounded-[28px] p-[2px] overflow-hidden pointer-events-none -z-10">
+              <div className="absolute -inset-[150%] animate-cyber-neon-spin bg-[conic-gradient(from_0deg,#FACC15,#EAB308,#CA8A04,#121212,#FACC15)]" />
+            </div>
+            <div className="absolute -inset-4 bg-taxi-yellow/25 rounded-[34px] blur-xl animate-pulse pointer-events-none -z-10" />
+          </>
+        )}
+
+        {modalAnimation === 'ambient-breath' && (
+          <>
+            <div className="absolute -inset-6 sm:-inset-10 bg-gradient-to-br from-taxi-yellow/35 via-amber-600/20 to-yellow-500/30 rounded-[44px] animate-ambient-deep-breath pointer-events-none -z-10" />
+          </>
+        )}
+
+        {modalAnimation === 'radar-ripple' && (
+          <>
+            <div className="absolute -inset-2 sm:-inset-3 rounded-3xl border-2 border-taxi-yellow/50 animate-radar-ripple-1 pointer-events-none -z-10" />
+            <div className="absolute -inset-2 sm:-inset-3 rounded-3xl border border-amber-400/40 animate-radar-ripple-2 pointer-events-none -z-10" />
+            <div className="absolute -inset-4 bg-taxi-yellow/15 rounded-3xl blur-xl pointer-events-none -z-10" />
+          </>
+        )}
+
+        {modalAnimation === 'aurora-shimmer' && (
+          <>
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-yellow-400/50 via-amber-500/40 via-yellow-200/40 to-amber-600/50 rounded-[38px] blur-2xl animate-aurora-shimmer pointer-events-none -z-10" />
+          </>
+        )}
+
+        {/* Modal Dialog Card (100% Solid & Stable — No scaling, jitter, or pulse!) */}
+        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-6 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
         
         {/* Top Checker Pattern Accent */}
         <div className="absolute top-0 left-8 right-8 h-1.5 taxi-checker rounded-t-full" />
@@ -557,6 +599,7 @@ export default function BookingModal({ isOpen, onClose }) {
           </div>
         )}
 
+        </div>
       </div>
     </div>
   );

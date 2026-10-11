@@ -47,3 +47,113 @@
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
+/* ==========================================================================
+   BOOKING MODAL OUTER ANIMATION PRESETS
+   (Applied exclusively to outer halo / perimeter; form itself stays 100% static)
+   ========================================================================== */
+
+/* 1. Golden Aura Glow */
+@keyframes outerGoldenGlow {
+  0%, 100% {
+    opacity: 0.45;
+    filter: blur(24px);
+    transform: scale(0.99);
+  }
+  50% {
+    opacity: 0.95;
+    filter: blur(36px);
+    transform: scale(1.04);
+  }
+}
+.animate-outer-golden-glow {
+  animation: outerGoldenGlow 3s ease-in-out infinite;
+  will-change: opacity, filter, transform;
+}
+
+/* 2. Cyber Neon Border Flow */
+@keyframes cyberNeonSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.animate-cyber-neon-spin {
+  animation: cyberNeonSpin 5s linear infinite;
+  will-change: transform;
+}
+
+/* 3. Ambient Deep Breath */
+@keyframes ambientDeepBreath {
+  0%, 100% {
+    opacity: 0.3;
+    filter: blur(30px);
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.85;
+    filter: blur(52px);
+    transform: scale(1.06);
+  }
+}
+.animate-ambient-deep-breath {
+  animation: ambientDeepBreath 4.5s ease-in-out infinite;
+  will-change: opacity, filter, transform;
+}
+
+/* 4. Radar Ripple Waves */
+@keyframes radarRipple1 {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+@keyframes radarRipple2 {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.65;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+.animate-radar-ripple-1 {
+  animation: radarRipple1 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  will-change: opacity, transform;
+}
+.animate-radar-ripple-2 {
+  animation: radarRipple2 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite 1.4s;
+  will-change: opacity, transform;
+}
+
+/* 5. Aurora Gold & Amber Shimmer */
+@keyframes auroraShimmerShift {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.45;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.9;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.45;
+  }
+}
+.animate-aurora-shimmer {
+  background-size: 250% 250%;
+  animation: auroraShimmerShift 5s ease-in-out infinite;
+  will-change: background-position, opacity;
+}
+

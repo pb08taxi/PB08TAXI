@@ -244,6 +244,7 @@ class SiteSettingsOut(BaseModel):
     brand_title: str = "PB08 TAXI"
     brand_tagline: str = "Fast • Safe • Reliable"
     show_credentials_hint: bool = True
+    booking_modal_animation: str = "golden-glow"
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -253,6 +254,7 @@ class SiteSettingsUpdate(BaseModel):
     brand_title: Optional[str] = None
     brand_tagline: Optional[str] = None
     show_credentials_hint: Optional[bool] = None
+    booking_modal_animation: Optional[str] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod

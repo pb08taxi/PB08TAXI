@@ -20,7 +20,9 @@ import {
   KeyRound,
   X,
   Car,
-  Type
+  Type,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { 
   getAdminSettings, 
@@ -32,6 +34,45 @@ import {
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { useToast } from '../context/ToastContext';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+
+export const MODAL_ANIMATION_OPTIONS = [
+  {
+    id: 'golden-glow',
+    name: 'Golden Aura Glow (Default)',
+    tag: 'Recommended',
+    description: 'Pulsing warm golden halo radiating outside the modal perimeter. Rich, elegant, and matches PB08 TAXI yellow theme.',
+  },
+  {
+    id: 'cyber-neon',
+    name: 'Cyber Neon Flow',
+    tag: 'High Energy',
+    description: 'Circulating vibrant neon border stream with rotating angular light. Modern futuristic vibe.',
+  },
+  {
+    id: 'ambient-breath',
+    name: 'Ambient Deep Breath',
+    tag: 'Luxury',
+    description: 'Soft, deep breathing backdrop aura with expanded blur. Smooth luxury vehicle ambient lighting effect.',
+  },
+  {
+    id: 'radar-ripple',
+    name: 'Radar Pulse Waves',
+    tag: 'Dynamic',
+    description: 'Concentric animated ripple waves expanding smoothly into the backdrop behind the form.',
+  },
+  {
+    id: 'aurora-shimmer',
+    name: 'Aurora Amber & Gold',
+    tag: 'Shimmering',
+    description: 'Multi-toned golden & amber gradient aurora shimmer sweeping gracefully outside the card.',
+  },
+  {
+    id: 'none',
+    name: 'Static Clean (No Motion)',
+    tag: 'Minimalist',
+    description: 'Zero outer animation. Crisp, stationary dark container with sleek subtle border and shadow.',
+  }
+];
 
 export default function AdminSettingsPage() {
   const { refreshSettings: refreshGlobalSettings, updateLocalSettings } = useSiteSettings();
@@ -53,6 +94,7 @@ export default function AdminSettingsPage() {
   const [brandTitle, setBrandTitle] = useState('PB08 TAXI');
   const [brandTagline, setBrandTagline] = useState('Fast • Safe • Reliable');
   const [showCredentialsHint, setShowCredentialsHint] = useState(false);
+  const [bookingModalAnimation, setBookingModalAnimation] = useState('golden-glow');
 
   // Upload loaders
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -89,11 +131,12 @@ export default function AdminSettingsPage() {
       setBrandTitle(data.brand_title || 'PB08 TAXI');
       setBrandTagline(data.brand_tagline || 'Fast • Safe • Reliable');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
+      setBookingModalAnimation(data.booking_modal_animation || 'golden-glow');
       setCurrentUsername(data.admin_username || 'admin');
     }
   }, [data]);
 
-  // Handle saving general site settings (phone, whatsapp, logo, favicon, brand text, hint)
+  // Handle saving general site settings (phone, whatsapp, logo, favicon, brand text, hint, animation)
   const handleSaveSiteSettings = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -117,7 +160,8 @@ export default function AdminSettingsPage() {
         site_favicon_url: siteFaviconUrl,
         brand_title: brandTitle.trim() || 'PB08 TAXI',
         brand_tagline: brandTagline.trim() || 'Fast • Safe • Reliable',
-        show_credentials_hint: showCredentialsHint
+        show_credentials_hint: showCredentialsHint,
+        booking_modal_animation: bookingModalAnimation
       };
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
@@ -562,7 +606,136 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Form 3: Login Page Credentials Hint Display */}
+          {/* Form 3: Booking Modal Outer Animation Presets */}
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <Sparkles className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Booking Modal Outer Animation Presets</h2>
+                <p className="text-xs text-zinc-400">
+                  Select the ambient halo or neon aura style displayed outside the booking form. The inner form stays 100% static & stable.
+                </p>
+              </div>
+            </div>
+
+            {/* Animation Options Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {MODAL_ANIMATION_OPTIONS.map((opt) => {
+                const isSelected = bookingModalAnimation === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setBookingModalAnimation(opt.id)}
+                    className={`relative cursor-pointer rounded-2xl p-4 transition-all border flex flex-col justify-between select-none ${
+                      isSelected
+                        ? 'bg-taxi-yellow/10 border-taxi-yellow shadow-lg shadow-taxi-yellow/10 ring-1 ring-taxi-yellow/40'
+                        : 'bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+                    }`}
+                  >
+                    {/* Header: Title + Tag + Radio Check */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-black text-white flex items-center space-x-1.5">
+                          <span>{opt.name}</span>
+                        </span>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
+                          isSelected ? 'bg-taxi-yellow border-taxi-yellow text-black' : 'border-zinc-700 text-transparent'
+                        }`}>
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      </div>
+
+                      <div className="mb-2.5">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${
+                          isSelected ? 'bg-taxi-yellow/20 text-taxi-yellow' : 'bg-zinc-800 text-zinc-400'
+                        }`}>
+                          {opt.tag}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-zinc-400 leading-relaxed mb-4 min-h-[38px]">
+                        {opt.description}
+                      </p>
+                    </div>
+
+                    {/* Live Miniature Simulation Box */}
+                    <div className="h-28 bg-black/95 rounded-xl relative overflow-hidden flex items-center justify-center border border-zinc-850 p-2">
+                      {/* Outer Animation Effect on mini-box */}
+                      {opt.id === 'golden-glow' && (
+                        <>
+                          <div className="absolute -inset-1 bg-gradient-to-r from-taxi-yellow/60 via-amber-400/50 to-yellow-500/60 rounded-xl animate-outer-golden-glow pointer-events-none blur-sm" />
+                          <div className="absolute -inset-0.5 bg-taxi-yellow/20 rounded-xl blur-xs pointer-events-none" />
+                        </>
+                      )}
+
+                      {opt.id === 'cyber-neon' && (
+                        <>
+                          <div className="absolute -inset-0.5 rounded-xl p-[2px] overflow-hidden pointer-events-none">
+                            <div className="absolute -inset-[150%] animate-cyber-neon-spin bg-[conic-gradient(from_0deg,#FACC15,#EAB308,#CA8A04,#121212,#FACC15)]" />
+                          </div>
+                          <div className="absolute -inset-2 bg-taxi-yellow/20 rounded-xl blur-md animate-pulse pointer-events-none" />
+                        </>
+                      )}
+
+                      {opt.id === 'ambient-breath' && (
+                        <>
+                          <div className="absolute -inset-2 bg-gradient-to-br from-taxi-yellow/45 via-amber-600/30 to-yellow-500/40 rounded-xl animate-ambient-deep-breath pointer-events-none blur-md" />
+                        </>
+                      )}
+
+                      {opt.id === 'radar-ripple' && (
+                        <>
+                          <div className="absolute -inset-0.5 rounded-xl border border-taxi-yellow/70 animate-radar-ripple-1 pointer-events-none" />
+                          <div className="absolute -inset-0.5 rounded-xl border border-amber-400/50 animate-radar-ripple-2 pointer-events-none" />
+                          <div className="absolute -inset-1 bg-taxi-yellow/15 rounded-xl blur-sm pointer-events-none" />
+                        </>
+                      )}
+
+                      {opt.id === 'aurora-shimmer' && (
+                        <>
+                          <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400/60 via-amber-500/50 via-yellow-200/50 to-amber-600/60 rounded-xl blur-md animate-aurora-shimmer pointer-events-none" />
+                        </>
+                      )}
+
+                      {/* Mini Static Form Card (Stationary) */}
+                      <div className="relative z-10 w-32 bg-[#121212] border border-zinc-700/80 rounded-lg p-2 shadow-md flex flex-col space-y-1.5 pointer-events-none">
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2.5 h-2.5 rounded bg-taxi-yellow" />
+                          <div className="w-12 h-1.5 bg-zinc-600 rounded" />
+                        </div>
+                        <div className="w-full h-2 bg-zinc-800 rounded border border-zinc-700/50" />
+                        <div className="w-full h-2 bg-zinc-800 rounded border border-zinc-700/50" />
+                        <div className="w-full h-2.5 bg-taxi-yellow/90 rounded flex items-center justify-center">
+                          <div className="w-8 h-1 bg-black/60 rounded" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[11px]">
+                      <span className={isSelected ? 'text-taxi-yellow font-bold' : 'text-zinc-500'}>
+                        {isSelected ? '● Active Preset' : 'Click to Select'}
+                      </span>
+                      <span className="text-zinc-600 font-mono text-[10px]">
+                        #{opt.id}
+                      </span>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-850 flex items-start space-x-3">
+              <Sparkles className="w-4 h-4 text-taxi-yellow mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                <strong className="text-white">Live Feedback Note:</strong> When you click <strong className="text-taxi-yellow">"Save Site Settings"</strong> below, your selected outer animation preset will immediately reflect across the entire site for the <strong className="text-white">"One Click Book Your Ride"</strong> modal without requiring any page reload.
+              </p>
+            </div>
+          </div>
+
+          {/* Form 4: Login Page Credentials Hint Display */}
           <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-4">
             <div className="flex items-center space-x-3 pb-3 border-b border-zinc-850">
               <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">

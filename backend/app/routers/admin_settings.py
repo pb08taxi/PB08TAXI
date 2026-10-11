@@ -49,7 +49,7 @@ def _set_setting_val(db: Session, key: str, val: str):
 
 @router.get("/site-settings", response_model=SiteSettingsOut)
 def get_public_site_settings(db: Session = Depends(get_db)):
-    """Public endpoint to fetch current contact info, logo, favicon, brand title, tagline, and login hint config."""
+    """Public endpoint to fetch current contact info, logo, favicon, brand title, tagline, login hint config, and booking animation."""
     support_phone = _get_setting_val(db, "support_phone", settings_cfg.SUPPORT_PHONE)
     whatsapp_number = _get_setting_val(db, "whatsapp_number", settings_cfg.SUPPORT_WHATSAPP)
     site_logo_url = _get_setting_val(db, "site_logo_url", "")
@@ -58,6 +58,7 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     brand_tagline = _get_setting_val(db, "brand_tagline", "Fast • Safe • Reliable")
     show_hint_str = _get_setting_val(db, "show_credentials_hint", "false").lower()
     show_credentials_hint = show_hint_str in ("true", "1", "yes")
+    booking_modal_animation = _get_setting_val(db, "booking_modal_animation", "golden-glow")
 
     return SiteSettingsOut(
         support_phone=support_phone,
@@ -66,7 +67,8 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         site_favicon_url=site_favicon_url or None,
         brand_title=brand_title or "PB08 TAXI",
         brand_tagline=brand_tagline or "Fast • Safe • Reliable",
-        show_credentials_hint=show_credentials_hint
+        show_credentials_hint=show_credentials_hint,
+        booking_modal_animation=booking_modal_animation or "golden-glow"
     )
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
@@ -88,7 +90,7 @@ def update_admin_site_settings(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Admin endpoint to update phone numbers, logo/favicon URLs, brand texts, and login hint display."""
+    """Admin endpoint to update phone numbers, logo/favicon URLs, brand texts, login hint display, and booking modal animation."""
     if payload.support_phone is not None:
         _set_setting_val(db, "support_phone", payload.support_phone.strip())
     
@@ -111,6 +113,9 @@ def update_admin_site_settings(
         
     if payload.show_credentials_hint is not None:
         _set_setting_val(db, "show_credentials_hint", "true" if payload.show_credentials_hint else "false")
+
+    if payload.booking_modal_animation is not None:
+        _set_setting_val(db, "booking_modal_animation", payload.booking_modal_animation.strip() or "golden-glow")
 
     return get_public_site_settings(db)
 
@@ -373,6 +378,7 @@ def factory_reset_system(
         db.add(SystemSetting(key="show_credentials_hint", value="false", updated_at=datetime.utcnow()))
         db.add(SystemSetting(key="admin_alert_whatsapp_enabled", value="true", updated_at=datetime.utcnow()))
         db.add(SystemSetting(key="admin_alert_whatsapp_number", value="", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="booking_modal_animation", value="golden-glow", updated_at=datetime.utcnow()))
 
         if saved_session_id:
             db.add(SystemSetting(key="openwa_session_id", value=saved_session_id, updated_at=datetime.utcnow()))
