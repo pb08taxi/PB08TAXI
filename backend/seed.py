@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import engine, Base, SessionLocal
-from app.models import AdminUser, SliderImage
+from app.models import AdminUser, SliderImage, FleetCar
 from app.config import get_settings
 from app.security import hash_password
 
@@ -65,8 +65,24 @@ def run_seed():
             db.add_all(slides)
             db.commit()
             print(f"[PB08 TAXI] Seeded {len(slides)} default slider images.")
+        # 3. Fleet Cars
+        car_count = db.query(FleetCar).count()
+        if car_count == 0:
+            default_cars = [
+                FleetCar(name="Swift Dzire", category="Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Toyota Innova Crysta", category="SUV", seating_capacity="6+1 Seater", is_active=True),
+                FleetCar(name="Maruti Ertiga", category="SUV", seating_capacity="6+1 Seater", is_active=True),
+                FleetCar(name="Hyundai Aura", category="Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Honda City", category="Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Mahindra Scorpio", category="SUV", seating_capacity="7+1 Seater", is_active=True),
+                FleetCar(name="Toyota Fortuner", category="Luxury", seating_capacity="6+1 Seater", is_active=True),
+                FleetCar(name="Tempo Traveller", category="Tempo Traveller", seating_capacity="12+1 Seater", is_active=True),
+            ]
+            db.add_all(default_cars)
+            db.commit()
+            print(f"[PB08 TAXI] Seeded {len(default_cars)} default fleet car models.")
         else:
-            print(f"[PB08 TAXI] Slider images already exist ({slide_count} slides).")
+            print(f"[PB08 TAXI] Fleet cars already exist ({car_count} models).")
 
         print("[PB08 TAXI] Database initialization and seeding completed successfully!")
     finally:
