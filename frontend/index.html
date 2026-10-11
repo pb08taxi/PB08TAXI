@@ -2,11 +2,99 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FACC15'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z'/></svg>" />
+    <link id="app-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FACC15'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z'/></svg>" />
+    
+    <!-- Instant Zero-Flicker Synchronous Favicon & Brand Hydration -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('pb08_site_settings_cache');
+          if (raw) {
+            var s = JSON.parse(raw);
+            if (s && s.site_favicon_url) {
+              var f = document.getElementById('app-favicon');
+              if (f) f.href = s.site_favicon_url;
+            }
+            if (s && s.brand_title) {
+              document.title = s.brand_title + ' — One Click Book Your Ride | 24/7 Cab Service';
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="PB08 TAXI — Fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation." />
-    <meta name="keywords" content="PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer" />
+    <meta name="keywords" content="PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab" />
     <meta name="theme-color" content="#FACC15" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Geographic SEO for Punjab & Local Search -->
+    <meta name="geo.region" content="IN-PB" />
+    <meta name="geo.placename" content="Jalandhar, Punjab, India" />
+    <meta name="geo.position" content="31.3260;75.5762" />
+    <meta name="ICBM" content="31.3260, 75.5762" />
+
+    <!-- OpenGraph (Facebook, Instagram, WhatsApp, LinkedIn Link Previews) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PB08 TAXI" />
+    <meta property="og:title" content="PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking" />
+    <meta property="og:description" content="Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PB08 TAXI — 24/7 Cab Service in Punjab" />
+    <meta name="twitter:description" content="One-click taxi booking with live WhatsApp confirmation across Punjab & Airports." />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png" />
+
+    <!-- Structured Data (Schema.org JSON-LD for Google Rich Results) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TaxiService",
+      "name": "PB08 TAXI",
+      "url": "https://pb08taxi.com",
+      "logo": "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png",
+      "image": "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png",
+      "description": "Fast, safe, and reliable 24/7 taxi booking service across Jalandhar, Punjab, and major airports.",
+      "telephone": "+919876543210",
+      "priceRange": "₹₹",
+      "currenciesAccepted": "INR",
+      "paymentAccepted": "Cash, UPI, Online",
+      "areaServed": [
+        "Jalandhar",
+        "Amritsar",
+        "Ludhiana",
+        "Chandigarh",
+        "Delhi Airport (DEL)",
+        "Amritsar Airport (ATQ)",
+        "Punjab"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Jalandhar",
+        "addressRegion": "Punjab",
+        "addressCountry": "IN"
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59"
+      }
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">

@@ -1,61 +1,117 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getPublicSiteSettings } from '../api/client';
 
+export const SETTINGS_STORAGE_KEY = 'pb08_site_settings_cache';
+
 const DEFAULT_SETTINGS = {
-  support_phone: "+91 98765 43210",
-  whatsapp_number: "919876543210",
+  support_phone: "+919876543210",
+  whatsapp_number: "+919876543210",
   site_logo_url: null,
   site_favicon_url: null,
+  brand_title: "PB08 TAXI",
+  brand_tagline: "Fast • Safe • Reliable",
   show_credentials_hint: false,
 };
+
+function getInitialSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to parse cached site settings:", e);
+  }
+  return DEFAULT_SETTINGS;
+}
 
 const SiteSettingsContext = createContext({
   settings: DEFAULT_SETTINGS,
   loading: true,
   refreshSettings: async () => {},
+  updateLocalSettings: () => {},
 });
 
 export function SiteSettingsProvider({ children }) {
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [loading, setLoading] = useState(true);
+  // Synchronously initialize from localStorage cache to eliminate any refresh flicker!
+  const [settings, setSettings] = useState(() => getInitialSettings());
+  const [loading, setLoading] = useState(false);
 
-  const applyFavicon = (faviconUrl) => {
+  const applyFavicon = useCallback((faviconUrl) => {
     if (!faviconUrl) return;
     try {
-      let link = document.querySelector("link[rel~='icon']");
+      let link = document.querySelector("link[rel~='icon']") || document.getElementById('app-favicon');
       if (!link) {
         link = document.createElement('link');
         link.rel = 'icon';
+        link.id = 'app-favicon';
         document.getElementsByTagName('head')[0].appendChild(link);
       }
-      link.href = faviconUrl;
+      if (link.href !== faviconUrl) {
+        link.href = faviconUrl;
+      }
     } catch (e) {
       console.warn("Could not update favicon:", e);
     }
-  };
+  }, []);
 
+  // Synchronously ensure favicon is set if cached on initial mount
+  useEffect(() => {
+    if (settings.site_favicon_url) {
+      applyFavicon(settings.site_favicon_url);
+    }
+  }, [settings.site_favicon_url, applyFavicon]);
+
+  // Method to immediately update settings in memory and localStorage (zero latency)
+  const updateLocalSettings = useCallback((newSettings) => {
+    setSettings((prev) => {
+      const merged = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
+      } catch (e) {
+        console.warn("Could not write site settings to localStorage:", e);
+      }
+      if (merged.site_favicon_url) {
+        applyFavicon(merged.site_favicon_url);
+      }
+      return merged;
+    });
+  }, [applyFavicon]);
+
+  // Background revalidation with server
   const refreshSettings = useCallback(async () => {
     try {
       const data = await getPublicSiteSettings();
       if (data) {
-        setSettings(data);
-        if (data.site_favicon_url) {
-          applyFavicon(data.site_favicon_url);
-        }
+        setSettings((prev) => {
+          const merged = { ...prev, ...data };
+          try {
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
+          } catch (e) {
+            console.warn("Could not update localStorage settings:", e);
+          }
+          if (merged.site_favicon_url) {
+            applyFavicon(merged.site_favicon_url);
+          }
+          return merged;
+        });
       }
     } catch (err) {
-      console.warn("Using default site settings:", err);
+      console.warn("Using cached site settings:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyFavicon]);
 
   useEffect(() => {
     refreshSettings();
   }, [refreshSettings]);
 
   return (
-    <SiteSettingsContext.Provider value={{ settings, loading, refreshSettings }}>
+    <SiteSettingsContext.Provider value={{ settings, loading, refreshSettings, updateLocalSettings }}>
       {children}
     </SiteSettingsContext.Provider>
   );

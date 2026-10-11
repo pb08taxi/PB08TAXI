@@ -49,11 +49,13 @@ def _set_setting_val(db: Session, key: str, val: str):
 
 @router.get("/site-settings", response_model=SiteSettingsOut)
 def get_public_site_settings(db: Session = Depends(get_db)):
-    """Public endpoint to fetch current contact info, logo, favicon, and login hint config."""
+    """Public endpoint to fetch current contact info, logo, favicon, brand title, tagline, and login hint config."""
     support_phone = _get_setting_val(db, "support_phone", settings_cfg.SUPPORT_PHONE)
     whatsapp_number = _get_setting_val(db, "whatsapp_number", settings_cfg.SUPPORT_WHATSAPP)
     site_logo_url = _get_setting_val(db, "site_logo_url", "")
     site_favicon_url = _get_setting_val(db, "site_favicon_url", "")
+    brand_title = _get_setting_val(db, "brand_title", "PB08 TAXI")
+    brand_tagline = _get_setting_val(db, "brand_tagline", "Fast • Safe • Reliable")
     show_hint_str = _get_setting_val(db, "show_credentials_hint", "false").lower()
     show_credentials_hint = show_hint_str in ("true", "1", "yes")
 
@@ -62,6 +64,8 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         whatsapp_number=whatsapp_number,
         site_logo_url=site_logo_url or None,
         site_favicon_url=site_favicon_url or None,
+        brand_title=brand_title or "PB08 TAXI",
+        brand_tagline=brand_tagline or "Fast • Safe • Reliable",
         show_credentials_hint=show_credentials_hint
     )
 
@@ -84,7 +88,7 @@ def update_admin_site_settings(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Admin endpoint to update phone numbers, logo/favicon URLs, and login hint display."""
+    """Admin endpoint to update phone numbers, logo/favicon URLs, brand texts, and login hint display."""
     if payload.support_phone is not None:
         _set_setting_val(db, "support_phone", payload.support_phone.strip())
     
@@ -98,6 +102,12 @@ def update_admin_site_settings(
         
     if payload.site_favicon_url is not None:
         _set_setting_val(db, "site_favicon_url", payload.site_favicon_url.strip())
+
+    if payload.brand_title is not None:
+        _set_setting_val(db, "brand_title", payload.brand_title.strip() or "PB08 TAXI")
+
+    if payload.brand_tagline is not None:
+        _set_setting_val(db, "brand_tagline", payload.brand_tagline.strip() or "Fast • Safe • Reliable")
         
     if payload.show_credentials_hint is not None:
         _set_setting_val(db, "show_credentials_hint", "true" if payload.show_credentials_hint else "false")

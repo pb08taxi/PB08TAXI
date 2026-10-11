@@ -241,6 +241,8 @@ class SiteSettingsOut(BaseModel):
     whatsapp_number: str = "+919876543210"
     site_logo_url: Optional[str] = None
     site_favicon_url: Optional[str] = None
+    brand_title: str = "PB08 TAXI"
+    brand_tagline: str = "Fast • Safe • Reliable"
     show_credentials_hint: bool = True
 
 class SiteSettingsUpdate(BaseModel):
@@ -248,6 +250,8 @@ class SiteSettingsUpdate(BaseModel):
     whatsapp_number: Optional[str] = None
     site_logo_url: Optional[str] = None
     site_favicon_url: Optional[str] = None
+    brand_title: Optional[str] = None
+    brand_tagline: Optional[str] = None
     show_credentials_hint: Optional[bool] = None
 
     @field_validator("support_phone", "whatsapp_number")

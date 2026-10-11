@@ -18,7 +18,9 @@ import {
   Trash2,
   AlertTriangle,
   KeyRound,
-  X
+  X,
+  Car,
+  Type
 } from 'lucide-react';
 import { 
   getAdminSettings, 
@@ -32,7 +34,7 @@ import { useToast } from '../context/ToastContext';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminSettingsPage() {
-  const { refreshSettings: refreshGlobalSettings } = useSiteSettings();
+  const { refreshSettings: refreshGlobalSettings, updateLocalSettings } = useSiteSettings();
   const { showSuccess, showError } = useToast();
 
   const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
@@ -43,12 +45,13 @@ export default function AdminSettingsPage() {
 
   const [savingSettings, setSavingSettings] = useState(false);
 
-
   // Contact & Brand settings
   const [supportPhone, setSupportPhone] = useState('+919876543210');
   const [whatsappNumber, setWhatsappNumber] = useState('+919876543210');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
+  const [brandTitle, setBrandTitle] = useState('PB08 TAXI');
+  const [brandTagline, setBrandTagline] = useState('Fast • Safe • Reliable');
   const [showCredentialsHint, setShowCredentialsHint] = useState(false);
 
   // Upload loaders
@@ -83,12 +86,14 @@ export default function AdminSettingsPage() {
       setWhatsappNumber(data.whatsapp_number || '+919876543210');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
+      setBrandTitle(data.brand_title || 'PB08 TAXI');
+      setBrandTagline(data.brand_tagline || 'Fast • Safe • Reliable');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
       setCurrentUsername(data.admin_username || 'admin');
     }
   }, [data]);
 
-  // Handle saving general site settings (phone, whatsapp, logo, favicon, hint)
+  // Handle saving general site settings (phone, whatsapp, logo, favicon, brand text, hint)
   const handleSaveSiteSettings = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -110,11 +115,14 @@ export default function AdminSettingsPage() {
         whatsapp_number: cleanWa,
         site_logo_url: siteLogoUrl,
         site_favicon_url: siteFaviconUrl,
+        brand_title: brandTitle.trim() || 'PB08 TAXI',
+        brand_tagline: brandTagline.trim() || 'Fast • Safe • Reliable',
         show_credentials_hint: showCredentialsHint
       };
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
-      await refreshGlobalSettings();
+      if (updateLocalSettings) updateLocalSettings(payload);
+      if (refreshGlobalSettings) await refreshGlobalSettings();
       showSuccess('Site settings updated and published successfully!', 'Settings Saved');
     } catch (err) {
       showError(err.response?.data?.detail || 'Failed to update site settings.', 'Save Failed');
@@ -132,6 +140,7 @@ export default function AdminSettingsPage() {
     try {
       const res = await uploadSiteAsset(file, 'logo');
       setSiteLogoUrl(res.url); // Automatically populate URL below!
+      if (updateLocalSettings) updateLocalSettings({ site_logo_url: res.url });
       if (refreshGlobalSettings) await refreshGlobalSettings();
       showSuccess(`Site Logo uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL updated!`, 'Logo Uploaded');
     } catch (err) {
@@ -151,6 +160,7 @@ export default function AdminSettingsPage() {
     try {
       const res = await uploadSiteAsset(file, 'favicon');
       setSiteFaviconUrl(res.url); // Automatically populate URL below!
+      if (updateLocalSettings) updateLocalSettings({ site_favicon_url: res.url });
       if (refreshGlobalSettings) await refreshGlobalSettings();
       showSuccess(`Favicon uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL updated!`, 'Favicon Uploaded');
     } catch (err) {
@@ -345,16 +355,61 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Form 2: Brand Assets (Site Logo & Favicon) */}
+          {/* Form 2: Brand Assets (Site Logo, Favicon & Brand Texts) */}
           <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
             <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
               <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
                 <ImageIcon className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Site Branding (Logo & Favicon)</h2>
+                <h2 className="text-lg font-bold text-white">Site Branding (Logo, Favicon & Brand Texts)</h2>
                 <p className="text-xs text-zinc-400">
-                  Upload custom branding assets with recommended sizes and resolutions.
+                  Customize your brand logo, browser favicon, brand title text, and tagline shown across Navbar and Footer.
+                </p>
+              </div>
+            </div>
+
+            {/* Brand Title and Tagline Customization */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-900/50 p-5 rounded-2xl border border-zinc-850">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center space-x-1.5">
+                  <Type className="w-3.5 h-3.5 text-taxi-yellow" />
+                  <span>Brand Name Text (Logo Beside Text)</span>
+                </label>
+                <div className="relative">
+                  <Car className="w-4 h-4 text-taxi-yellow absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={brandTitle}
+                    onChange={(e) => setBrandTitle(e.target.value)}
+                    placeholder="PB08 TAXI"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-bold"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Appears beside your logo in Navbar, Footer, and Admin header (Default: <strong className="text-white">PB08 TAXI</strong>).
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center space-x-1.5">
+                  <Type className="w-3.5 h-3.5 text-taxi-yellow" />
+                  <span>Brand Tagline / Slogan Subtitle</span>
+                </label>
+                <div className="relative">
+                  <Type className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={brandTagline}
+                    onChange={(e) => setBrandTagline(e.target.value)}
+                    placeholder="Fast • Safe • Reliable"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-medium"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Catchy subtitle shown underneath the brand name (Default: <strong className="text-white">Fast • Safe • Reliable</strong>).
                 </p>
               </div>
             </div>

@@ -67,13 +67,13 @@ export default function AdminLayout({ children }) {
       <div className="md:hidden bg-zinc-950 border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {settings.site_logo_url ? (
-            <img src={settings.site_logo_url} alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
+            <img src={settings.site_logo_url} alt="Logo" className="w-8 h-8 object-contain rounded-lg bg-zinc-900/60 p-0.5 border border-zinc-800" />
           ) : (
             <div className="w-8 h-8 rounded-lg bg-taxi-yellow flex items-center justify-center text-black font-black">
               <Car className="w-5 h-5 stroke-[2.5]" />
             </div>
           )}
-          <span className="font-black text-lg">PB08 <span className="text-taxi-yellow">ADMIN</span></span>
+          <span className="font-black text-lg text-white">{settings.brand_title || 'PB08 TAXI'} <span className="text-taxi-yellow text-xs font-bold uppercase tracking-wider ml-1">Admin</span></span>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -93,14 +93,14 @@ export default function AdminLayout({ children }) {
           <div className="p-6 border-b border-zinc-850 flex items-center justify-between">
             <Link to="/admin" className="flex items-center space-x-3">
               {settings.site_logo_url ? (
-                <img src={settings.site_logo_url} alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
+                <img src={settings.site_logo_url} alt="Logo" className="w-10 h-10 object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20">
+                <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20 flex-shrink-0">
                   <Car className="w-6 h-6 stroke-[2.5]" />
                 </div>
               )}
               <div>
-                <div className="text-xl font-black text-white">PB08 <span className="text-taxi-yellow">TAXI</span></div>
+                <div className="text-lg font-black text-white leading-tight">{settings.brand_title || 'PB08 TAXI'}</div>
                 <div className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">Control Panel</div>
               </div>
             </Link>

@@ -8,6 +8,9 @@ export default function Footer({ onOpenBooking }) {
   const phone = settings?.support_phone || '+91 98765 43210';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
+  const brandTitle = settings?.brand_title || 'PB08 TAXI';
+  const brandTagline = settings?.brand_tagline || 'Fast • Safe • Reliable';
+
   return (
     <footer className="bg-black text-zinc-400 border-t border-zinc-900 relative">
       {/* Top taxi checker decoration */}
@@ -18,22 +21,27 @@ export default function Footer({ onOpenBooking }) {
           
           {/* Brand Info */}
           <div className="space-y-4">
-            {settings?.site_logo_url ? (
-              <img
-                src={settings.site_logo_url}
-                alt="PB08 TAXI"
-                className="h-12 max-w-[180px] object-contain rounded-lg"
-              />
-            ) : (
-              <div className="flex items-center space-x-2.5">
-                <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md">
+            <div className="flex items-center space-x-3">
+              {settings?.site_logo_url ? (
+                <img
+                  src={settings.site_logo_url}
+                  alt={brandTitle}
+                  className="h-10 w-10 object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md flex-shrink-0">
                   <Car className="w-6 h-6 stroke-[2.5]" />
                 </div>
-                <span className="text-xl font-black text-white">
-                  PB08 <span className="text-taxi-yellow">TAXI</span>
+              )}
+              <div>
+                <span className="text-xl font-black text-white block leading-tight">
+                  {brandTitle}
                 </span>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight mt-0.5">
+                  {brandTagline}
+                </p>
               </div>
-            )}
+            </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
               Jalandhar's top-rated cab service delivering seamless point-to-point, airport, and outstation taxi travel with verified chauffeurs across North India.
             </p>

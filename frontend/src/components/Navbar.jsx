@@ -9,13 +9,16 @@ export default function Navbar({ onOpenBooking }) {
   const phone = settings?.support_phone || '+91 98765 43210';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
+  const brandTitle = settings?.brand_title || 'PB08 TAXI';
+  const brandTagline = settings?.brand_tagline || 'Fast • Safe • Reliable';
+
   return (
     <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-zinc-800">
       {/* Top micro banner */}
       <div className="bg-taxi-yellow text-black text-xs font-bold py-1 px-4 text-center tracking-wide flex items-center justify-center space-x-3">
         <span className="flex items-center space-x-1">
           <ShieldCheck className="w-3.5 h-3.5 inline" />
-          <span>PB08 TAXI — PUNJAB'S TRUSTED 24/7 CAB SERVICE</span>
+          <span>{brandTitle} — PUNJAB'S TRUSTED 24/7 CAB SERVICE</span>
         </span>
         <span className="hidden md:inline">•</span>
         <span className="hidden md:inline">JALANDHAR • AMRITSAR • CHANDIGARH • DELHI AIRPORT</span>
@@ -24,34 +27,28 @@ export default function Navbar({ onOpenBooking }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Brand Logo */}
+          {/* Brand Logo & Editable Text */}
           <a href="#" className="flex items-center space-x-3 group">
             {settings?.site_logo_url ? (
               <img
                 src={settings.site_logo_url}
-                alt="PB08 TAXI"
-                className="h-12 max-w-[180px] object-contain rounded-lg group-hover:scale-105 transition-transform"
+                alt={brandTitle}
+                className="h-11 w-11 sm:h-12 sm:w-12 object-contain rounded-xl shadow-md group-hover:scale-105 transition-transform bg-zinc-900/60 p-1 border border-zinc-800"
               />
             ) : (
-              <>
-                <div className="w-12 h-12 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-lg shadow-taxi-yellow/20 group-hover:scale-105 transition-transform">
-                  <Car className="w-7 h-7 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-2xl font-black tracking-tight text-white group-hover:text-taxi-yellow transition-colors">
-                      PB08
-                    </span>
-                    <span className="text-2xl font-black tracking-tight text-taxi-yellow">
-                      TAXI
-                    </span>
-                  </div>
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold">
-                    Fast • Safe • Reliable
-                  </p>
-                </div>
-              </>
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-lg shadow-taxi-yellow/20 group-hover:scale-105 transition-transform flex-shrink-0">
+                <Car className="w-6 h-6 sm:w-7 sm:h-7 text-black stroke-[2.5]" />
+              </div>
             )}
+            
+            <div className="flex flex-col justify-center">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-white group-hover:text-taxi-yellow transition-colors leading-tight">
+                {brandTitle}
+              </span>
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight mt-0.5">
+                {brandTagline}
+              </p>
+            </div>
           </a>
 
           {/* Desktop Navigation Links */}
