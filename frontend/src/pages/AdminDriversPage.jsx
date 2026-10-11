@@ -23,8 +23,10 @@ import {
   toggleDriverActive 
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { useToast } from '../context/ToastContext';
 
 export default function AdminDriversPage() {
+  const { showSuccess, showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -140,9 +142,14 @@ export default function AdminDriversPage() {
 
       adminCache.invalidate('admin_drivers');
       setIsModalOpen(false);
+      showSuccess(
+        editingDriver ? `Driver ${payload.name} updated successfully!` : `New driver ${payload.name} added to fleet!`,
+        'Driver Saved'
+      );
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to save driver details. Please verify the phone number.';
       setFormError(msg);
+      showError(msg, 'Save Error');
     } finally {
       setFormSubmitting(false);
     }
@@ -155,8 +162,12 @@ export default function AdminDriversPage() {
         prev ? prev.map((d) => (d.id === driver.id ? { ...d, is_active: res.is_active } : d)) : []
       );
       adminCache.invalidate('admin_drivers');
+      showSuccess(
+        `Driver ${driver.name} is now ${res.is_active ? 'Active & Ready for Dispatches' : 'Inactive'}.`,
+        'Driver Status'
+      );
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to toggle driver status.');
+      showError(err.response?.data?.detail || 'Failed to toggle driver status.', 'Status Error');
     }
   };
 
@@ -167,9 +178,11 @@ export default function AdminDriversPage() {
       await deleteDriver(deletingDriver.id);
       mutate((prev) => (prev ? prev.filter((d) => d.id !== deletingDriver.id) : []));
       adminCache.invalidate('admin_drivers');
+      const driverName = deletingDriver.name;
       setDeletingDriver(null);
+      showSuccess(`Driver ${driverName} deleted successfully!`, 'Driver Removed');
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to delete driver.');
+      showError(err.response?.data?.detail || 'Failed to delete driver.', 'Delete Failed');
     } finally {
       setDeleteSubmitting(false);
     }

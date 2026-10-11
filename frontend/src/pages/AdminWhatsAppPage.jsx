@@ -43,6 +43,7 @@ import {
   resetMessageTemplates
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { useToast } from '../context/ToastContext';
 
 const SAMPLE_PREVIEW_DATA = {
   customer_name: 'Rahul Sharma',
@@ -68,6 +69,7 @@ const TEMPLATE_TABS = [
 ];
 
 export default function AdminWhatsAppPage() {
+  const { showSuccess, showError } = useToast();
   const fetchWhatsAppAll = async () => {
     const [status, settings, templates] = await Promise.all([
       getWhatsAppStatus().catch(() => ({
@@ -163,10 +165,13 @@ export default function AdminWhatsAppPage() {
       const res = await connectWhatsApp();
       if (res.qr_code) {
         setQrCode(res.qr_code);
+        showSuccess('WhatsApp QR Code generated! Please scan from your WhatsApp mobile app.', 'Scan QR');
+      } else if (res.connected) {
+        showSuccess('WhatsApp is connected and active!', 'Connected');
       }
       await fetchStatus();
     } catch (err) {
-      alert("Error starting WhatsApp session.");
+      showError("Error starting WhatsApp session. Please ensure gateway is online.", "Connection Error");
     } finally {
       setActionLoading(false);
     }
@@ -178,10 +183,11 @@ export default function AdminWhatsAppPage() {
       const res = await refreshWhatsAppQR();
       if (res.qr_code) {
         setQrCode(res.qr_code);
+        showSuccess('Fresh WhatsApp QR code fetched successfully!', 'QR Refreshed');
       }
       await fetchStatus();
     } catch (err) {
-      alert("Failed to refresh QR code. Please check connection.");
+      showError("Failed to refresh QR code. Please check connection.", "Refresh Error");
     } finally {
       setRefreshingQR(false);
     }
@@ -194,8 +200,9 @@ export default function AdminWhatsAppPage() {
       await logoutWhatsApp();
       setQrCode(null);
       await fetchStatus();
+      showSuccess('WhatsApp unlinked and logged out successfully.', 'Logged Out');
     } catch (err) {
-      alert("Error logging out of WhatsApp session.");
+      showError("Error logging out of WhatsApp session.", "Logout Error");
     } finally {
       setActionLoading(false);
     }
@@ -220,10 +227,13 @@ export default function AdminWhatsAppPage() {
           admin_alert_whatsapp_enabled: adminAlertEnabled
         }
       }));
-      setAlertSettingsSuccess(`Admin booking alert settings updated! Dispatches will be sent to ${fullPhone || 'configured phone'}.`);
+      const successMsg = `Admin booking alert settings updated! Dispatches will be sent to ${fullPhone || 'configured phone'}.`;
+      setAlertSettingsSuccess(successMsg);
+      showSuccess(successMsg, 'Alert Settings Saved');
       setTimeout(() => setAlertSettingsSuccess(''), 5000);
     } catch (err) {
       setAlertSettingsError('Failed to save alert settings. Please try again.');
+      showError('Failed to save alert settings. Please try again.', 'Save Error');
     } finally {
       setSavingAlertSettings(false);
     }
@@ -232,6 +242,7 @@ export default function AdminWhatsAppPage() {
   const handleSaveTemplate = async () => {
     if (!templateContent.trim()) {
       setTemplateError('Template content cannot be empty.');
+      showError('Template content cannot be empty.', 'Validation Error');
       return;
     }
     setSavingTemplate(true);
@@ -244,10 +255,14 @@ export default function AdminWhatsAppPage() {
         ...prev,
         templates: prev.templates.map(t => t.template_key === selectedTemplateKey ? updated : t)
       }));
-      setTemplateSuccess('WhatsApp message template saved successfully! Live dispatches will use this updated format.');
+      const msg = 'WhatsApp message template saved successfully! Live dispatches will use this updated format.';
+      setTemplateSuccess(msg);
+      showSuccess(msg, 'Template Saved');
       setTimeout(() => setTemplateSuccess(''), 5000);
     } catch (err) {
-      setTemplateError(err.response?.data?.detail || 'Failed to update message template.');
+      const errMsg = err.response?.data?.detail || 'Failed to update message template.';
+      setTemplateError(errMsg);
+      showError(errMsg, 'Save Error');
     } finally {
       setSavingTemplate(false);
     }
@@ -262,10 +277,12 @@ export default function AdminWhatsAppPage() {
       const active = res.find(t => t.template_key === selectedTemplateKey) || res[0];
       if (active) setTemplateContent(active.content);
       mutate((prev) => ({ ...prev, templates: res }));
-      setTemplateSuccess('All templates have been reset to official PB08 TAXI defaults.');
+      const msg = 'All templates have been reset to official PB08 TAXI defaults.';
+      setTemplateSuccess(msg);
+      showSuccess(msg, 'Templates Reset');
       setTimeout(() => setTemplateSuccess(''), 5000);
     } catch (err) {
-      alert("Failed to reset templates.");
+      showError("Failed to reset templates.", "Reset Failed");
     } finally {
       setResettingTemplates(false);
     }
@@ -290,7 +307,7 @@ export default function AdminWhatsAppPage() {
     e.preventDefault();
     const cleanDigits = testPhone.replace(/\D/g, '');
     if (!cleanDigits) {
-      alert("Please enter a destination phone number.");
+      showError("Please enter a destination phone number.", "Destination Missing");
       return;
     }
 
@@ -300,12 +317,19 @@ export default function AdminWhatsAppPage() {
     try {
       const res = await sendTestMessage(fullTestPhone, testMessage.trim());
       setTestResult(res);
+      if (res.success) {
+        showSuccess(`Test WhatsApp message dispatched to ${fullTestPhone}!`, 'Dispatch Success');
+      } else {
+        showError(res.message || 'Failed to dispatch test message.', 'Dispatch Failed');
+      }
     } catch (err) {
+      const errMsg = err.response?.data?.detail || err.message;
       setTestResult({
         success: false,
         message: "Network or server failure during test message dispatch.",
-        error: err.response?.data?.detail || err.message
+        error: errMsg
       });
+      showError(errMsg || 'Network or server failure during test dispatch.', 'Dispatch Failed');
     } finally {
       setSendingTest(false);
     }

@@ -15,8 +15,10 @@ import {
   Clock
 } from 'lucide-react';
 import { createBooking } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 export default function BookingModal({ isOpen, onClose }) {
+  const { showSuccess, showError } = useToast();
   const getTodayDateString = () => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -91,9 +93,15 @@ export default function BookingModal({ isOpen, onClose }) {
       };
       const res = await createBooking(payload);
       setSuccessResult(res);
+      showSuccess(
+        `Ride booking received successfully! Booking Ref: ${res.booking_reference}`,
+        'Booking Confirmed'
+      );
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to submit booking. Please try again.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      const formattedErr = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      setError(formattedErr);
+      showError(formattedErr, 'Booking Failed');
     } finally {
       setLoading(false);
     }

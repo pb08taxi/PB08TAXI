@@ -23,8 +23,10 @@ import {
   updateCustomerConsent 
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { useToast } from '../context/ToastContext';
 
 export default function AdminCustomersPage() {
+  const { showSuccess, showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -117,9 +119,14 @@ export default function AdminCustomersPage() {
       adminCache.invalidate('admin_customers');
       adminCache.invalidate('admin_dashboard');
       setIsModalOpen(false);
+      showSuccess(
+        editingCustomer ? 'Customer profile updated successfully!' : 'New customer profile added to directory!',
+        'Customer Saved'
+      );
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to save customer. Please check the phone number.';
       setFormError(msg);
+      showError(msg, 'Save Error');
     } finally {
       setFormSubmitting(false);
     }
@@ -133,8 +140,12 @@ export default function AdminCustomersPage() {
         prev ? prev.map((c) => (c.id === customer.id ? { ...c, marketing_consent: newStatus } : c)) : []
       );
       adminCache.invalidate('admin_dashboard');
+      showSuccess(
+        `Marketing consent ${newStatus ? 'enabled' : 'disabled'} for ${customer.name || customer.phone_number}.`,
+        'Consent Updated'
+      );
     } catch (err) {
-      alert('Failed to update consent status.');
+      showError('Failed to update consent status.', 'Consent Error');
     }
   };
 
@@ -146,9 +157,12 @@ export default function AdminCustomersPage() {
       mutate((prev) => (prev ? prev.filter((c) => c.id !== deletingCustomer.id) : []));
       adminCache.invalidate('admin_customers');
       adminCache.invalidate('admin_dashboard');
+      const deletedName = deletingCustomer.name || deletingCustomer.phone_number;
       setDeletingCustomer(null);
+      showSuccess(`Customer ${deletedName} deleted successfully!`, 'Customer Removed');
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to delete customer.');
+      const msg = err.response?.data?.detail || 'Failed to delete customer.';
+      showError(msg, 'Delete Error');
     } finally {
       setDeleteSubmitting(false);
     }

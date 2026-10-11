@@ -21,10 +21,12 @@ import {
 } from 'lucide-react';
 import { getBookings, updateBookingStatus, getDrivers } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { useToast } from '../context/ToastContext';
 
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
 export default function AdminBookingsPage() {
+  const { showSuccess, showError } = useToast();
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -121,9 +123,14 @@ export default function AdminBookingsPage() {
       adminCache.invalidate('admin_dashboard');
       adminCache.invalidate('admin_drivers');
       setSelectedBooking(null);
+      showSuccess(
+        `Booking #${selectedBooking.id} (${selectedBooking.booking_reference || 'Ref'}) marked as ${editStatus}!${driverIdToSend ? ' Driver assigned & WhatsApp alert sent.' : ''}`,
+        'Booking Status Updated'
+      );
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to update booking status.';
       setModalError(msg);
+      showError(msg, 'Update Failed');
     } finally {
       setSaving(false);
     }

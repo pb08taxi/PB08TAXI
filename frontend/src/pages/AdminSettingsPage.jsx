@@ -28,10 +28,12 @@ import {
   factoryResetSystem
 } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { useToast } from '../context/ToastContext';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 export default function AdminSettingsPage() {
   const { refreshSettings: refreshGlobalSettings } = useSiteSettings();
+  const { showSuccess, showError } = useToast();
 
   const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
     'admin_site_settings',
@@ -40,8 +42,7 @@ export default function AdminSettingsPage() {
   );
 
   const [savingSettings, setSavingSettings] = useState(false);
-  const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
-  const [settingsError, setSettingsError] = useState('');
+
 
   // Contact & Brand settings
   const [supportPhone, setSupportPhone] = useState('+919876543210');
@@ -67,8 +68,6 @@ export default function AdminSettingsPage() {
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const [savingCreds, setSavingCreds] = useState(false);
-  const [credMsg, setCredMsg] = useState('');
-  const [credError, setCredError] = useState('');
 
   // Factory Reset states (Secret PIN: 333725)
   const [showResetModal, setShowResetModal] = useState(false);
@@ -93,8 +92,6 @@ export default function AdminSettingsPage() {
   const handleSaveSiteSettings = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
-    setSettingsSavedMsg('');
-    setSettingsError('');
 
     try {
       const formatPhone = (val) => {
@@ -118,10 +115,9 @@ export default function AdminSettingsPage() {
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
       await refreshGlobalSettings();
-      setSettingsSavedMsg('Site settings updated and published successfully!');
-      setTimeout(() => setSettingsSavedMsg(''), 4000);
+      showSuccess('Site settings updated and published successfully!', 'Settings Saved');
     } catch (err) {
-      setSettingsError(err.response?.data?.detail || 'Failed to update site settings.');
+      showError(err.response?.data?.detail || 'Failed to update site settings.', 'Save Failed');
     } finally {
       setSavingSettings(false);
     }
@@ -133,16 +129,13 @@ export default function AdminSettingsPage() {
     if (!file) return;
 
     setUploadingLogo(true);
-    setSettingsSavedMsg('');
-    setSettingsError('');
     try {
       const res = await uploadSiteAsset(file, 'logo');
       setSiteLogoUrl(res.url); // Automatically populate URL below!
       if (refreshGlobalSettings) await refreshGlobalSettings();
-      setSettingsSavedMsg(`✅ Site Logo uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL added below!`);
-      setTimeout(() => setSettingsSavedMsg(''), 6000);
+      showSuccess(`Site Logo uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL updated!`, 'Logo Uploaded');
     } catch (err) {
-      setSettingsError("Failed to upload logo: " + (err.response?.data?.detail || "Invalid format"));
+      showError("Failed to upload logo: " + (err.response?.data?.detail || "Invalid format"), 'Upload Error');
     } finally {
       setUploadingLogo(false);
       e.target.value = '';
@@ -155,16 +148,13 @@ export default function AdminSettingsPage() {
     if (!file) return;
 
     setUploadingFavicon(true);
-    setSettingsSavedMsg('');
-    setSettingsError('');
     try {
       const res = await uploadSiteAsset(file, 'favicon');
       setSiteFaviconUrl(res.url); // Automatically populate URL below!
       if (refreshGlobalSettings) await refreshGlobalSettings();
-      setSettingsSavedMsg(`✅ Favicon uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL added below!`);
-      setTimeout(() => setSettingsSavedMsg(''), 6000);
+      showSuccess(`Favicon uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL updated!`, 'Favicon Uploaded');
     } catch (err) {
-      setSettingsError("Failed to upload favicon: " + (err.response?.data?.detail || "Invalid format"));
+      showError("Failed to upload favicon: " + (err.response?.data?.detail || "Invalid format"), 'Upload Error');
     } finally {
       setUploadingFavicon(false);
       e.target.value = '';
@@ -174,21 +164,19 @@ export default function AdminSettingsPage() {
   // Handle changing Admin credentials
   const handleChangeCredentials = async (e) => {
     e.preventDefault();
-    setCredError('');
-    setCredMsg('');
 
     if (!currentPassword) {
-      setCredError("Please enter your current password to authorize this change.");
+      showError("Please enter your current password to authorize this change.", "Validation Error");
       return;
     }
 
     if (newPassword && newPassword !== confirmPassword) {
-      setCredError("New password and confirm password do not match.");
+      showError("New password and confirm password do not match.", "Validation Error");
       return;
     }
 
     if (newPassword && newPassword.length < 6) {
-      setCredError("New password must be at least 6 characters long.");
+      showError("New password must be at least 6 characters long.", "Validation Error");
       return;
     }
 
@@ -208,14 +196,13 @@ export default function AdminSettingsPage() {
         setCurrentUsername(res.username);
       }
 
-      setCredMsg("Admin credentials updated successfully!");
+      showSuccess("Admin credentials updated successfully!", "Credentials Updated");
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setNewUsername('');
-      setTimeout(() => setCredMsg(''), 4000);
     } catch (err) {
-      setCredError(err.response?.data?.detail || 'Failed to update credentials.');
+      showError(err.response?.data?.detail || 'Failed to update credentials.', 'Update Error');
     } finally {
       setSavingCreds(false);
     }
@@ -226,6 +213,7 @@ export default function AdminSettingsPage() {
     if (e) e.preventDefault();
     if (resetPin.trim() !== "333725") {
       setResetError("Incorrect Secret PIN! Please enter 333725 to confirm.");
+      showError("Incorrect Secret PIN! Please enter 333725 to confirm.", "PIN Verification Failed");
       return;
     }
     setResetting(true);
@@ -234,6 +222,7 @@ export default function AdminSettingsPage() {
     try {
       const res = await factoryResetSystem(resetPin.trim());
       setResetSuccess(res.message || "Website Factory Reset Completed Successfully!");
+      showSuccess(res.message || "Website Factory Reset Completed Successfully!", "Factory Reset Done");
       adminCache.invalidate();
       if (refreshGlobalSettings) refreshGlobalSettings();
       setTimeout(async () => {
@@ -243,7 +232,9 @@ export default function AdminSettingsPage() {
         await refresh();
       }, 2000);
     } catch (err) {
-      setResetError(err.response?.data?.detail || "Failed to perform factory reset. Please try again.");
+      const errMsg = err.response?.data?.detail || "Failed to perform factory reset. Please try again.";
+      setResetError(errMsg);
+      showError(errMsg, "Reset Error");
     } finally {
       setResetting(false);
     }
@@ -270,20 +261,6 @@ export default function AdminSettingsPage() {
             <span>{isRevalidating ? 'Updating...' : 'Reload'}</span>
           </button>
         </div>
-
-        {/* Global Notifications */}
-        {settingsSavedMsg && (
-          <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5 animate-fade-in">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-            <span className="font-bold">{settingsSavedMsg}</span>
-          </div>
-        )}
-        {settingsError && (
-          <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-            <span>{settingsError}</span>
-          </div>
-        )}
 
         {/* Form 1: Contact Numbers & WhatsApp Integration */}
         <form onSubmit={handleSaveSiteSettings} className="space-y-8">
@@ -597,19 +574,6 @@ export default function AdminSettingsPage() {
               </p>
             </div>
           </div>
-
-          {credMsg && (
-            <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-              <span className="font-bold">{credMsg}</span>
-            </div>
-          )}
-          {credError && (
-            <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <span>{credError}</span>
-            </div>
-          )}
 
           <form onSubmit={handleChangeCredentials} className="space-y-5">
             
