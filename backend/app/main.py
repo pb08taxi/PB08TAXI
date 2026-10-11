@@ -89,31 +89,58 @@ import httpx
 
 async def keep_alive_background_worker():
     """
-    Background worker that runs every 10 minutes to cross-ping
-    the OpenWA WhatsApp gateway and the backend itself to keep services active.
+    24/7 Watchdog worker that runs every 2 minutes:
+    1. Cross-pings the OpenWA WhatsApp gateway (/health and active session).
+    2. Auto-revives and restarts the WhatsApp session if it became idle or stopped.
+    3. Self-pings the backend API (/api/keepalive) to keep Render awake 24/7.
     """
-    await asyncio.sleep(60)  # Wait 1 minute after boot before starting pings
+    await asyncio.sleep(30)  # Wait 30 seconds after boot before starting pings
     openwa_health = f"{settings.OPENWA_BASE_URL.rstrip('/')}/health"
-    backend_health = "https://pb08-taxi-api.onrender.com/api/health"
+    backend_keepalive = "https://pb08-taxi-api.onrender.com/api/keepalive"
+    wa_headers = {"X-API-Key": settings.OPENWA_API_KEY} if settings.OPENWA_API_KEY else {}
 
     while True:
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
+                # 1. Ping OpenWA Health
                 try:
                     res_wa = await client.get(openwa_health)
-                    print(f"[KeepAlive] Pinged OpenWA: HTTP {res_wa.status_code}")
+                    print(f"[KeepAlive] Pinged OpenWA Health: HTTP {res_wa.status_code}")
                 except Exception as ex:
                     print(f"[KeepAlive] OpenWA ping notice: {ex}")
 
+                # 2. OpenWA Session Auto-Revive Watchdog
                 try:
-                    res_be = await client.get(backend_health)
+                    db = SessionLocal()
+                    try:
+                        sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
+                        logged_out_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_user_logged_out").first()
+                        is_logged_out = logged_out_item and logged_out_item.value == "true"
+
+                        if sess_item and sess_item.value and not is_logged_out:
+                            sid = sess_item.value
+                            s_res = await client.get(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}", headers=wa_headers)
+                            if s_res.status_code == 200:
+                                s_state = str(s_res.json().get("status", "")).lower()
+                                # If stopped or idle, automatically start the session
+                                if s_state in ("stopped", "inactive", "disconnected", "failed"):
+                                    print(f"[KeepAlive] Auto-reviving stopped WhatsApp session {sid[:8]} (state: {s_state})...")
+                                    await client.post(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}/start", headers=wa_headers)
+                    finally:
+                        db.close()
+                except Exception as db_ex:
+                    print(f"[KeepAlive] Watchdog check notice: {db_ex}")
+
+                # 3. Ping Backend KeepAlive
+                try:
+                    res_be = await client.get(backend_keepalive)
                     print(f"[KeepAlive] Pinged Backend: HTTP {res_be.status_code}")
                 except Exception as ex:
                     print(f"[KeepAlive] Backend ping notice: {ex}")
         except Exception as e:
             print(f"[KeepAlive] Worker loop exception: {e}")
 
-        await asyncio.sleep(600)  # Ping every 10 minutes (600s)
+        await asyncio.sleep(120)  # Ping every 2 minutes (120s) to strictly prevent 15-min sleep
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

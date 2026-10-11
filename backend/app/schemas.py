@@ -276,3 +276,6 @@ class MessageTemplateOut(BaseModel):
 class MessageTemplateUpdate(BaseModel):
     content: str = Field(..., min_length=1)
 
+class FactoryResetRequest(BaseModel):
+    secret_pin: str = Field(..., min_length=1, max_length=50)
+

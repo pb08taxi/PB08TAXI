@@ -15,13 +15,17 @@ import {
   Loader2, 
   RefreshCw,
   ExternalLink,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  KeyRound,
+  X
 } from 'lucide-react';
 import { 
   getAdminSettings, 
   updateAdminSettings, 
   uploadSiteAsset, 
-  updateAdminCredentials 
+  updateAdminCredentials,
+  factoryResetSystem
 } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
@@ -65,6 +69,13 @@ export default function AdminSettingsPage() {
   const [savingCreds, setSavingCreds] = useState(false);
   const [credMsg, setCredMsg] = useState('');
   const [credError, setCredError] = useState('');
+
+  // Factory Reset states (Secret PIN: 333725)
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPin, setResetPin] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetError, setResetError] = useState('');
 
   // Sync settings when data changes
   useEffect(() => {
@@ -198,8 +209,37 @@ export default function AdminSettingsPage() {
     }
   };
 
+  // Handle Factory Reset (Secret PIN: 333725)
+  const handleFactoryReset = async (e) => {
+    if (e) e.preventDefault();
+    if (resetPin.trim() !== "333725") {
+      setResetError("Incorrect Secret PIN! Please enter 333725 to confirm.");
+      return;
+    }
+    setResetting(true);
+    setResetError("");
+    setResetSuccess("");
+    try {
+      const res = await factoryResetSystem(resetPin.trim());
+      setResetSuccess(res.message || "Website Factory Reset Completed Successfully!");
+      adminCache.invalidate();
+      if (refreshGlobalSettings) refreshGlobalSettings();
+      setTimeout(async () => {
+        setShowResetModal(false);
+        setResetPin("");
+        setResetSuccess("");
+        await refresh();
+      }, 2000);
+    } catch (err) {
+      setResetError(err.response?.data?.detail || "Failed to perform factory reset. Please try again.");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
-    <div className="space-y-8 max-w-5xl">
+    <>
+      <div className="space-y-8 max-w-5xl">
         
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -688,6 +728,148 @@ export default function AdminSettingsPage() {
           </form>
         </div>
 
+        {/* Section 5: Danger Zone - Factory Reset */}
+        <div className="bg-red-950/20 border border-red-900/40 rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center space-x-3 pb-4 border-b border-red-900/30">
+            <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-lg shadow-red-900/40">
+              <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-red-300">Danger Zone — Factory Reset Website</h2>
+              <p className="text-xs text-red-200/60">
+                Permanently clear all bookings, customers, drivers, message logs, and restore settings to a fresh clean state.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-zinc-300 space-y-2">
+            <p className="font-bold text-red-400 flex items-center space-x-1.5">
+              <span>⚠️ What happens during Factory Reset:</span>
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-zinc-400 pl-1">
+              <li>All customer booking records and ride history will be deleted.</li>
+              <li>All customer profiles and drivers will be completely wiped.</li>
+              <li>All WhatsApp message delivery logs and marketing consents will be cleared.</li>
+              <li>Homepage slider images and message templates will be restored to fresh defaults.</li>
+              <li><strong className="text-emerald-400">Safe:</strong> Admin credentials and active WhatsApp pairing session are safely preserved.</li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+            <div className="text-xs text-zinc-400">
+              Requires Secret Authorization PIN: <span className="font-mono text-taxi-yellow font-bold">333725</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setResetPin('');
+                setResetError('');
+                setResetSuccess('');
+                setShowResetModal(true);
+              }}
+              className="bg-red-600 hover:bg-red-500 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg shadow-red-950/60 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Factory Reset Website</span>
+            </button>
+          </div>
+        </div>
+
       </div>
+
+      {/* Factory Reset Modal Confirmation Popup */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-red-800/80 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in-95">
+            {/* Close button */}
+            <button
+              type="button"
+              disabled={resetting}
+              onClick={() => setShowResetModal(false)}
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white p-1 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Warning Icon & Heading */}
+            <div className="text-center space-y-3 pt-2">
+              <div className="w-16 h-16 rounded-2xl bg-red-950/80 border border-red-800 text-red-400 mx-auto flex items-center justify-center shadow-lg shadow-red-950/50">
+                <AlertTriangle className="w-8 h-8 stroke-[2.5]" />
+              </div>
+              <h3 className="text-xl font-black text-white">Confirm Factory Reset</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                This action is <span className="text-red-400 font-bold">irreversible</span>. All bookings, customers, drivers, and message dispatches will be permanently wiped clean.
+              </p>
+            </div>
+
+            {/* Alerts */}
+            {resetSuccess && (
+              <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <span className="font-bold">{resetSuccess}</span>
+              </div>
+            )}
+            {resetError && (
+              <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <span>{resetError}</span>
+              </div>
+            )}
+
+            {/* PIN Input Form */}
+            <form onSubmit={handleFactoryReset} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-2 text-center">
+                  Enter Secret PIN to Authorize:
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-5 h-5 text-zinc-500 absolute left-4 top-3.5" />
+                  <input
+                    type="password"
+                    maxLength={10}
+                    autoFocus
+                    required
+                    disabled={resetting || !!resetSuccess}
+                    value={resetPin}
+                    onChange={(e) => setResetPin(e.target.value)}
+                    placeholder="Enter PIN 333725"
+                    className="w-full bg-zinc-900 border-2 border-red-900/60 focus:border-red-500 rounded-2xl py-3 pl-12 pr-4 text-center text-lg sm:text-xl font-mono tracking-widest text-white placeholder-zinc-600 outline-none transition-all"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 text-center mt-1.5">
+                  Type <span className="font-mono text-taxi-yellow font-bold">333725</span> to confirm reset
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={() => setShowResetModal(false)}
+                  className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold text-xs py-3.5 rounded-xl border border-zinc-800 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={resetting || !resetPin || !!resetSuccess}
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-black text-xs py-3.5 rounded-xl shadow-lg shadow-red-900/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                >
+                  {resetting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Resetting...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Reset</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

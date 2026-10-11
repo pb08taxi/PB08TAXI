@@ -1,5 +1,6 @@
 import re
 import time
+import asyncio
 import httpx
 from typing import Optional, Dict, Any, Tuple
 from sqlalchemy.orm import Session
@@ -32,23 +33,27 @@ class WhatsAppService:
             headers["X-API-Key"] = self.api_key
         return headers
 
+    def _get_setting(self, db: Session, key: str, default: str = "") -> str:
+        s = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+        return s.value if s and s.value is not None else default
+
+    def _set_setting(self, db: Session, key: str, val: str):
+        s = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+        if not s:
+            s = SystemSetting(key=key, value=val)
+            db.add(s)
+        else:
+            s.value = val
+        db.commit()
+
     def _get_active_session_id(self, db: Session) -> str:
         """Fetch saved session ID from system settings or default to session name."""
-        setting = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
-        if setting and setting.value:
-            return setting.value
-        return self.session_name
+        return self._get_setting(db, "openwa_session_id", self.session_name)
 
     def _save_active_session_id(self, db: Session, session_id: str):
         self._cached_session_id = session_id
         self._session_cache_timestamp = time.time()
-        setting = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
-        if not setting:
-            setting = SystemSetting(key="openwa_session_id", value=session_id)
-            db.add(setting)
-        else:
-            setting.value = session_id
-        db.commit()
+        self._set_setting(db, "openwa_session_id", session_id)
 
     async def _resolve_session_id(self, client: httpx.AsyncClient, db: Session, force_refresh: bool = False) -> Optional[str]:
         """Resolve the active OpenWA session UUID, prioritizing connected sessions with in-memory caching."""
@@ -154,6 +159,22 @@ class WhatsAppService:
                     phone = data.get("phone")
                     qr_code = None
 
+                    # If not connected and user didn't explicitly log out, auto-attempt session reconnect
+                    if not is_ready:
+                        is_logged_out = self._get_setting(db, "openwa_user_logged_out", "false") == "true"
+                        if not is_logged_out and status_val in ("stopped", "inactive", "disconnected", "failed"):
+                            try:
+                                await client.post(f"{self.base_url}/sessions/{session_id}/start", headers=self._headers())
+                                await asyncio.sleep(1.2)
+                                re_res = await client.get(f"{self.base_url}/sessions/{session_id}", headers=self._headers())
+                                if re_res.status_code == 200:
+                                    data = re_res.json()
+                                    status_val = str(data.get("status", "")).lower()
+                                    is_ready = status_val in ["ready", "connected", "authenticated"]
+                                    phone = data.get("phone")
+                            except Exception:
+                                pass
+
                     # If not connected, fetch the companion QR code
                     if not is_ready:
                         qr_res = await client.get(
@@ -234,6 +255,9 @@ class WhatsAppService:
                         "status": "error",
                         "error": "Failed to create or find session on OpenWA gateway."
                     }
+
+                # Clear explicit logout flag so background auto-reconnect stays active
+                self._set_setting(db, "openwa_user_logged_out", "false")
 
                 # Start session engine
                 await client.post(
@@ -341,6 +365,9 @@ class WhatsAppService:
                 session_id = await self._resolve_session_id(client, db)
                 if not session_id:
                     return {"success": False, "error": "No active session found"}
+
+                # Mark explicit logout so auto-reconnect does not fire until user clicks connect again
+                self._set_setting(db, "openwa_user_logged_out", "true")
 
                 # 1. Unlink companion account
                 try:

@@ -7,8 +7,18 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, s
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import AdminUser, SystemSetting
-from app.schemas import SiteSettingsOut, SiteSettingsUpdate, AdminCredentialsUpdate
+from app.models import (
+    AdminUser,
+    SystemSetting,
+    Booking,
+    Customer,
+    Driver,
+    WhatsAppMessage,
+    MarketingConsent,
+    SliderImage,
+    MessageTemplate
+)
+from app.schemas import SiteSettingsOut, SiteSettingsUpdate, AdminCredentialsUpdate, FactoryResetRequest
 from app.security import get_current_admin, verify_password, hash_password, create_access_token
 from app.config import get_settings
 
@@ -177,3 +187,116 @@ def update_admin_credentials(
         "username": admin.username,
         "access_token": new_token
     }
+
+DEFAULT_SAMPLE_SLIDES = [
+    {
+        "title": "PB08 TAXI — 24/7 Premium Cabs in Punjab",
+        "subtitle": "Reliable, Safe & Air-Conditioned Rides at Affordable Fixed Rates",
+        "image_url": "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1600&q=80",
+        "sort_order": 1,
+        "is_active": True,
+    },
+    {
+        "title": "Airport Pickups & Outstation Journeys",
+        "subtitle": "Direct transfers to Amritsar, Chandigarh & Delhi Airports with On-Time Guarantee",
+        "image_url": "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?auto=format&fit=crop&w=1600&q=80",
+        "sort_order": 2,
+        "is_active": True,
+    },
+    {
+        "title": "Verified Drivers & Sanitized Fleet",
+        "subtitle": "Instant WhatsApp Confirmation & Dedicated Customer Support",
+        "image_url": "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1600&q=80",
+        "sort_order": 3,
+        "is_active": True,
+    },
+]
+
+@router.post("/admin/settings/factory-reset")
+def factory_reset_system(
+    payload: FactoryResetRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Factory Reset: Wipes all operational transactional data (bookings, customers, drivers, message logs, marketing consents)
+    and restores slider images, message templates, and site settings to a clean default state.
+    Strictly protected with Secret PIN 333725.
+    Admin user account and active WhatsApp connection session are safely preserved.
+    """
+    if payload.secret_pin.strip() != "333725":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Secret PIN. Factory Reset aborted."
+        )
+
+    try:
+        # 1. Clear Bookings
+        db.query(Booking).delete(synchronize_session=False)
+
+        # 2. Clear WhatsApp message logs
+        db.query(WhatsAppMessage).delete(synchronize_session=False)
+
+        # 3. Clear Marketing Consents
+        db.query(MarketingConsent).delete(synchronize_session=False)
+
+        # 4. Clear Customers
+        db.query(Customer).delete(synchronize_session=False)
+
+        # 5. Clear Drivers
+        db.query(Driver).delete(synchronize_session=False)
+
+        # 6. Reset Slider Images to fresh initial defaults
+        db.query(SliderImage).delete(synchronize_session=False)
+        for s in DEFAULT_SAMPLE_SLIDES:
+            db.add(SliderImage(
+                title=s["title"],
+                subtitle=s["subtitle"],
+                image_url=s["image_url"],
+                sort_order=s["sort_order"],
+                is_active=s["is_active"]
+            ))
+
+        # 7. Reset Message Templates to fresh defaults
+        db.query(MessageTemplate).delete(synchronize_session=False)
+        from app.routers.admin_whatsapp import DEFAULT_TEMPLATES
+        for t in DEFAULT_TEMPLATES:
+            db.add(MessageTemplate(
+                template_key=t["template_key"],
+                title=t["title"],
+                content=t["content"],
+                variables_hint=t.get("variables_hint"),
+                updated_at=datetime.utcnow()
+            ))
+
+        # 8. Reset Site Settings (preserve openwa_session_id so connection is not lost)
+        openwa_sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
+        saved_session_id = openwa_sess_item.value if openwa_sess_item else None
+
+        db.query(SystemSetting).delete(synchronize_session=False)
+
+        # Restore defaults
+        db.add(SystemSetting(key="support_phone", value="+919876543210", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="whatsapp_number", value="+919876543210", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="site_logo_url", value="", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="site_favicon_url", value="", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="show_credentials_hint", value="false", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="admin_alert_whatsapp_enabled", value="true", updated_at=datetime.utcnow()))
+        db.add(SystemSetting(key="admin_alert_whatsapp_number", value="", updated_at=datetime.utcnow()))
+
+        if saved_session_id:
+            db.add(SystemSetting(key="openwa_session_id", value=saved_session_id, updated_at=datetime.utcnow()))
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Website factory reset successfully! All operational records have been wiped and settings restored to clean default state."
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Factory reset failed: {str(e)}"
+        )
+

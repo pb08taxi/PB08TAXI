@@ -128,5 +128,7 @@ export const uploadSiteAsset = (file, assetType = 'logo') => {
   }).then(r => r.data);
 };
 export const updateAdminCredentials = (payload) => api.post('/api/admin/settings/credentials', payload).then(r => r.data);
+export const factoryResetSystem = (secretPin) => 
+  api.post('/api/admin/settings/factory-reset', { secret_pin: secretPin }).then(r => r.data);
 
 export default api;
