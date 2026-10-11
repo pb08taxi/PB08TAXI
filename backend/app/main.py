@@ -20,6 +20,7 @@ from app.routers import (
     admin_dashboard,
     admin_customers,
     admin_bookings,
+    admin_drivers,
     admin_slider,
     admin_whatsapp,
     admin_settings
@@ -166,6 +167,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(admin_dashboard.router, prefix="/api")
 app.include_router(admin_customers.router, prefix="/api")
 app.include_router(admin_bookings.router, prefix="/api")
+app.include_router(admin_drivers.router, prefix="/api")
 app.include_router(admin_slider.router, prefix="/api")
 app.include_router(admin_whatsapp.router, prefix="/api")
 app.include_router(admin_settings.router, prefix="/api")

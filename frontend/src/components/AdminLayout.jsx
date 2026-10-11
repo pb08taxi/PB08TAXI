@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { label: 'Customers', path: '/admin/customers', icon: Users },
   { label: 'Bookings', path: '/admin/bookings', icon: CalendarCheck },
+  { label: 'Drivers', path: '/admin/drivers', icon: Car },
   { label: 'Image Slider', path: '/admin/slider', icon: Sliders },
   { label: 'WhatsApp Settings', path: '/admin/whatsapp', icon: MessageSquare },
   { label: 'WhatsApp Offers', path: '/admin/offers', icon: Send },

@@ -43,8 +43,22 @@ export const getAdminMe = () => api.get('/api/admin/me').then(r => r.data);
 // Admin Dashboard & Customers
 export const getAdminStats = () => api.get('/api/admin/stats').then(r => r.data);
 export const getCustomers = (q = '') => api.get(`/api/admin/customers${q ? `?q=${encodeURIComponent(q)}` : ''}`).then(r => r.data);
+export const createCustomer = (data) => api.post('/api/admin/customers', data).then(r => r.data);
+export const updateCustomer = (id, data) => api.put(`/api/admin/customers/${id}`, data).then(r => r.data);
+export const deleteCustomer = (id) => api.delete(`/api/admin/customers/${id}`).then(r => r.data);
 export const updateCustomerConsent = (id, consent) => 
   api.patch(`/api/admin/customers/${id}/consent?marketing_consent=${consent}`).then(r => r.data);
+
+// Admin Drivers
+export const getDrivers = (status = '') => {
+  const params = new URLSearchParams();
+  if (status && status !== 'ALL') params.append('status_filter', status);
+  return api.get(`/api/admin/drivers?${params.toString()}`).then(r => r.data);
+};
+export const createDriver = (data) => api.post('/api/admin/drivers', data).then(r => r.data);
+export const updateDriver = (id, data) => api.put(`/api/admin/drivers/${id}`, data).then(r => r.data);
+export const deleteDriver = (id) => api.delete(`/api/admin/drivers/${id}`).then(r => r.data);
+export const toggleDriverActive = (id) => api.patch(`/api/admin/drivers/${id}/toggle-active`).then(r => r.data);
 
 // Admin Bookings
 export const getBookings = (status = '', q = '') => {
@@ -53,8 +67,13 @@ export const getBookings = (status = '', q = '') => {
   if (q) params.append('q', q);
   return api.get(`/api/admin/bookings?${params.toString()}`).then(r => r.data);
 };
-export const updateBookingStatus = (id, status, notes = '') => 
-  api.patch(`/api/admin/bookings/${id}/status`, { status, notes }).then(r => r.data);
+export const updateBookingStatus = (id, status, notes = '', driverId = null, sendWhatsApp = true) => 
+  api.patch(`/api/admin/bookings/${id}/status`, { 
+    status, 
+    notes, 
+    driver_id: driverId, 
+    send_whatsapp: sendWhatsApp 
+  }).then(r => r.data);
 
 // Admin Slider
 export const getAdminSliders = () => api.get('/api/admin/slider-images').then(r => r.data);
@@ -89,6 +108,12 @@ export const getWhatsAppLogs = (limit = 50, type = '') => {
   if (type) params.append('message_type', type);
   return api.get(`/api/admin/whatsapp/logs?${params.toString()}`).then(r => r.data);
 };
+
+// WhatsApp Message Templates
+export const getMessageTemplates = () => api.get('/api/admin/whatsapp/templates').then(r => r.data);
+export const updateMessageTemplate = (templateKey, content) => 
+  api.put(`/api/admin/whatsapp/templates/${templateKey}`, { content }).then(r => r.data);
+export const resetMessageTemplates = () => api.post('/api/admin/whatsapp/templates/reset').then(r => r.data);
 
 // Site Settings & Admin Credentials
 export const getPublicSiteSettings = () => api.get('/api/site-settings').then(r => r.data);

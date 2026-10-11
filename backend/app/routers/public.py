@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
-from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting
+from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate
 from app.schemas import BookingCreate, BookingOut, SliderImageOut
 from app.services.whatsapp_service import whatsapp_service
 
@@ -131,17 +131,37 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(booking)
 
-    # 4. WhatsApp Confirmation Message
-    friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else None
-    friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_time else None
-    schedule_text = f" for {friendly_date} at {friendly_time}" if (friendly_date and friendly_time) else ""
+    # 4. WhatsApp Confirmation Message (Uses customizable template if configured)
+    friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else "Immediate / Today"
+    friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
+    
+    support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
+    support_phone_val = support_setting.value if support_setting and support_setting.value else "+91 98765 43210"
 
-    confirmation_text = (
-        f"Hi {customer.name}, our support team will contact you shortly. "
-        f"You will receive a call from us soon. "
-        f"Thank you for connecting with PB08 TAXI! "
-        f"(Booking Ref: #{booking.booking_reference}{schedule_text})"
-    )
+    tpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_received").first()
+    if tpl and tpl.content:
+        ctx = {
+            "customer_name": customer.name,
+            "customer_contact": customer.whatsapp_number,
+            "booking_ref": booking.booking_reference,
+            "pickup_date": friendly_date,
+            "pickup_time": friendly_time,
+            "pickup_location": booking.pickup_location or "Not specified",
+            "destination": booking.destination or "Not specified",
+            "support_phone": support_phone_val,
+            "notes": booking.notes or ""
+        }
+        confirmation_text = tpl.content
+        for k, v in ctx.items():
+            confirmation_text = confirmation_text.replace(f"{{{k}}}", str(v) if v is not None else "")
+    else:
+        schedule_text = f" for {friendly_date} at {friendly_time}" if (friendly_date and friendly_time) else ""
+        confirmation_text = (
+            f"Hi {customer.name}, our support team will contact you shortly. "
+            f"You will receive a call from us soon. "
+            f"Thank you for connecting with PB08 TAXI! "
+            f"(Booking Ref: #{booking.booking_reference}{schedule_text})"
+        )
 
     wa_success, wa_error = await whatsapp_service.send_text_message(
         db=db,

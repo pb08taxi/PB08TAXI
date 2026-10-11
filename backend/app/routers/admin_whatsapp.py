@@ -4,14 +4,16 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import AdminUser, Customer, WhatsAppMessage, SystemSetting
+from app.models import AdminUser, Customer, WhatsAppMessage, SystemSetting, MessageTemplate
 from app.schemas import (
     WhatsAppStatusOut,
     WhatsAppTestMessage,
     WhatsAppOfferRequest,
     WhatsAppMessageOut,
     WhatsAppSettingsIn,
-    WhatsAppSettingsOut
+    WhatsAppSettingsOut,
+    MessageTemplateOut,
+    MessageTemplateUpdate
 )
 from app.services.whatsapp_service import whatsapp_service
 from app.security import get_current_admin
@@ -253,3 +255,142 @@ def get_whatsapp_message_logs(
     
     logs = query.order_by(WhatsAppMessage.sent_at.desc()).limit(limit).all()
     return logs
+
+DEFAULT_TEMPLATES = [
+    {
+        "template_key": "booking_received",
+        "title": "Booking Received (Customer Acknowledgment)",
+        "content": (
+            "🚖 *PB08 TAXI — Booking Received*\n"
+            "Hi {customer_name}, thank you for choosing PB08 TAXI!\n"
+            "We have received your booking request (Ref: #{booking_ref}).\n"
+            "📅 *Pickup Date:* {pickup_date}\n"
+            "⏰ *Pickup Time:* {pickup_time}\n"
+            "📍 *Pickup Location:* {pickup_location}\n"
+            "🏁 *Destination:* {destination}\n\n"
+            "Our team will contact you shortly to confirm your ride. For immediate assistance call {support_phone}."
+        ),
+        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {support_phone}"
+    },
+    {
+        "template_key": "booking_confirmed",
+        "title": "Booking Confirmed — Driver Assigned (To Customer)",
+        "content": (
+            "🚖 *PB08 TAXI — Ride Confirmed!*\n"
+            "Hello {customer_name}, your ride has been confirmed!\n"
+            "📌 *Booking Ref:* #{booking_ref}\n"
+            "📅 *Pickup Date:* {pickup_date}\n"
+            "⏰ *Pickup Time:* {pickup_time}\n"
+            "📍 *Pickup Location:* {pickup_location}\n"
+            "🏁 *Destination:* {destination}\n\n"
+            "🚗 *Assigned Cab & Driver Details:*\n"
+            "👤 *Driver Name:* {driver_name}\n"
+            "🚖 *Taxi No:* {taxi_number}\n"
+            "📞 *Driver Contact:* {driver_contact}\n\n"
+            "Your driver will arrive on time. Have a safe journey!"
+        ),
+        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {driver_name}, {taxi_number}, {driver_contact}, {support_phone}"
+    },
+    {
+        "template_key": "driver_assignment",
+        "title": "Duty Assignment Alert (To Driver)",
+        "content": (
+            "🚖 *PB08 TAXI — New Duty Assigned!*\n"
+            "Hello {driver_name}, a new booking has been assigned to your cab ({taxi_number}):\n"
+            "📌 *Booking Ref:* #{booking_ref}\n"
+            "👤 *Customer Name:* {customer_name}\n"
+            "📞 *Customer Contact:* {customer_contact}\n"
+            "📅 *Pickup Date:* {pickup_date}\n"
+            "⏰ *Pickup Time:* {pickup_time}\n"
+            "📍 *Pickup Location:* {pickup_location}\n"
+            "🏁 *Destination:* {destination}\n\n"
+            "👉 Please call the customer in advance to coordinate pickup."
+        ),
+        "variables_hint": "{driver_name}, {taxi_number}, {booking_ref}, {customer_name}, {customer_contact}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}"
+    },
+    {
+        "template_key": "booking_completed",
+        "title": "Ride Completed (To Customer)",
+        "content": (
+            "🚖 *PB08 TAXI — Ride Completed!*\n"
+            "Dear {customer_name}, your journey (Ref: #{booking_ref}) has ended.\n"
+            "Thank you for riding with PB08 TAXI! We hope you had a pleasant and safe ride.\n\n"
+            "For your next ride, call us anytime at {support_phone}. Have a great day!"
+        ),
+        "variables_hint": "{customer_name}, {booking_ref}, {support_phone}"
+    },
+    {
+        "template_key": "booking_cancelled",
+        "title": "Booking Cancelled (To Customer)",
+        "content": (
+            "🚖 *PB08 TAXI — Booking Cancelled*\n"
+            "Hello {customer_name}, your taxi booking (Ref: #{booking_ref}) has been cancelled.\n"
+            "Reason: {notes}\n\n"
+            "If you have any questions or wish to book again, please call {support_phone}."
+        ),
+        "variables_hint": "{customer_name}, {booking_ref}, {notes}, {support_phone}"
+    }
+]
+
+@router.get("/templates", response_model=List[MessageTemplateOut])
+def get_message_templates(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all configurable WhatsApp message templates."""
+    templates = db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()
+    if not templates:
+        # Seed defaults if not present
+        for t in DEFAULT_TEMPLATES:
+            new_t = MessageTemplate(
+                template_key=t["template_key"],
+                title=t["title"],
+                content=t["content"],
+                variables_hint=t["variables_hint"],
+                updated_at=datetime.utcnow()
+            )
+            db.add(new_t)
+        db.commit()
+        templates = db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()
+    return templates
+
+@router.put("/templates/{template_key}", response_model=MessageTemplateOut)
+def update_message_template(
+    template_key: str,
+    payload: MessageTemplateUpdate,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Update custom content for a specific message template."""
+    tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == template_key).first()
+    if not tmpl:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Template '{template_key}' not found")
+    tmpl.content = payload.content.strip()
+    tmpl.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(tmpl)
+    return tmpl
+
+@router.post("/templates/reset", response_model=List[MessageTemplateOut])
+def reset_message_templates(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Reset all message templates to system defaults."""
+    for default_item in DEFAULT_TEMPLATES:
+        tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == default_item["template_key"]).first()
+        if tmpl:
+            tmpl.title = default_item["title"]
+            tmpl.content = default_item["content"]
+            tmpl.variables_hint = default_item["variables_hint"]
+            tmpl.updated_at = datetime.utcnow()
+        else:
+            db.add(MessageTemplate(
+                template_key=default_item["template_key"],
+                title=default_item["title"],
+                content=default_item["content"],
+                variables_hint=default_item["variables_hint"],
+                updated_at=datetime.utcnow()
+            ))
+    db.commit()
+    return db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()

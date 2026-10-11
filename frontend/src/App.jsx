@@ -6,6 +6,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminCustomersPage from './pages/AdminCustomersPage';
 import AdminBookingsPage from './pages/AdminBookingsPage';
+import AdminDriversPage from './pages/AdminDriversPage';
 import AdminSliderPage from './pages/AdminSliderPage';
 import AdminWhatsAppPage from './pages/AdminWhatsAppPage';
 import AdminOffersPage from './pages/AdminOffersPage';
@@ -42,6 +43,7 @@ export default function App() {
         <Route index element={<AdminDashboardPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />
         <Route path="bookings" element={<AdminBookingsPage />} />
+        <Route path="drivers" element={<AdminDriversPage />} />
         <Route path="slider" element={<AdminSliderPage />} />
         <Route path="whatsapp" element={<AdminWhatsAppPage />} />
         <Route path="offers" element={<AdminOffersPage />} />

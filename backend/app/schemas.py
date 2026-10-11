@@ -20,6 +20,21 @@ class CustomerBase(BaseModel):
     def validate_phone(cls, v: str) -> str:
         return clean_phone(v)
 
+class CustomerCreate(CustomerBase):
+    pass
+
+class CustomerUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=150)
+    whatsapp_number: Optional[str] = Field(None, min_length=8, max_length=50)
+    marketing_consent: Optional[bool] = None
+
+    @field_validator("whatsapp_number")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return clean_phone(v)
+        return v
+
 class CustomerOut(CustomerBase):
     id: int
     created_at: datetime
@@ -43,9 +58,47 @@ class BookingCreate(BaseModel):
     def validate_phone(cls, v: str) -> str:
         return clean_phone(v)
 
+class DriverBase(BaseModel):
+    name: str = Field(..., min_length=2, max_length=150)
+    taxi_registration: str = Field(..., min_length=3, max_length=50)  # e.g., PB01CC1372
+    contact_number: str = Field(..., min_length=8, max_length=50)
+    is_active: bool = True
+
+    @field_validator("contact_number")
+    @classmethod
+    def validate_contact(cls, v: str) -> str:
+        return clean_phone(v)
+
+class DriverCreate(DriverBase):
+    pass
+
+class DriverUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=150)
+    taxi_registration: Optional[str] = Field(None, min_length=3, max_length=50)
+    contact_number: Optional[str] = Field(None, min_length=8, max_length=50)
+    is_active: Optional[bool] = None
+
+    @field_validator("contact_number")
+    @classmethod
+    def validate_contact(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return clean_phone(v)
+        return v
+
+class DriverOut(DriverBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    total_rides: int = 0
+
+    class Config:
+        from_attributes = True
+
 class BookingStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(PENDING|CONFIRMED|COMPLETED|CANCELLED)$")
     notes: Optional[str] = None
+    driver_id: Optional[int] = None
+    send_whatsapp: bool = True
 
 class BookingOut(BaseModel):
     id: int
@@ -53,6 +106,10 @@ class BookingOut(BaseModel):
     customer_id: int
     customer_name: str
     whatsapp_number: str
+    driver_id: Optional[int] = None
+    driver_name: Optional[str] = None
+    driver_taxi_registration: Optional[str] = None
+    driver_contact: Optional[str] = None
     pickup_location: Optional[str] = None
     destination: Optional[str] = None
     pickup_date: Optional[str] = None
@@ -170,4 +227,18 @@ class AdminCredentialsUpdate(BaseModel):
     current_password: str
     new_username: Optional[str] = None
     new_password: Optional[str] = None
+
+class MessageTemplateOut(BaseModel):
+    id: int
+    template_key: str
+    title: str
+    content: str
+    variables_hint: Optional[str] = None
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class MessageTemplateUpdate(BaseModel):
+    content: str = Field(..., min_length=1)
 

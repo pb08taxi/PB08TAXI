@@ -4,11 +4,36 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.database import get_db
-from app.models import AdminUser, Booking, Customer, WhatsAppMessage
+from app.models import AdminUser, Booking, Customer, WhatsAppMessage, Driver, MessageTemplate, SystemSetting
 from app.schemas import BookingOut, BookingStatusUpdate
+from app.services.whatsapp_service import whatsapp_service
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/admin/bookings", tags=["Admin Bookings"])
+
+def format_friendly_date(date_str: Optional[str]) -> str:
+    if not date_str:
+        return ""
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%d-%b-%Y")
+    except Exception:
+        return date_str
+
+def format_friendly_time(time_str: Optional[str]) -> str:
+    if not time_str:
+        return ""
+    try:
+        dt = datetime.strptime(time_str, "%H:%M")
+        return dt.strftime("%I:%M %p")
+    except Exception:
+        return time_str
+
+def render_template(template_text: str, context: dict) -> str:
+    res = template_text
+    for k, v in context.items():
+        res = res.replace(f"{{{k}}}", str(v) if v is not None else "")
+    return res
 
 @router.get("", response_model=List[BookingOut])
 def list_bookings(
@@ -17,8 +42,8 @@ def list_bookings(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """List bookings with customer details and status filtering."""
-    query = db.query(Booking).join(Customer, Customer.id == Booking.customer_id)
+    """List bookings with customer details, assigned driver, and status filtering."""
+    query = db.query(Booking).join(Customer, Customer.id == Booking.customer_id).outerjoin(Driver, Driver.id == Booking.driver_id)
 
     if status_filter and status_filter.upper() != "ALL":
         query = query.filter(Booking.status == status_filter.upper())
@@ -32,6 +57,8 @@ def list_bookings(
                 Customer.whatsapp_number.ilike(search_term),
                 Booking.pickup_location.ilike(search_term),
                 Booking.destination.ilike(search_term),
+                Driver.name.ilike(search_term),
+                Driver.taxi_registration.ilike(search_term)
             )
         )
 
@@ -39,7 +66,6 @@ def list_bookings(
 
     out = []
     for b in bookings:
-        # Get latest whatsapp status for this customer/booking if any
         latest_msg = (
             db.query(WhatsAppMessage)
             .filter(WhatsAppMessage.customer_id == b.customer_id)
@@ -55,6 +81,10 @@ def list_bookings(
                 customer_id=b.customer_id,
                 customer_name=b.customer.name,
                 whatsapp_number=b.customer.whatsapp_number,
+                driver_id=b.driver_id,
+                driver_name=b.driver.name if b.driver else None,
+                driver_taxi_registration=b.driver.taxi_registration if b.driver else None,
+                driver_contact=b.driver.contact_number if b.driver else None,
                 pickup_location=b.pickup_location,
                 destination=b.destination,
                 pickup_date=b.pickup_date,
@@ -68,24 +98,158 @@ def list_bookings(
     return out
 
 @router.patch("/{booking_id}/status", response_model=BookingOut)
-def update_booking_status(
+async def update_booking_status(
     booking_id: int,
     payload: BookingStatusUpdate,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Update status (PENDING, CONFIRMED, COMPLETED, CANCELLED) and optional notes."""
+    """Update status, assign driver, and automatically dispatch template WhatsApp alerts."""
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
 
+    old_status = booking.status
     booking.status = payload.status
     if payload.notes is not None:
         booking.notes = payload.notes
+    if payload.driver_id is not None:
+        booking.driver_id = payload.driver_id if payload.driver_id > 0 else None
     booking.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(booking)
+
+    # Fetch support phone for templates
+    support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
+    support_phone = support_setting.value if support_setting and support_setting.value else "+91 98765 43210"
+
+    driver = db.query(Driver).filter(Driver.id == booking.driver_id).first() if booking.driver_id else None
+
+    # Handle automated WhatsApp dispatches based on status
+    if payload.send_whatsapp:
+        date_disp = format_friendly_date(booking.pickup_date) or "As scheduled"
+        time_disp = format_friendly_time(booking.pickup_time) or "Immediate"
+
+        base_ctx = {
+            "customer_name": booking.customer.name,
+            "customer_contact": booking.customer.whatsapp_number,
+            "booking_ref": booking.booking_reference,
+            "pickup_date": date_disp,
+            "pickup_time": time_disp,
+            "pickup_location": booking.pickup_location or "Not specified",
+            "destination": booking.destination or "Not specified",
+            "support_phone": support_phone,
+            "notes": booking.notes or "None"
+        }
+
+        # 1. Status CONFIRMED
+        if payload.status == "CONFIRMED":
+            # Context with driver details
+            cust_ctx = dict(base_ctx)
+            cust_ctx["driver_name"] = driver.name if driver else "Assigned PB08 Driver"
+            cust_ctx["taxi_number"] = driver.taxi_registration if driver else "PB08 TAXI"
+            cust_ctx["driver_contact"] = driver.contact_number if driver else support_phone
+
+            tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_confirmed").first()
+            if tmpl:
+                cust_msg = render_template(tmpl.content, cust_ctx)
+            else:
+                cust_msg = (
+                    f"🚖 *PB08 TAXI — Ride Confirmed!*\n"
+                    f"Hello {booking.customer.name}, your ride has been confirmed (Ref: #{booking.booking_reference})!\n"
+                    f"📅 *Pickup Date:* {date_disp} at {time_disp}\n"
+                    f"📍 *Pickup:* {booking.pickup_location}\n"
+                    f"🏁 *Destination:* {booking.destination}\n\n"
+                    f"🚗 *Driver Details:*\n"
+                    f"👤 *Driver Name:* {cust_ctx['driver_name']}\n"
+                    f"🚖 *Taxi No:* {cust_ctx['taxi_number']}\n"
+                    f"📞 *Contact:* {cust_ctx['driver_contact']}\n\n"
+                    f"Have a pleasant trip!"
+                )
+            
+            # Send to customer
+            await whatsapp_service.send_text_message(
+                db=db,
+                phone=booking.customer.whatsapp_number,
+                message=cust_msg,
+                message_type="BOOKING_CONFIRMATION",
+                customer_id=booking.customer_id
+            )
+
+            # Send duty alert to driver if driver is assigned
+            if driver and driver.contact_number:
+                driver_tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "driver_assignment").first()
+                driver_ctx = {
+                    "driver_name": driver.name,
+                    "taxi_number": driver.taxi_registration,
+                    "booking_ref": booking.booking_reference,
+                    "customer_name": booking.customer.name,
+                    "customer_contact": booking.customer.whatsapp_number,
+                    "pickup_date": date_disp,
+                    "pickup_time": time_disp,
+                    "pickup_location": booking.pickup_location or "Not specified",
+                    "destination": booking.destination or "Not specified",
+                }
+                if driver_tmpl:
+                    driver_msg = render_template(driver_tmpl.content, driver_ctx)
+                else:
+                    driver_msg = (
+                        f"🚖 *PB08 TAXI — New Duty Assigned!*\n"
+                        f"Hello {driver.name}, a new ride has been assigned to your taxi ({driver.taxi_registration}):\n"
+                        f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                        f"👤 *Customer Name:* {booking.customer.name}\n"
+                        f"📞 *Contact:* {booking.customer.whatsapp_number}\n"
+                        f"📅 *Scheduled:* {date_disp} at {time_disp}\n"
+                        f"📍 *Pickup:* {booking.pickup_location}\n"
+                        f"🏁 *Destination:* {booking.destination}\n"
+                        f"👉 Please coordinate with the customer."
+                    )
+                await whatsapp_service.send_text_message(
+                    db=db,
+                    phone=driver.contact_number,
+                    message=driver_msg,
+                    message_type="DRIVER_DUTY_ALERT"
+                )
+
+        # 2. Status COMPLETED
+        elif payload.status == "COMPLETED":
+            comp_tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_completed").first()
+            if comp_tmpl:
+                comp_msg = render_template(comp_tmpl.content, base_ctx)
+            else:
+                comp_msg = (
+                    f"🚖 *PB08 TAXI — Ride Completed!*\n"
+                    f"Dear {booking.customer.name}, your journey (Ref: #{booking.booking_reference}) has ended.\n"
+                    f"Thank you for riding with PB08 TAXI! Call us anytime at {support_phone} for your next trip."
+                )
+            await whatsapp_service.send_text_message(
+                db=db,
+                phone=booking.customer.whatsapp_number,
+                message=comp_msg,
+                message_type="RIDE_COMPLETED",
+                customer_id=booking.customer_id
+            )
+
+        # 3. Status CANCELLED
+        elif payload.status == "CANCELLED":
+            canc_tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_cancelled").first()
+            if canc_tmpl:
+                canc_msg = render_template(canc_tmpl.content, base_ctx)
+            else:
+                canc_msg = (
+                    f"🚖 *PB08 TAXI — Booking Cancelled*\n"
+                    f"Hello {booking.customer.name}, your taxi booking (Ref: #{booking.booking_reference}) has been cancelled.\n"
+                    f"Reason: {booking.notes or 'Cancelled by operator'}\n"
+                    f"Contact {support_phone} for assistance."
+                )
+            await whatsapp_service.send_text_message(
+                db=db,
+                phone=booking.customer.whatsapp_number,
+                message=canc_msg,
+                message_type="BOOKING_CANCELLED",
+                customer_id=booking.customer_id
+            )
 
     latest_msg = (
         db.query(WhatsAppMessage)
@@ -100,6 +264,10 @@ def update_booking_status(
         customer_id=booking.customer_id,
         customer_name=booking.customer.name,
         whatsapp_number=booking.customer.whatsapp_number,
+        driver_id=booking.driver_id,
+        driver_name=booking.driver.name if booking.driver else None,
+        driver_taxi_registration=booking.driver.taxi_registration if booking.driver else None,
+        driver_contact=booking.driver.contact_number if booking.driver else None,
         pickup_location=booking.pickup_location,
         destination=booking.destination,
         pickup_date=booking.pickup_date,
