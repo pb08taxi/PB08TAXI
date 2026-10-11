@@ -1,14 +1,22 @@
+import os
+import base64
+import httpx
 from typing import Dict, Any, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import AdminUser, SystemSetting
 from app.schemas import SEOSettingsOut, SEOSettingsUpdate
 from app.security import get_current_admin
+from app.config import get_settings
+
+settings_cfg = get_settings()
 
 router = APIRouter(tags=["Advance SEO"])
+
+DEFAULT_OG_BANNER_URL = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png"
 
 SEO_DEFAULTS = {
     "seo_meta_title": "PB08 TAXI — One Click Book Your Ride | 24/7 Cab Service",
@@ -19,7 +27,7 @@ SEO_DEFAULTS = {
     
     "seo_og_title": "PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking",
     "seo_og_description": "Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation.",
-    "seo_og_image": "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png",
+    "seo_og_image": DEFAULT_OG_BANNER_URL,
     "seo_twitter_card": "summary_large_image",
     
     "seo_business_name": "PB08 TAXI",
@@ -155,3 +163,82 @@ def reset_admin_seo_defaults(
     for key, val in SEO_DEFAULTS.items():
         _set_val(db, key, val)
     return build_seo_response(db)
+
+@router.post("/admin/seo/upload-banner")
+async def upload_seo_banner(
+    file: UploadFile = File(...),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload Social Sharing Preview Banner (og:image / WhatsApp & Social Card):
+    1. Validates file format (.png, .jpg, .jpeg, .webp).
+    2. Auto-renames to pb08taxi-banner-{ts}.ext.
+    3. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
+    4. Auto-saves direct raw URL into database under 'seo_og_image'.
+    """
+    ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
+    allowed_exts = [".png", ".jpg", ".jpeg", ".webp"]
+    if ext not in allowed_exts and not (file.content_type and file.content_type.startswith("image/")):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid banner format. Allowed: .png, .jpg, .jpeg, .webp"
+        )
+
+    file_bytes = await file.read()
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    ts = int(datetime.utcnow().timestamp())
+    site_filename = f"pb08taxi-banner-{ts}{ext or '.png'}"
+    github_path = f"Logo/{site_filename}"
+    commit_msg = f"Upload pb08taxi-banner social card asset: {site_filename}"
+
+    uploaded_url = None
+
+    if settings_cfg.GITHUB_TOKEN and settings_cfg.GITHUB_REPO:
+        try:
+            gh_headers = {
+                "Authorization": f"token {settings_cfg.GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            content_b64 = base64.b64encode(file_bytes).decode("utf-8")
+            gh_payload = {
+                "message": commit_msg,
+                "content": content_b64,
+                "branch": settings_cfg.GITHUB_BRANCH
+            }
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                gh_res = await client.put(
+                    f"https://api.github.com/repos/{settings_cfg.GITHUB_REPO}/contents/{github_path}",
+                    headers=gh_headers,
+                    json=gh_payload
+                )
+                if gh_res.status_code in (200, 201):
+                    uploaded_url = f"https://raw.githubusercontent.com/{settings_cfg.GITHUB_REPO}/{settings_cfg.GITHUB_BRANCH}/{github_path}"
+                    print(f"[UploadBanner] Successfully uploaded to GitHub: {uploaded_url}")
+                else:
+                    print(f"[UploadBanner] GitHub upload response status {gh_res.status_code}: {gh_res.text[:150]}")
+        except Exception as ex:
+            print(f"[UploadBanner] GitHub upload exception: {ex}")
+
+    # Fallback to local save
+    try:
+        repo_logo_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "Logo")
+        os.makedirs(repo_logo_dir, exist_ok=True)
+        with open(os.path.join(repo_logo_dir, site_filename), "wb") as f_local:
+            f_local.write(file_bytes)
+    except Exception:
+        pass
+
+    if not uploaded_url:
+        uploaded_url = f"/uploads/{site_filename}"
+
+    _set_val(db, "seo_og_image", uploaded_url)
+
+    return {
+        "url": uploaded_url,
+        "filename": site_filename,
+        "github_path": github_path
+    }
+

@@ -17,11 +17,17 @@ import {
   Laptop,
   Check,
   Copy,
-  Info
+  Info,
+  Upload,
+  Image as ImageIcon,
+  Edit3,
+  Loader2
 } from 'lucide-react';
-import { getAdminSEOSettings, updateAdminSEOSettings, resetAdminSEODefaults } from '../api/client';
+import { getAdminSEOSettings, updateAdminSEOSettings, resetAdminSEODefaults, uploadSEOBanner } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
+
+export const DEFAULT_BANNER_URL = 'https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png';
 
 export default function AdminSEOPage() {
   const { showSuccess, showError } = useToast();
@@ -35,6 +41,20 @@ export default function AdminSEOPage() {
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('google'); // 'google' | 'whatsapp'
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const bannerFileInputRef = React.useRef(null);
+
+  // Fallback image handler: tries jsDelivr CDN if raw.githubusercontent is blocked/slow, else official default banner
+  const handleImageError = (e) => {
+    if (e.target.dataset.triedJsdelivr !== 'true' && e.target.src && e.target.src.includes('raw.githubusercontent.com')) {
+      e.target.dataset.triedJsdelivr = 'true';
+      e.target.src = e.target.src.replace('https://raw.githubusercontent.com/', 'https://cdn.jsdelivr.net/gh/').replace('/main/', '@main/');
+      return;
+    }
+    if (e.target.src !== DEFAULT_BANNER_URL) {
+      e.target.src = DEFAULT_BANNER_URL;
+    }
+  };
 
   // Section A: Core Meta
   const [metaTitle, setMetaTitle] = useState('');
@@ -46,7 +66,7 @@ export default function AdminSEOPage() {
   // Section B: Social & OpenGraph
   const [ogTitle, setOgTitle] = useState('');
   const [ogDescription, setOgDescription] = useState('');
-  const [ogImage, setOgImage] = useState('');
+  const [ogImage, setOgImage] = useState(DEFAULT_BANNER_URL);
   const [twitterCard, setTwitterCard] = useState('summary_large_image');
 
   // Section C: Local & Geo SEO
@@ -75,7 +95,12 @@ export default function AdminSEOPage() {
 
       setOgTitle(data.og_title || '');
       setOgDescription(data.og_description || '');
-      setOgImage(data.og_image || '');
+      
+      // Auto-sanitize broken 1x1 placeholder to official default banner
+      const validOgImage = (data.og_image && !data.og_image.includes('1791751050')) 
+        ? data.og_image 
+        : DEFAULT_BANNER_URL;
+      setOgImage(validOgImage);
       setTwitterCard(data.twitter_card || 'summary_large_image');
 
       setBusinessName(data.business_name || 'PB08 TAXI');
@@ -92,6 +117,42 @@ export default function AdminSEOPage() {
       setCustomHeadCode(data.custom_head_code || '');
     }
   }, [data]);
+
+  // Upload banner directly to GitHub /Logo folder with automatic git commit
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBanner(true);
+    try {
+      const res = await uploadSEOBanner(file);
+      const newUrl = res.url || DEFAULT_BANNER_URL;
+      setOgImage(newUrl);
+      showSuccess(`Social Preview Banner uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & updated!`, 'Banner Uploaded');
+    } catch (err) {
+      showError('Failed to upload banner: ' + (err.response?.data?.detail || 'Invalid image format'), 'Upload Error');
+    } finally {
+      setUploadingBanner(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // Reset banner to official high-resolution default PB08 TAXI banner
+  const handleResetBannerDefault = () => {
+    setOgImage(DEFAULT_BANNER_URL);
+    showSuccess('Banner restored to official PB08 TAXI default!', 'Banner Reset');
+  };
+
+  // Jump to and focus the direct banner URL editor input
+  const handleFocusBannerEdit = () => {
+    const el = document.getElementById('seo-banner-url-input');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus();
+      el.classList.add('ring-2', 'ring-taxi-yellow');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-taxi-yellow'), 2000);
+    }
+  };
 
   const handleSave = async (e) => {
     if (e) e.preventDefault();
@@ -260,36 +321,88 @@ export default function AdminSEOPage() {
           </div>
         ) : (
           /* WhatsApp / Facebook Social Card Simulator */
-          <div className="bg-[#0b141a] p-4 sm:p-5 rounded-2xl border border-zinc-800 max-w-md shadow-2xl">
-            <div className="bg-[#1f2c34] rounded-2xl overflow-hidden border border-[#2a3942] text-left">
-              {ogImage ? (
-                <div className="h-44 sm:h-48 w-full bg-zinc-950 overflow-hidden relative">
-                  <img src={ogImage} alt="Social Preview Banner" className="w-full h-full object-cover" />
-                  <span className="absolute top-2 right-2 bg-black/70 text-taxi-yellow text-[10px] font-bold px-2 py-0.5 rounded-md border border-zinc-700">
-                    Auto-Injected Card
-                  </span>
-                </div>
-              ) : (
-                <div className="h-36 bg-zinc-900 flex items-center justify-center text-zinc-500 text-xs">
-                  <span>No OG Image configured (Will show standard favicon)</span>
-                </div>
-              )}
-              <div className="p-3.5 space-y-1">
-                <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-mono">
-                  {new URL(canonicalUrl || 'https://pb08taxi.com').hostname}
-                </p>
-                <h4 className="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">
-                  {ogTitle || metaTitle || 'PB08 TAXI — 24/7 Cab Service in Punjab'}
-                </h4>
-                <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2">
-                  {ogDescription || metaDescription || 'Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport.'}
-                </p>
+          <div className="space-y-4 max-w-xl">
+            {/* Quick Action Toolbar directly inside preview */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 bg-zinc-900/90 border border-zinc-800 p-3 rounded-2xl">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#25D366] animate-pulse"></span>
+                <span className="text-xs font-bold text-white">Social Banner Actions:</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => bannerFileInputRef.current?.click()}
+                  disabled={uploadingBanner}
+                  className="inline-flex items-center space-x-1.5 bg-taxi-yellow hover:bg-taxi-yellowHover text-black px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95"
+                >
+                  {uploadingBanner ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Change Banner</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFocusBannerEdit}
+                  className="inline-flex items-center space-x-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 transition-colors"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-taxi-yellow" />
+                  <span>Edit URL</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetBannerDefault}
+                  title="Reset to default PB08 TAXI banner"
+                  className="inline-flex items-center space-x-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Back to Default</span>
+                </button>
               </div>
             </div>
-            <p className="text-[11px] text-emerald-400 mt-2 font-medium flex items-center space-x-1.5">
-              <Check className="w-3.5 h-3.5" />
-              <span>Automatically displays when shared on WhatsApp, Facebook, Instagram Bio, or Twitter.</span>
-            </p>
+
+            {/* Simulated WhatsApp / Facebook Share Message Bubble */}
+            <div className="bg-[#0b141a] p-4 sm:p-5 rounded-2xl border border-zinc-800 shadow-2xl">
+              <div className="bg-[#1f2c34] rounded-2xl overflow-hidden border border-[#2a3942] text-left">
+                <div className="h-48 sm:h-52 w-full bg-zinc-950 overflow-hidden relative group">
+                  <img 
+                    src={ogImage || DEFAULT_BANNER_URL} 
+                    alt="PB08 TAXI Social Preview Banner" 
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" 
+                    onError={handleImageError}
+                  />
+                  <div className="absolute top-2 right-2 flex items-center space-x-1.5">
+                    <span className="bg-black/75 backdrop-blur-sm text-taxi-yellow text-[10px] font-bold px-2 py-0.5 rounded-md border border-zinc-700/80">
+                      Auto-Injected Card
+                    </span>
+                    <span className="bg-[#25D366]/90 text-black text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+                      1200×630 HD
+                    </span>
+                  </div>
+                </div>
+                <div className="p-3.5 space-y-1">
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-mono">
+                    {new URL(canonicalUrl || 'https://pb08taxi.com').hostname}
+                  </p>
+                  <h4 className="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">
+                    {ogTitle || metaTitle || 'PB08 TAXI — 24/7 Cab Service in Punjab'}
+                  </h4>
+                  <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2">
+                    {ogDescription || metaDescription || 'Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport.'}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[11px] text-emerald-400 mt-2.5 font-medium flex items-center space-x-1.5">
+                <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Automatically displays when shared on WhatsApp, Facebook, Instagram Bio, or Twitter.</span>
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -485,21 +598,102 @@ export default function AdminSEOPage() {
               />
             </div>
 
-            {/* OG Image Banner URL */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
-                Social Sharing Banner Image URL (og:image)
-              </label>
-              <input
-                type="url"
-                value={ogImage}
-                onChange={(e) => setOgImage(e.target.value)}
-                placeholder="https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png"
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 px-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
-              />
-              <p className="text-[11px] text-zinc-500 mt-1">
-                Recommended aspect ratio: <strong>1200 × 630 pixels</strong> (PNG or JPG). WhatsApp and Facebook use this high-resolution image when displaying chat previews.
-              </p>
+            {/* OG Image Banner Management Card */}
+            <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-850 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="w-4 h-4 text-taxi-yellow" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    Social Sharing Banner Image (og:image / WhatsApp & Social Card)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetBannerDefault}
+                  className="text-xs text-zinc-400 hover:text-taxi-yellow flex items-center space-x-1.5 self-start sm:self-auto transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Back to Default Banner</span>
+                </button>
+              </div>
+
+              {/* Recommended specifications */}
+              <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 text-[11px] text-zinc-400 space-y-1">
+                <p className="font-bold text-taxi-yellow">Recommended Specifications for WhatsApp & Social Cards:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+                  <li><strong>Dimensions:</strong> 1200 × 630 pixels (Standard 1.91:1 OpenGraph ratio)</li>
+                  <li><strong>Formats:</strong> PNG, JPG, or WebP (High Resolution)</li>
+                  <li><strong>Where it appears:</strong> WhatsApp chat preview bubbles, Facebook feed cards, Instagram bio previews, and Twitter summary cards</li>
+                </ul>
+              </div>
+
+              {/* Live Banner Preview Box */}
+              <div className="aspect-[1.91/1] max-h-64 w-full bg-zinc-950 border border-zinc-800 rounded-xl relative overflow-hidden flex items-center justify-center group shadow-inner">
+                <img 
+                  src={ogImage || DEFAULT_BANNER_URL} 
+                  alt="Social Sharing Banner" 
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                  onError={handleImageError}
+                />
+                <div className="absolute bottom-2.5 left-2.5 flex items-center space-x-2">
+                  <span className="bg-black/80 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg border border-zinc-700">
+                    Live Banner Preview
+                  </span>
+                  {ogImage === DEFAULT_BANNER_URL && (
+                    <span className="bg-taxi-yellow text-black text-[10px] font-black px-2 py-0.5 rounded-md">
+                      Official Default
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Upload to GitHub Button & URL Edit */}
+              <div className="space-y-3 pt-1">
+                <label className="cursor-pointer block bg-zinc-900 hover:bg-zinc-850 border border-dashed border-zinc-700 hover:border-taxi-yellow rounded-xl p-3.5 text-center transition-all group">
+                  <span className="text-xs text-zinc-300 flex items-center justify-center space-x-2">
+                    {uploadingBanner ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-taxi-yellow animate-spin" />
+                        <span className="text-white font-bold">Uploading Banner to GitHub /Logo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-taxi-yellow group-hover:scale-110 transition-transform" />
+                        <span className="font-bold">Upload New Banner (Auto-saves to GitHub /Logo & sets URL)</span>
+                      </>
+                    )}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,.png,.jpg,.jpeg,.webp"
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                    className="hidden"
+                  />
+                </label>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                      Direct Banner URL (Edit or Paste Custom Link)
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      {ogImage ? `${ogImage.slice(0, 45)}...` : 'Using Default'}
+                    </span>
+                  </div>
+                  <input
+                    id="seo-banner-url-input"
+                    type="url"
+                    value={ogImage}
+                    onChange={(e) => setOgImage(e.target.value)}
+                    placeholder={DEFAULT_BANNER_URL}
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2.5 px-3.5 text-xs text-white placeholder-zinc-500 outline-none font-mono transition-all"
+                  />
+                  <p className="text-[10px] text-zinc-500 pl-1">
+                    Upload auto-renames to <span className="font-mono text-zinc-400">pb08taxi-banner-[ts].ext</span> and commits directly to GitHub <span className="font-mono text-taxi-yellow font-bold">Logo/</span> folder, or you can paste any custom image URL.
+                  </p>
+                </div>
+              </div>
             </div>
 
           </div>

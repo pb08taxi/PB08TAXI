@@ -138,6 +138,14 @@ async def upload_site_asset(
                 detail="Invalid favicon format. Allowed: .ico, .png, .svg"
             )
         prefix = "pb08taxi-favicon"
+    elif asset_type in ("banner", "og_image", "social_banner"):
+        allowed_exts = [".png", ".jpg", ".jpeg", ".webp"]
+        if ext not in allowed_exts and not (file.content_type and file.content_type.startswith("image/")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid banner format. Allowed: .png, .jpg, .jpeg, .webp"
+            )
+        prefix = "pb08taxi-banner"
     else:
         allowed_exts = [".png", ".jpg", ".jpeg", ".webp", ".svg"]
         if ext not in allowed_exts:
@@ -209,6 +217,8 @@ async def upload_site_asset(
     # Auto-save setting to system_settings in database
     if asset_type == "favicon":
         _set_setting_val(db, "site_favicon_url", uploaded_url)
+    elif asset_type in ("banner", "og_image", "social_banner"):
+        _set_setting_val(db, "seo_og_image", uploaded_url)
     else:
         _set_setting_val(db, "site_logo_url", uploaded_url)
 

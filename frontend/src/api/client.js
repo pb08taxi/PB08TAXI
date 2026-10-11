@@ -136,6 +136,13 @@ export const getPublicSEOSettings = () => api.get('/api/seo').then(r => r.data);
 export const getAdminSEOSettings = () => api.get('/api/admin/seo').then(r => r.data);
 export const updateAdminSEOSettings = (payload) => api.post('/api/admin/seo', payload).then(r => r.data);
 export const resetAdminSEODefaults = () => api.post('/api/admin/seo/reset').then(r => r.data);
+export const uploadSEOBanner = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/api/admin/seo/upload-banner', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(r => r.data);
+};
 
 export default api;
 
