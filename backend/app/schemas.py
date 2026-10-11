@@ -34,6 +34,8 @@ class BookingCreate(BaseModel):
     whatsapp_number: str = Field(..., min_length=8, max_length=50)
     pickup_location: Optional[str] = Field(None, max_length=255)
     destination: Optional[str] = Field(None, max_length=255)
+    pickup_date: Optional[str] = Field(None, max_length=50)
+    pickup_time: Optional[str] = Field(None, max_length=50)
     marketing_consent: bool = True
 
     @field_validator("whatsapp_number")
@@ -53,6 +55,8 @@ class BookingOut(BaseModel):
     whatsapp_number: str
     pickup_location: Optional[str] = None
     destination: Optional[str] = None
+    pickup_date: Optional[str] = None
+    pickup_time: Optional[str] = None
     status: str
     notes: Optional[str] = None
     created_at: datetime

@@ -34,6 +34,8 @@ class Booking(Base):
     customer_id = Column(Integer, ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
     pickup_location = Column(String(255), nullable=True)
     destination = Column(String(255), nullable=True)
+    pickup_date = Column(String(50), nullable=True)
+    pickup_time = Column(String(50), nullable=True)
     status = Column(String(50), default="PENDING", nullable=False)  # PENDING, CONFIRMED, COMPLETED, CANCELLED
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

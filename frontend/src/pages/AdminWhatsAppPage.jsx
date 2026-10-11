@@ -660,9 +660,11 @@ export default function AdminWhatsAppPage() {
                     <p>📌 <strong>Booking Ref:</strong> #PB08-26-8942</p>
                     <p>👤 <strong>Customer Name:</strong> Rahul Sharma</p>
                     <p>📞 <strong>Contact Number:</strong> +91 98765 43210</p>
+                    <p>📅 <strong>Pickup Date:</strong> 12-Oct-2026</p>
+                    <p>⏰ <strong>Pickup Time:</strong> 10:30 AM</p>
                     <p>📍 <strong>Pickup:</strong> Amritsar Railway Station</p>
                     <p>🏁 <strong>Destination:</strong> Jalandhar City Center</p>
-                    <p>⏰ <strong>Date &amp; Time:</strong> 11-Oct-2026, 09:30 PM</p>
+                    <p>🕒 <strong>Booked At (IST):</strong> 11-Oct-2026, 10:15 PM</p>
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-[10px] text-emerald-200 italic">

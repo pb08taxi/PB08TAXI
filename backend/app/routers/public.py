@@ -1,7 +1,7 @@
 import random
 import string
-from datetime import datetime
-from typing import List
+from datetime import datetime, timedelta
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -11,6 +11,26 @@ from app.schemas import BookingCreate, BookingOut, SliderImageOut
 from app.services.whatsapp_service import whatsapp_service
 
 router = APIRouter(tags=["Public"])
+
+def format_friendly_date(date_str: Optional[str]) -> str:
+    """Format YYYY-MM-DD to friendly '12-Oct-2026'."""
+    if not date_str:
+        return "Immediate / Today"
+    try:
+        dt = datetime.strptime(date_str.strip(), "%Y-%m-%d")
+        return dt.strftime("%d-%b-%Y")
+    except Exception:
+        return date_str.strip()
+
+def format_friendly_time(time_str: Optional[str]) -> str:
+    """Format HH:MM (24-hour) to '10:30 AM' or '06:45 PM'."""
+    if not time_str:
+        return "As soon as possible"
+    try:
+        t = datetime.strptime(time_str.strip(), "%H:%M")
+        return t.strftime("%I:%M %p")
+    except Exception:
+        return time_str.strip()
 
 def generate_booking_reference(db: Session) -> str:
     """Generate a unique human-friendly booking reference like PB08-26-8942."""
@@ -93,11 +113,16 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
 
     # 3. Create booking record
     ref_code = generate_booking_reference(db)
+    pickup_date_clean = booking_in.pickup_date.strip() if booking_in.pickup_date else None
+    pickup_time_clean = booking_in.pickup_time.strip() if booking_in.pickup_time else None
+
     booking = Booking(
         booking_reference=ref_code,
         customer_id=customer.id,
         pickup_location=booking_in.pickup_location.strip() if booking_in.pickup_location else None,
         destination=booking_in.destination.strip() if booking_in.destination else None,
+        pickup_date=pickup_date_clean,
+        pickup_time=pickup_time_clean,
         status="PENDING",
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()
@@ -107,13 +132,15 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
     db.refresh(booking)
 
     # 4. WhatsApp Confirmation Message
-    # Exact specified text:
-    # "Hi {Customer Name}, our support team will contact you shortly. You will receive a call from us soon. Thank you for connecting with PB08 TAXI!"
+    friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else None
+    friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_time else None
+    schedule_text = f" for {friendly_date} at {friendly_time}" if (friendly_date and friendly_time) else ""
+
     confirmation_text = (
         f"Hi {customer.name}, our support team will contact you shortly. "
         f"You will receive a call from us soon. "
         f"Thank you for connecting with PB08 TAXI! "
-        f"(Booking Ref: {booking.booking_reference})"
+        f"(Booking Ref: #{booking.booking_reference}{schedule_text})"
     )
 
     wa_success, wa_error = await whatsapp_service.send_text_message(
@@ -136,18 +163,26 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
         admin_target_phone = admin_phone_setting.value.strip() if admin_phone_setting and admin_phone_setting.value else None
 
         if is_admin_alert_enabled and admin_target_phone:
-            booking_time_str = booking.created_at.strftime("%d-%b-%Y, %I:%M %p")
+            # Indian Standard Time (IST = UTC + 5:30) for accurate timestamp
+            ist_time = booking.created_at + timedelta(hours=5, minutes=30)
+            booked_at_ist = ist_time.strftime("%d-%b-%Y, %I:%M %p")
+
+            date_disp = format_friendly_date(booking.pickup_date)
+            time_disp = format_friendly_time(booking.pickup_time)
+
             admin_alert_text = (
                 f"🚖 *PB08 TAXI — New Booking Alert!*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"📌 *Booking Ref:* #{booking.booking_reference}\n"
                 f"👤 *Customer Name:* {customer.name}\n"
                 f"📞 *Contact Number:* {customer.whatsapp_number}\n"
+                f"📅 *Pickup Date:* {date_disp}\n"
+                f"⏰ *Pickup Time:* {time_disp}\n"
                 f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}\n"
                 f"🏁 *Destination:* {booking.destination or 'Not specified'}\n"
-                f"⏰ *Date & Time:* {booking_time_str}\n"
+                f"🕒 *Booked At (IST):* {booked_at_ist}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"👉 _Please contact customer promptly to confirm the booking._"
+                f"👉 _Please contact customer promptly to confirm the ride._"
             )
             await whatsapp_service.send_text_message(
                 db=db,
@@ -169,6 +204,8 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
         whatsapp_number=customer.whatsapp_number,
         pickup_location=booking.pickup_location,
         destination=booking.destination,
+        pickup_date=booking.pickup_date,
+        pickup_time=booking.pickup_time,
         status=booking.status,
         notes=booking.notes,
         created_at=booking.created_at,

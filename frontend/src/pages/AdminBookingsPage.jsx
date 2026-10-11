@@ -154,6 +154,7 @@ export default function AdminBookingsPage() {
                   <th className="py-3.5 px-6">Reference</th>
                   <th className="py-3.5 px-6">Customer</th>
                   <th className="py-3.5 px-6">WhatsApp Number</th>
+                  <th className="py-3.5 px-6">Scheduled Pickup</th>
                   <th className="py-3.5 px-6">Pickup Location</th>
                   <th className="py-3.5 px-6">Destination</th>
                   <th className="py-3.5 px-6">Booking Date</th>
@@ -164,13 +165,13 @@ export default function AdminBookingsPage() {
               <tbody className="divide-y divide-zinc-900 text-zinc-300">
                 {loading && bookings.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-zinc-500">
+                    <td colSpan={9} className="py-12 text-center text-zinc-500">
                       Loading bookings...
                     </td>
                   </tr>
                 ) : bookings.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-zinc-500">
+                    <td colSpan={9} className="py-12 text-center text-zinc-500">
                       No bookings found for the selected filter.
                     </td>
                   </tr>
@@ -185,6 +186,21 @@ export default function AdminBookingsPage() {
                       </td>
                       <td className="py-4 px-6 font-mono text-zinc-300">
                         {b.whatsapp_number}
+                      </td>
+                      <td className="py-4 px-6 text-zinc-300">
+                        {b.pickup_date || b.pickup_time ? (
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-white flex items-center space-x-1">
+                              <CalendarCheck className="w-3.5 h-3.5 text-taxi-yellow inline mr-1 flex-shrink-0" />
+                              <span>{b.pickup_date || 'Today'}</span>
+                            </p>
+                            <p className="text-[11px] text-taxi-yellow/90 font-mono">
+                              {b.pickup_time || 'Immediate'}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-500 italic">Immediate / ASAP</span>
+                        )}
                       </td>
                       <td className="py-4 px-6 text-zinc-300">
                         {b.pickup_location || <span className="text-zinc-600 italic">Not provided</span>}
@@ -258,6 +274,9 @@ export default function AdminBookingsPage() {
 
               <div className="bg-zinc-900/60 p-3.5 rounded-2xl border border-zinc-850 text-xs space-y-1 text-zinc-300">
                 <p><span className="text-zinc-500">Customer:</span> {selectedBooking.customer_name} ({selectedBooking.whatsapp_number})</p>
+                {(selectedBooking.pickup_date || selectedBooking.pickup_time) && (
+                  <p><span className="text-zinc-500">Scheduled:</span> <strong className="text-taxi-yellow">{selectedBooking.pickup_date || 'Today'} at {selectedBooking.pickup_time || 'Immediate'}</strong></p>
+                )}
                 <p><span className="text-zinc-500">Pickup:</span> {selectedBooking.pickup_location || 'Not provided'}</p>
                 <p><span className="text-zinc-500">Destination:</span> {selectedBooking.destination || 'Not provided'}</p>
               </div>

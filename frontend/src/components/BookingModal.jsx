@@ -1,13 +1,44 @@
 import React, { useState } from 'react';
-import { X, Car, CheckCircle2, Copy, Check, MessageSquare, AlertCircle, Loader2, MapPin, User, Phone } from 'lucide-react';
+import { 
+  X, 
+  Car, 
+  CheckCircle2, 
+  Copy, 
+  Check, 
+  MessageSquare, 
+  AlertCircle, 
+  Loader2, 
+  MapPin, 
+  User, 
+  Phone,
+  Calendar,
+  Clock
+} from 'lucide-react';
 import { createBooking } from '../api/client';
 
 export default function BookingModal({ isOpen, onClose }) {
+  const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const getCurrentTimeString = () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+
   const [formData, setFormData] = useState({
     customer_name: '',
     whatsapp_number: '',
     pickup_location: '',
     destination: '',
+    pickup_date: getTodayDateString(),
+    pickup_time: getCurrentTimeString(),
     marketing_consent: true,
   });
 
@@ -40,6 +71,16 @@ export default function BookingModal({ isOpen, onClose }) {
       return;
     }
 
+    if (!formData.pickup_date) {
+      setError('Please select a pickup date.');
+      return;
+    }
+
+    if (!formData.pickup_time) {
+      setError('Please select a pickup time.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -69,6 +110,8 @@ export default function BookingModal({ isOpen, onClose }) {
       whatsapp_number: '',
       pickup_location: '',
       destination: '',
+      pickup_date: getTodayDateString(),
+      pickup_time: getCurrentTimeString(),
       marketing_consent: true,
     });
     setError('');
@@ -84,7 +127,7 @@ export default function BookingModal({ isOpen, onClose }) {
       />
 
       {/* Modal Dialog */}
-      <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-white z-10 animate-pulse-subtle">
+      <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-white z-10 animate-pulse-subtle max-h-[92vh] overflow-y-auto">
         
         {/* Top Checker Pattern Accent */}
         <div className="absolute top-0 left-8 right-8 h-1.5 taxi-checker rounded-t-full" />
@@ -155,12 +198,54 @@ export default function BookingModal({ isOpen, onClose }) {
                     value={formData.whatsapp_number}
                     onChange={handleChange}
                     placeholder="e.g. 9876543210 or +91 98765 43210"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors font-mono"
                   />
                 </div>
                 <p className="text-[11px] text-zinc-500 mt-1">
                   You will receive an instant WhatsApp confirmation message.
                 </p>
+              </div>
+
+              {/* Pickup Date & Time Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Pickup Date (Use Calendar) */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                    Pickup Date (Calendar) <span className="text-taxi-yellow">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-taxi-yellow absolute left-3.5 top-3.5 pointer-events-none" />
+                    <input
+                      type="date"
+                      name="pickup_date"
+                      required
+                      min={getTodayDateString()}
+                      value={formData.pickup_date}
+                      onChange={handleChange}
+                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors [color-scheme:dark]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-500 mt-1">Pick date via calendar</p>
+                </div>
+
+                {/* Pickup Time */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                    Pickup Time <span className="text-taxi-yellow">*</span>
+                  </label>
+                  <div className="relative">
+                    <Clock className="w-4 h-4 text-taxi-yellow absolute left-3.5 top-3.5 pointer-events-none" />
+                    <input
+                      type="time"
+                      name="pickup_time"
+                      required
+                      value={formData.pickup_time}
+                      onChange={handleChange}
+                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors [color-scheme:dark]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-500 mt-1">Pick scheduled time</p>
+                </div>
               </div>
 
               {/* Pickup Location (Optional) */}
@@ -266,7 +351,7 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-black tracking-wider text-taxi-yellow">
+                <span className="text-2xl font-black tracking-wider text-taxi-yellow font-mono">
                   {successResult.booking_reference}
                 </span>
                 <button
@@ -279,13 +364,21 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
 
               <div className="pt-2 border-t border-zinc-800/80 text-xs text-zinc-400 space-y-1">
+                {(successResult.pickup_date || successResult.pickup_time) && (
+                  <p>
+                    <span className="text-zinc-500 font-medium">Pickup Schedule:</span>{' '}
+                    <span className="text-taxi-yellow font-bold">
+                      {successResult.pickup_date || 'Today'} {successResult.pickup_time ? `at ${successResult.pickup_time}` : ''}
+                    </span>
+                  </p>
+                )}
                 {successResult.pickup_location && (
-                  <p><span className="text-zinc-500 font-medium">Pickup:</span> {successResult.pickup_location}</p>
+                  <p><span className="text-zinc-500 font-medium">Pickup Location:</span> {successResult.pickup_location}</p>
                 )}
                 {successResult.destination && (
-                  <p><span className="text-zinc-500 font-medium">Drop:</span> {successResult.destination}</p>
+                  <p><span className="text-zinc-500 font-medium">Destination Drop:</span> {successResult.destination}</p>
                 )}
-                <p><span className="text-zinc-500 font-medium">WhatsApp:</span> {successResult.whatsapp_number}</p>
+                <p><span className="text-zinc-500 font-medium">WhatsApp:</span> <span className="font-mono text-zinc-300">{successResult.whatsapp_number}</span></p>
               </div>
             </div>
 
@@ -302,7 +395,7 @@ export default function BookingModal({ isOpen, onClose }) {
 
             <button
               onClick={handleReset}
-              className="w-full bg-taxi-yellow text-black font-extrabold py-3.5 rounded-xl text-sm shadow-md hover:scale-[1.01] transition-transform"
+              className="w-full bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold py-3.5 rounded-xl text-sm shadow-md hover:scale-[1.01] transition-transform"
             >
               Done / Book Another Ride
             </button>
