@@ -14,7 +14,8 @@ import {
   X, 
   ExternalLink, 
   Radio, 
-  Settings 
+  Settings,
+  Globe
 } from 'lucide-react';
 import { getWhatsAppStatus } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { label: 'WhatsApp Settings', path: '/admin/whatsapp', icon: MessageSquare },
   { label: 'WhatsApp Offers', path: '/admin/offers', icon: Send },
   { label: 'Message Logs', path: '/admin/logs', icon: FileText },
+  { label: 'Advance SEO', path: '/admin/seo', icon: Globe },
   { label: 'Site Settings', path: '/admin/settings', icon: Settings },
 ];
 

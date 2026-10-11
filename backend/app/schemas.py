@@ -283,3 +283,54 @@ class MessageTemplateUpdate(BaseModel):
 class FactoryResetRequest(BaseModel):
     secret_pin: str = Field(..., min_length=1, max_length=50)
 
+class SEOSettingsOut(BaseModel):
+    meta_title: str = "PB08 TAXI — One Click Book Your Ride | 24/7 Cab Service"
+    meta_description: str = "PB08 TAXI provides fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation."
+    meta_keywords: str = "PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab"
+    canonical_url: str = "https://pb08taxi.com"
+    robots_directive: str = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    
+    og_title: str = "PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking"
+    og_description: str = "Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation."
+    og_image: str = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png"
+    twitter_card: str = "summary_large_image"
+    
+    business_name: str = "PB08 TAXI"
+    geo_region: str = "IN-PB"
+    geo_placename: str = "Jalandhar, Punjab, India"
+    geo_latitude: str = "31.3260"
+    geo_longitude: str = "75.5762"
+    service_areas: str = "Jalandhar, Amritsar, Ludhiana, Chandigarh, Delhi Airport (DEL), Amritsar Airport (ATQ), Phagwara, Kapurthala, Hoshiarpur, Punjab"
+    
+    google_site_verification: Optional[str] = None
+    google_analytics_id: Optional[str] = None
+    meta_pixel_id: Optional[str] = None
+    schema_taxi_price_range: str = "₹₹"
+    custom_head_code: Optional[str] = None
+
+class SEOSettingsUpdate(BaseModel):
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    meta_keywords: Optional[str] = None
+    canonical_url: Optional[str] = None
+    robots_directive: Optional[str] = None
+    
+    og_title: Optional[str] = None
+    og_description: Optional[str] = None
+    og_image: Optional[str] = None
+    twitter_card: Optional[str] = None
+    
+    business_name: Optional[str] = None
+    geo_region: Optional[str] = None
+    geo_placename: Optional[str] = None
+    geo_latitude: Optional[str] = None
+    geo_longitude: Optional[str] = None
+    service_areas: Optional[str] = None
+    
+    google_site_verification: Optional[str] = None
+    google_analytics_id: Optional[str] = None
+    meta_pixel_id: Optional[str] = None
+    schema_taxi_price_range: Optional[str] = None
+    custom_head_code: Optional[str] = None
+
+

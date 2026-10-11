@@ -19,6 +19,13 @@
               document.title = s.brand_title + ' — One Click Book Your Ride | 24/7 Cab Service';
             }
           }
+          var seoRaw = localStorage.getItem('pb08_seo_settings_cache');
+          if (seoRaw) {
+            var seo = JSON.parse(seoRaw);
+            if (seo && seo.meta_title) {
+              document.title = seo.meta_title;
+            }
+          }
         } catch(e) {}
       })();
     </script>

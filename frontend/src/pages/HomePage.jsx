@@ -7,6 +7,7 @@ import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import BookingModal from '../components/BookingModal';
+import SEOHead from '../components/SEOHead';
 
 export default function HomePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -16,6 +17,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-taxi-yellow selection:text-black">
+      {/* Dynamic SEO Head Management */}
+      <SEOHead />
+
       {/* Navigation */}
       <Navbar onOpenBooking={handleOpenBooking} />
 

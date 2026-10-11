@@ -12,6 +12,7 @@ import AdminWhatsAppPage from './pages/AdminWhatsAppPage';
 import AdminOffersPage from './pages/AdminOffersPage';
 import AdminLogsPage from './pages/AdminLogsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import AdminSEOPage from './pages/AdminSEOPage';
 
 // Protected Route Component for Admin section
 function ProtectedAdminRoute({ children }) {
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="whatsapp" element={<AdminWhatsAppPage />} />
         <Route path="offers" element={<AdminOffersPage />} />
         <Route path="logs" element={<AdminLogsPage />} />
+        <Route path="seo" element={<AdminSEOPage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
 
