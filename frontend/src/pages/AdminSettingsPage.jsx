@@ -127,35 +127,47 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Upload Logo
+  // Upload Logo to GitHub /Logo folder with auto-renaming
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingLogo(true);
+    setSettingsSavedMsg('');
+    setSettingsError('');
     try {
       const res = await uploadSiteAsset(file, 'logo');
-      setSiteLogoUrl(res.url);
+      setSiteLogoUrl(res.url); // Automatically populate URL below!
+      if (refreshGlobalSettings) await refreshGlobalSettings();
+      setSettingsSavedMsg(`✅ Site Logo uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL added below!`);
+      setTimeout(() => setSettingsSavedMsg(''), 6000);
     } catch (err) {
-      alert("Failed to upload logo: " + (err.response?.data?.detail || "Invalid format"));
+      setSettingsError("Failed to upload logo: " + (err.response?.data?.detail || "Invalid format"));
     } finally {
       setUploadingLogo(false);
+      e.target.value = '';
     }
   };
 
-  // Upload Favicon
+  // Upload Favicon to GitHub /Logo folder with auto-renaming
   const handleFaviconUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingFavicon(true);
+    setSettingsSavedMsg('');
+    setSettingsError('');
     try {
       const res = await uploadSiteAsset(file, 'favicon');
-      setSiteFaviconUrl(res.url);
+      setSiteFaviconUrl(res.url); // Automatically populate URL below!
+      if (refreshGlobalSettings) await refreshGlobalSettings();
+      setSettingsSavedMsg(`✅ Favicon uploaded to GitHub (${res.github_path || 'Logo/' + res.filename}) & direct URL added below!`);
+      setTimeout(() => setSettingsSavedMsg(''), 6000);
     } catch (err) {
-      alert("Failed to upload favicon: " + (err.response?.data?.detail || "Invalid format"));
+      setSettingsError("Failed to upload favicon: " + (err.response?.data?.detail || "Invalid format"));
     } finally {
       setUploadingFavicon(false);
+      e.target.value = '';
     }
   };
 
@@ -417,7 +429,7 @@ export default function AdminSettingsPage() {
                   <label className="cursor-pointer block bg-zinc-900 hover:bg-zinc-850 border border-dashed border-zinc-700 hover:border-taxi-yellow rounded-xl p-3 text-center transition-colors">
                     <span className="text-xs text-zinc-300 flex items-center justify-center space-x-2">
                       <Upload className="w-4 h-4 text-taxi-yellow" />
-                      <span>{uploadingLogo ? 'Uploading Logo...' : 'Upload Logo File'}</span>
+                      <span>{uploadingLogo ? 'Uploading to GitHub /Logo...' : 'Upload Logo (Auto-saves to GitHub /Logo)'}</span>
                     </span>
                     <input
                       type="file"
@@ -427,13 +439,18 @@ export default function AdminSettingsPage() {
                     />
                   </label>
 
-                  <input
-                    type="url"
-                    value={siteLogoUrl}
-                    onChange={(e) => setSiteLogoUrl(e.target.value)}
-                    placeholder="Or enter direct Logo URL (https://...)"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      type="url"
+                      value={siteLogoUrl}
+                      onChange={(e) => setSiteLogoUrl(e.target.value)}
+                      placeholder="Direct Logo URL (Auto-fills on upload or enter https://...)"
+                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
+                    />
+                    <p className="text-[10px] text-zinc-500 pl-1">
+                      Auto-renames to <span className="font-mono text-zinc-400">pb08taxi-logo-[ts].ext</span> and pushes to GitHub <span className="font-mono text-taxi-yellow font-bold">Logo/</span> folder.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -485,7 +502,7 @@ export default function AdminSettingsPage() {
                   <label className="cursor-pointer block bg-zinc-900 hover:bg-zinc-850 border border-dashed border-zinc-700 hover:border-taxi-yellow rounded-xl p-3 text-center transition-colors">
                     <span className="text-xs text-zinc-300 flex items-center justify-center space-x-2">
                       <Upload className="w-4 h-4 text-taxi-yellow" />
-                      <span>{uploadingFavicon ? 'Uploading Favicon...' : 'Upload Favicon File'}</span>
+                      <span>{uploadingFavicon ? 'Uploading to GitHub /Logo...' : 'Upload Favicon (Auto-saves to GitHub /Logo)'}</span>
                     </span>
                     <input
                       type="file"
@@ -495,13 +512,18 @@ export default function AdminSettingsPage() {
                     />
                   </label>
 
-                  <input
-                    type="url"
-                    value={siteFaviconUrl}
-                    onChange={(e) => setSiteFaviconUrl(e.target.value)}
-                    placeholder="Or enter direct Favicon URL (https://...)"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      type="url"
+                      value={siteFaviconUrl}
+                      onChange={(e) => setSiteFaviconUrl(e.target.value)}
+                      placeholder="Direct Favicon URL (Auto-fills on upload or enter https://...)"
+                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
+                    />
+                    <p className="text-[10px] text-zinc-500 pl-1">
+                      Auto-renames to <span className="font-mono text-zinc-400">pb08taxi-favicon-[ts].ext</span> and pushes to GitHub <span className="font-mono text-taxi-yellow font-bold">Logo/</span> folder.
+                    </p>
+                  </div>
                 </div>
               </div>
 

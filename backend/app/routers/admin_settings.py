@@ -1,6 +1,8 @@
 import os
 import uuid
 import shutil
+import base64
+import httpx
 from typing import Dict, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
@@ -106,9 +108,16 @@ def update_admin_site_settings(
 async def upload_site_asset(
     file: UploadFile = File(...),
     asset_type: str = Form("logo"),
-    admin: AdminUser = Depends(get_current_admin)
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
 ):
-    """Upload Site Logo or Favicon with file type validation."""
+    """
+    Upload Site Logo or Favicon:
+    1. Validates file format.
+    2. Auto-renames according to site branding: pb08taxi-logo-{ts}.ext or pb08taxi-favicon-{ts}.ext.
+    3. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
+    4. Auto-populates and persists the direct raw URL into database system settings.
+    """
     ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
     
     if asset_type == "favicon":
@@ -118,7 +127,7 @@ async def upload_site_asset(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid favicon format. Allowed: .ico, .png, .svg"
             )
-        prefix = "favicon_"
+        prefix = "pb08taxi-favicon"
     else:
         allowed_exts = [".png", ".jpg", ".jpeg", ".webp", ".svg"]
         if ext not in allowed_exts:
@@ -126,19 +135,80 @@ async def upload_site_asset(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid logo format. Allowed: .png, .jpg, .jpeg, .webp, .svg"
             )
-        prefix = "logo_"
+        prefix = "pb08taxi-logo"
 
-    safe_name = f"{prefix}{uuid.uuid4().hex[:10]}{ext or '.png'}"
-    dest_path = os.path.join(UPLOAD_DIR, safe_name)
+    file_bytes = await file.read()
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
 
-    with open(dest_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Unique site-branded filename with timestamp
+    ts = int(datetime.utcnow().timestamp())
+    site_filename = f"{prefix}-{ts}{ext or '.png'}"
+    github_path = f"Logo/{site_filename}"
+    commit_msg = f"Upload {prefix} branding asset: {site_filename}"
+
+    uploaded_url = None
+
+    # 1. Upload directly to GitHub repository under /Logo folder
+    if settings_cfg.GITHUB_TOKEN and settings_cfg.GITHUB_REPO:
+        try:
+            gh_headers = {
+                "Authorization": f"token {settings_cfg.GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            content_b64 = base64.b64encode(file_bytes).decode("utf-8")
+            gh_payload = {
+                "message": commit_msg,
+                "content": content_b64,
+                "branch": settings_cfg.GITHUB_BRANCH
+            }
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                gh_res = await client.put(
+                    f"https://api.github.com/repos/{settings_cfg.GITHUB_REPO}/contents/{github_path}",
+                    headers=gh_headers,
+                    json=gh_payload
+                )
+                if gh_res.status_code in (200, 201):
+                    uploaded_url = f"https://raw.githubusercontent.com/{settings_cfg.GITHUB_REPO}/{settings_cfg.GITHUB_BRANCH}/{github_path}"
+                    print(f"[UploadAsset] Successfully uploaded to GitHub: {uploaded_url}")
+                else:
+                    print(f"[UploadAsset] GitHub upload response status {gh_res.status_code}: {gh_res.text[:150]}")
+        except Exception as ex:
+            print(f"[UploadAsset] GitHub upload exception: {ex}")
+
+    # Fallback to local upload directory if GitHub API is unreachable
+    dest_path = os.path.join(UPLOAD_DIR, site_filename)
+    try:
+        with open(dest_path, "wb") as buffer:
+            buffer.write(file_bytes)
+    except Exception:
+        pass
+
+    # Save to local Logo directory as well
+    try:
+        repo_logo_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "Logo")
+        os.makedirs(repo_logo_dir, exist_ok=True)
+        with open(os.path.join(repo_logo_dir, site_filename), "wb") as f_local:
+            f_local.write(file_bytes)
+    except Exception:
+        pass
+
+    if not uploaded_url:
+        uploaded_url = f"/uploads/{site_filename}"
+
+    # Auto-save setting to system_settings in database
+    if asset_type == "favicon":
+        _set_setting_val(db, "site_favicon_url", uploaded_url)
+    else:
+        _set_setting_val(db, "site_logo_url", uploaded_url)
 
     return {
-        "url": f"/uploads/{safe_name}",
-        "filename": safe_name,
+        "url": uploaded_url,
+        "filename": site_filename,
+        "github_path": github_path,
         "asset_type": asset_type
     }
+
 
 @router.post("/admin/settings/credentials")
 def update_admin_credentials(

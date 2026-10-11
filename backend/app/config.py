@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     SUPPORT_WHATSAPP: str = os.getenv("SUPPORT_WHATSAPP", "+919876543210")
     BUSINESS_NAME: str = os.getenv("BUSINESS_NAME", "PB08 TAXI")
 
+    # GitHub Brand Asset Storage (uploads to /Logo folder in repo)
+    GITHUB_TOKEN: str = os.getenv("GITHUB_TOKEN", "")
+    GITHUB_REPO: str = os.getenv("GITHUB_REPO", "pb08taxi/PB08TAXI")
+    GITHUB_BRANCH: str = os.getenv("GITHUB_BRANCH", "main")
+
     @property
     def cors_origin_list(self) -> List[str]:
         if not self.CORS_ORIGINS:
