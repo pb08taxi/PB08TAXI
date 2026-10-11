@@ -34,7 +34,6 @@ export default function BookingModal({ isOpen, onClose }) {
 
   const [formData, setFormData] = useState({
     customer_name: '',
-    whatsapp_number: '',
     pickup_location: '',
     destination: '',
     pickup_date: getTodayDateString(),
@@ -42,6 +41,7 @@ export default function BookingModal({ isOpen, onClose }) {
     marketing_consent: true,
   });
 
+  const [whatsapp10, setWhatsapp10] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successResult, setSuccessResult] = useState(null);
@@ -65,9 +65,9 @@ export default function BookingModal({ isOpen, onClose }) {
       return;
     }
 
-    const cleanPhone = formData.whatsapp_number.replace(/[^\d+]/g, '');
-    if (cleanPhone.length < 10) {
-      setError('Please provide a valid 10-digit WhatsApp phone number.');
+    const cleanDigits = whatsapp10.replace(/\D/g, '');
+    if (cleanDigits.length !== 10) {
+      setError('Please enter your complete 10-digit WhatsApp phone number (e.g. 98765 43210).');
       return;
     }
 
@@ -85,7 +85,11 @@ export default function BookingModal({ isOpen, onClose }) {
     setError('');
 
     try {
-      const res = await createBooking(formData);
+      const payload = {
+        ...formData,
+        whatsapp_number: `+91${cleanDigits}`,
+      };
+      const res = await createBooking(payload);
       setSuccessResult(res);
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to submit booking. Please try again.';
@@ -105,9 +109,9 @@ export default function BookingModal({ isOpen, onClose }) {
 
   const handleReset = () => {
     setSuccessResult(null);
+    setWhatsapp10('');
     setFormData({
       customer_name: '',
-      whatsapp_number: '',
       pickup_location: '',
       destination: '',
       pickup_date: getTodayDateString(),
@@ -184,26 +188,53 @@ export default function BookingModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* WhatsApp Number */}
+              {/* WhatsApp Number with separated +91 and 10 Digit Lock */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
-                  WhatsApp Number <span className="text-taxi-yellow">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span>
+                    WhatsApp Number <span className="text-taxi-yellow">*</span>
+                  </span>
+                  <span className={`text-[11px] font-mono ${whatsapp10.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {whatsapp10.length}/10 digits
+                  </span>
                 </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all">
+                  {/* Visually separated +91 country badge */}
+                  <div className="bg-zinc-800/90 px-3.5 py-3 text-xs sm:text-sm font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="text-base leading-none">🇮🇳</span>
+                    <span className="font-mono font-black tracking-wider">+91</span>
+                  </div>
+                  {/* Strictly locked 10-digit input */}
                   <input
                     type="tel"
-                    name="whatsapp_number"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
-                    value={formData.whatsapp_number}
-                    onChange={handleChange}
-                    placeholder="e.g. 9876543210 or +91 98765 43210"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors font-mono"
+                    value={whatsapp10}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setWhatsapp10(digits);
+                      setError('');
+                    }}
+                    placeholder="98765 43210"
+                    className="w-full bg-zinc-900 py-3 px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
+                  {whatsapp10.length === 10 && (
+                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0" title="Valid 10-digit number">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  You will receive an instant WhatsApp confirmation message.
-                </p>
+                {whatsapp10.length === 10 ? (
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono flex items-center space-x-1">
+                    <span>✓</span>
+                    <span>Dispatches to: <strong>+91{whatsapp10}</strong> with live confirmation.</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    Enter your 10-digit mobile number. Country code <strong>+91</strong> is auto-attached.
+                  </p>
+                )}
               </div>
 
               {/* Pickup Date & Time Row */}

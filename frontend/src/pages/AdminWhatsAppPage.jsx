@@ -46,7 +46,7 @@ import { useAdminQuery, adminCache } from '../utils/adminCache';
 
 const SAMPLE_PREVIEW_DATA = {
   customer_name: 'Rahul Sharma',
-  customer_contact: '+91 98765 43210',
+  customer_contact: '+919876543210',
   booking_ref: 'PB08-26-8942',
   pickup_date: '12-Oct-2026',
   pickup_time: '10:30 AM',
@@ -54,8 +54,8 @@ const SAMPLE_PREVIEW_DATA = {
   destination: 'Sri Guru Ram Dass Jee Airport, Amritsar',
   driver_name: 'Gurpreet Singh',
   taxi_number: 'PB01CC1372',
-  driver_contact: '+91 91628 41982',
-  support_phone: '+91 98765 43210',
+  driver_contact: '+919162841982',
+  support_phone: '+919876543210',
   notes: 'AC Sedan, Flight departure at 2:30 PM'
 };
 
@@ -112,7 +112,9 @@ export default function AdminWhatsAppPage() {
   // Sync settings and templates when data changes
   useEffect(() => {
     if (data?.settings) {
-      setAdminAlertPhone(data.settings.admin_alert_whatsapp_number || '');
+      const raw = data.settings.admin_alert_whatsapp_number || '';
+      const digits = raw.replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+      setAdminAlertPhone(digits);
       setAdminAlertEnabled(data.settings.admin_alert_whatsapp_enabled ?? true);
     }
     if (data?.templates && data.templates.length > 0) {
@@ -205,18 +207,20 @@ export default function AdminWhatsAppPage() {
     setAlertSettingsSuccess('');
     setAlertSettingsError('');
     try {
+      const cleanDigits = adminAlertPhone.replace(/\D/g, '');
+      const fullPhone = cleanDigits.length === 10 ? `+91${cleanDigits}` : (cleanDigits ? `+${cleanDigits}` : null);
       await updateWhatsAppAdminSettings({
-        admin_alert_whatsapp_number: adminAlertPhone,
+        admin_alert_whatsapp_number: fullPhone,
         admin_alert_whatsapp_enabled: adminAlertEnabled
       });
       mutate((prev) => ({
         ...prev,
         settings: {
-          admin_alert_whatsapp_number: adminAlertPhone,
+          admin_alert_whatsapp_number: fullPhone,
           admin_alert_whatsapp_enabled: adminAlertEnabled
         }
       }));
-      setAlertSettingsSuccess('Admin booking alert settings updated successfully!');
+      setAlertSettingsSuccess(`Admin booking alert settings updated! Dispatches will be sent to ${fullPhone || 'configured phone'}.`);
       setTimeout(() => setAlertSettingsSuccess(''), 5000);
     } catch (err) {
       setAlertSettingsError('Failed to save alert settings. Please try again.');
@@ -284,15 +288,17 @@ export default function AdminWhatsAppPage() {
 
   const handleSendTest = async (e) => {
     e.preventDefault();
-    if (!testPhone.trim()) {
+    const cleanDigits = testPhone.replace(/\D/g, '');
+    if (!cleanDigits) {
       alert("Please enter a destination phone number.");
       return;
     }
 
+    const fullTestPhone = cleanDigits.length === 10 ? `+91${cleanDigits}` : `+${cleanDigits}`;
     setSendingTest(true);
     setTestResult(null);
     try {
-      const res = await sendTestMessage(testPhone.trim(), testMessage.trim());
+      const res = await sendTestMessage(fullTestPhone, testMessage.trim());
       setTestResult(res);
     } catch (err) {
       setTestResult({
@@ -459,17 +465,38 @@ export default function AdminWhatsAppPage() {
 
             <form onSubmit={handleSendTest} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
-                  Recipient Phone Number (with Country Code)
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span>Recipient Phone Number</span>
+                  <span className={`text-[11px] font-mono ${testPhone.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {testPhone.length}/10 digits
+                  </span>
                 </label>
-                <input
-                  type="tel"
-                  required
-                  value={testPhone}
-                  onChange={(e) => setTestPhone(e.target.value)}
-                  placeholder="e.g., 919876543210"
-                  className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 px-4 text-xs text-white placeholder-zinc-500 outline-none font-mono"
-                />
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all">
+                  <div className="bg-zinc-800/90 px-3.5 py-2.5 text-xs font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="text-sm leading-none">🇮🇳</span>
+                    <span className="font-mono font-black tracking-wider">+91</span>
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    required
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="98765 43210"
+                    className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs text-white placeholder-zinc-500 outline-none font-mono tracking-wider"
+                  />
+                  {testPhone.length === 10 && (
+                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+                {testPhone.length === 10 && (
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
+                    ✓ Test message destination: <strong>+91{testPhone}</strong>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -899,24 +926,43 @@ export default function AdminWhatsAppPage() {
 
             <form onSubmit={handleSaveAlertSettings} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
-                  Admin Mobile Number (with Country Code)
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span>
+                    Admin Alert Mobile Number <span className="text-taxi-yellow">*</span>
+                  </span>
+                  <span className={`text-[11px] font-mono ${adminAlertPhone.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {adminAlertPhone.length}/10 digits
+                  </span>
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                    <PhoneCall className="w-4 h-4" />
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all">
+                  <div className="bg-zinc-800/90 px-3.5 py-3 text-xs sm:text-sm font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="text-sm leading-none">🇮🇳</span>
+                    <span className="font-mono font-black tracking-wider">+91</span>
                   </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={adminAlertPhone}
-                    onChange={(e) => setAdminAlertPhone(e.target.value)}
-                    placeholder="e.g. 919888079736 or 9888079736"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs text-white placeholder-zinc-500 outline-none font-mono"
+                    onChange={(e) => setAdminAlertPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="98880 79736"
+                    className="w-full bg-zinc-900 py-3 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono tracking-wider"
                   />
+                  {adminAlertPhone.length === 10 && (
+                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-[11px] text-zinc-500 mt-1.5">
-                  Enter the phone number where admin will receive real-time WhatsApp booking alerts.
-                </p>
+                {adminAlertPhone.length === 10 ? (
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
+                    ✓ New booking WhatsApp alerts will be dispatched to: <strong>+91{adminAlertPhone}</strong>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    Enter the 10-digit phone number where admin will receive real-time WhatsApp booking alerts.
+                  </p>
+                )}
               </div>
 
               <div className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-850">
@@ -976,7 +1022,7 @@ export default function AdminWhatsAppPage() {
                 <div className="border-b border-emerald-600/50 pb-1.5 text-[11px] space-y-1">
                   <p>📌 <strong>Booking Ref:</strong> #PB08-26-8942</p>
                   <p>👤 <strong>Customer Name:</strong> Rahul Sharma</p>
-                  <p>📞 <strong>Contact Number:</strong> +91 98765 43210</p>
+                  <p>📞 <strong>Contact Number:</strong> +919876543210</p>
                   <p>📅 <strong>Pickup Date:</strong> 12-Oct-2026</p>
                   <p>⏰ <strong>Pickup Time:</strong> 10:30 AM</p>
                   <p>📍 <strong>Pickup:</strong> Amritsar Railway Station</p>
@@ -997,7 +1043,7 @@ export default function AdminWhatsAppPage() {
               <div className="mt-4 pt-3 border-t border-zinc-850 text-[11px] text-zinc-400 flex items-center justify-between">
                 <span>Destination:</span>
                 <span className="text-taxi-yellow font-mono font-bold">
-                  {adminAlertPhone ? `+${adminAlertPhone}` : 'No alert number configured yet'}
+                  {adminAlertPhone ? (adminAlertPhone.startsWith('+') ? adminAlertPhone : `+91${adminAlertPhone}`) : 'No alert number configured yet'}
                 </span>
               </div>
             </div>

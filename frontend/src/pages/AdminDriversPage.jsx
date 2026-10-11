@@ -35,9 +35,9 @@ export default function AdminDriversPage() {
   const [formData, setFormData] = useState({
     name: '',
     taxi_registration: '',
-    contact_number: '',
     is_active: true
   });
+  const [phone10, setPhone10] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -81,9 +81,9 @@ export default function AdminDriversPage() {
     setFormData({
       name: '',
       taxi_registration: '',
-      contact_number: '',
       is_active: true
     });
+    setPhone10('');
     setFormError('');
     setIsModalOpen(true);
   };
@@ -93,9 +93,10 @@ export default function AdminDriversPage() {
     setFormData({
       name: driver.name || '',
       taxi_registration: driver.taxi_registration || '',
-      contact_number: driver.contact_number || '',
       is_active: driver.is_active ?? true
     });
+    const digits = (driver.contact_number || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    setPhone10(digits);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -112,8 +113,9 @@ export default function AdminDriversPage() {
       setFormError('Taxi registration number is required (e.g., PB01CC1372).');
       return;
     }
-    if (!formData.contact_number.trim()) {
-      setFormError('Driver contact / WhatsApp number is required.');
+    const cleanDigits = phone10.replace(/\D/g, '');
+    if (cleanDigits.length !== 10) {
+      setFormError('Please enter a valid 10-digit mobile number for driver (e.g., 98765 43210).');
       return;
     }
 
@@ -122,7 +124,7 @@ export default function AdminDriversPage() {
       const payload = {
         name: formData.name.trim(),
         taxi_registration: formData.taxi_registration.trim().toUpperCase(),
-        contact_number: formData.contact_number.trim(),
+        contact_number: `+91${cleanDigits}`,
         is_active: Boolean(formData.is_active)
       };
 
@@ -497,24 +499,50 @@ export default function AdminDriversPage() {
                 </p>
               </div>
 
-              {/* Driver Contact / WhatsApp */}
+              {/* Driver Contact with separated +91 badge & 10-digit lock */}
               <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  Driver Contact / WhatsApp Number <span className="text-taxi-yellow">*</span>
+                <label className="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+                  <span>
+                    Driver Contact / WhatsApp Number <span className="text-taxi-yellow">*</span>
+                  </span>
+                  <span className={`text-[11px] font-mono ${phone10.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {phone10.length}/10 digits
+                  </span>
                 </label>
-                <div className="relative">
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all">
+                  <div className="bg-zinc-800/90 px-3.5 py-2.5 text-xs font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="text-sm leading-none">🇮🇳</span>
+                    <span className="font-mono font-black tracking-wider">+91</span>
+                  </div>
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
-                    value={formData.contact_number}
-                    onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })}
-                    placeholder="e.g. 916284198290 or 9876543210"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-taxi-yellow transition-colors"
+                    value={phone10}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setPhone10(digits);
+                      setFormError('');
+                    }}
+                    placeholder="98765 43210"
+                    className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
+                  {phone10.length === 10 && (
+                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  WhatsApp booking duty alerts with customer pickup details will be sent to this number.
-                </p>
+                {phone10.length === 10 ? (
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
+                    ✓ Dispatch duty alerts will be sent to: <strong>+91{phone10}</strong>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    WhatsApp booking duty alerts with customer pickup details will be sent to this 10-digit number.
+                  </p>
+                )}
               </div>
 
               {/* Active Toggle Checkbox */}

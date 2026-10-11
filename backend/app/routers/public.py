@@ -1,3 +1,4 @@
+import re
 import random
 import string
 from datetime import datetime, timedelta
@@ -7,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
 from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate
-from app.schemas import BookingCreate, BookingOut, SliderImageOut
+from app.schemas import BookingCreate, BookingOut, SliderImageOut, normalize_phone_with_plus
 from app.services.whatsapp_service import whatsapp_service, send_background_message
 
 router = APIRouter(tags=["Public"])
@@ -140,7 +141,7 @@ async def create_booking(
     friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
     
     support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
-    support_phone_val = support_setting.value if support_setting and support_setting.value else "+91 98765 43210"
+    support_phone_val = support_setting.value if support_setting and support_setting.value else "+919876543210"
 
     tpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_received").first()
     if tpl and tpl.content:
@@ -186,6 +187,8 @@ async def create_booking(
             is_admin_alert_enabled = admin_enabled_setting.value.lower() in ("true", "1", "yes")
 
         admin_target_phone = admin_phone_setting.value.strip() if admin_phone_setting and admin_phone_setting.value else None
+        if admin_target_phone and not admin_target_phone.startswith("+"):
+            admin_target_phone = f"+{re.sub(r'\\D', '', admin_target_phone)}"
 
         if is_admin_alert_enabled and admin_target_phone:
             ist_time = booking.created_at + timedelta(hours=5, minutes=30)

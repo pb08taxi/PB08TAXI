@@ -33,9 +33,9 @@ export default function AdminCustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    whatsapp_number: '',
     marketing_consent: true,
   });
+  const [phone10, setPhone10] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -63,9 +63,9 @@ export default function AdminCustomersPage() {
     setEditingCustomer(null);
     setFormData({
       name: '',
-      whatsapp_number: '',
       marketing_consent: true,
     });
+    setPhone10('');
     setFormError('');
     setIsModalOpen(true);
   };
@@ -74,9 +74,10 @@ export default function AdminCustomersPage() {
     setEditingCustomer(customer);
     setFormData({
       name: customer.name || '',
-      whatsapp_number: customer.whatsapp_number || '',
       marketing_consent: customer.marketing_consent ?? true,
     });
+    const digits = (customer.whatsapp_number || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    setPhone10(digits);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -89,8 +90,9 @@ export default function AdminCustomersPage() {
       setFormError('Customer name is required.');
       return;
     }
-    if (!formData.whatsapp_number.trim()) {
-      setFormError('Customer WhatsApp / phone number is required.');
+    const cleanDigits = phone10.replace(/\D/g, '');
+    if (cleanDigits.length !== 10) {
+      setFormError('Please enter a valid 10-digit mobile number (e.g. 98765 43210).');
       return;
     }
 
@@ -98,7 +100,7 @@ export default function AdminCustomersPage() {
       setFormSubmitting(true);
       const payload = {
         name: formData.name.trim(),
-        whatsapp_number: formData.whatsapp_number.trim(),
+        whatsapp_number: `+91${cleanDigits}`,
         marketing_consent: Boolean(formData.marketing_consent),
       };
 
@@ -406,22 +408,50 @@ export default function AdminCustomersPage() {
                 />
               </div>
 
-              {/* WhatsApp Number */}
+              {/* WhatsApp Number with separated +91 badge & 10-digit lock */}
               <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  WhatsApp Number <span className="text-taxi-yellow">*</span>
+                <label className="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+                  <span>
+                    WhatsApp Number <span className="text-taxi-yellow">*</span>
+                  </span>
+                  <span className={`text-[11px] font-mono ${phone10.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {phone10.length}/10 digits
+                  </span>
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.whatsapp_number}
-                  onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                  placeholder="e.g. 916284198290 or 9876543210"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-taxi-yellow transition-colors"
-                />
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  Enter 10-digit mobile number or full country code format (e.g., 919876543210).
-                </p>
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all">
+                  <div className="bg-zinc-800/90 px-3.5 py-2.5 text-xs font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="text-sm leading-none">🇮🇳</span>
+                    <span className="font-mono font-black tracking-wider">+91</span>
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    required
+                    value={phone10}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setPhone10(digits);
+                      setFormError('');
+                    }}
+                    placeholder="98765 43210"
+                    className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                  />
+                  {phone10.length === 10 && (
+                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0">
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+                {phone10.length === 10 ? (
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
+                    ✓ Stored format: <strong>+91{phone10}</strong>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    Enter 10-digit mobile number. Country code <strong>+91</strong> is auto-attached.
+                  </p>
+                )}
               </div>
 
               {/* Marketing Consent Checkbox */}

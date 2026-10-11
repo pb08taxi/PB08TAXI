@@ -385,10 +385,21 @@ class WhatsAppService:
         """
         chat_id = format_whatsapp_chat_id(phone)
 
+        # Ensure phone has + prefix for database audit log
+        norm_phone = phone.strip()
+        if not norm_phone.startswith("+"):
+            digits = re.sub(r"\D", "", norm_phone)
+            if len(digits) == 10:
+                norm_phone = f"+91{digits}"
+            elif len(digits) == 12 and digits.startswith("91"):
+                norm_phone = f"+{digits}"
+            elif digits:
+                norm_phone = f"+{digits}"
+
         # Create pending message log in Neon DB
         log_entry = WhatsAppMessage(
             customer_id=customer_id,
-            phone=phone,
+            phone=norm_phone,
             message_type=message_type,
             content=message,
             status="PENDING"

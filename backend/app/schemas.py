@@ -3,12 +3,32 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, field_validator
 import re
 
+def normalize_phone_with_plus(v: str) -> str:
+    """
+    Globally standardize phone number to strictly include the '+' prefix.
+    - If 10 digits (standard Indian mobile): '+91' + digits -> e.g. '+919876543210'
+    - If 11 digits starting with 0: '+91' + digits[1:] -> e.g. '+919876543210'
+    - If 12 digits starting with 91: '+' + digits -> e.g. '+919876543210'
+    - If already starts with '+': ensure clean digits after '+', e.g. '+919876543210'
+    - Otherwise, prepend '+' to all extracted digits if >= 8 digits.
+    """
+    if not v:
+        raise ValueError("Phone number cannot be empty")
+    cleaned = v.strip()
+    digits = re.sub(r"\D", "", cleaned)
+    if len(digits) == 10:
+        return f"+91{digits}"
+    elif len(digits) == 11 and digits.startswith("0"):
+        return f"+91{digits[1:]}"
+    elif len(digits) == 12 and digits.startswith("91"):
+        return f"+{digits}"
+    elif len(digits) >= 8:
+        return f"+{digits}"
+    else:
+        raise ValueError("Invalid phone number: must be at least 8 digits")
+
 def clean_phone(v: str) -> str:
-    cleaned = re.sub(r"[^\d+]", "", v.strip())
-    # Strip leading zeros or invalid chars, ensure minimal length
-    if len(cleaned.replace("+", "")) < 8:
-        raise ValueError("WhatsApp number is too short or invalid")
-    return cleaned
+    return normalize_phone_with_plus(v)
 
 class CustomerBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=150)
@@ -194,6 +214,13 @@ class WhatsAppSettingsIn(BaseModel):
     admin_alert_whatsapp_number: Optional[str] = None
     admin_alert_whatsapp_enabled: bool = True
 
+    @field_validator("admin_alert_whatsapp_number")
+    @classmethod
+    def validate_admin_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v and v.strip():
+            return normalize_phone_with_plus(v)
+        return v
+
 class WhatsAppSettingsOut(BaseModel):
     admin_alert_whatsapp_number: Optional[str] = None
     admin_alert_whatsapp_enabled: bool = True
@@ -210,8 +237,8 @@ class DashboardStats(BaseModel):
     eligible_offers_count: int
 
 class SiteSettingsOut(BaseModel):
-    support_phone: str = "+91 98765 43210"
-    whatsapp_number: str = "919876543210"
+    support_phone: str = "+919876543210"
+    whatsapp_number: str = "+919876543210"
     site_logo_url: Optional[str] = None
     site_favicon_url: Optional[str] = None
     show_credentials_hint: bool = True
@@ -222,6 +249,13 @@ class SiteSettingsUpdate(BaseModel):
     site_logo_url: Optional[str] = None
     site_favicon_url: Optional[str] = None
     show_credentials_hint: Optional[bool] = None
+
+    @field_validator("support_phone", "whatsapp_number")
+    @classmethod
+    def validate_site_phones(cls, v: Optional[str]) -> Optional[str]:
+        if v and v.strip():
+            return normalize_phone_with_plus(v)
+        return v
 
 class AdminCredentialsUpdate(BaseModel):
     current_password: str

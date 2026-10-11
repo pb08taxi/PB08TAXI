@@ -123,7 +123,7 @@ async def update_booking_status(
 
     # Fetch support phone for templates
     support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
-    support_phone = support_setting.value if support_setting and support_setting.value else "+91 98765 43210"
+    support_phone = support_setting.value if support_setting and support_setting.value else "+919876543210"
 
     driver = db.query(Driver).filter(Driver.id == booking.driver_id).first() if booking.driver_id else None
 

@@ -40,8 +40,8 @@ export default function AdminSettingsPage() {
   const [settingsError, setSettingsError] = useState('');
 
   // Contact & Brand settings
-  const [supportPhone, setSupportPhone] = useState('+91 98765 43210');
-  const [whatsappNumber, setWhatsappNumber] = useState('919876543210');
+  const [supportPhone, setSupportPhone] = useState('+919876543210');
+  const [whatsappNumber, setWhatsappNumber] = useState('+919876543210');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
   const [showCredentialsHint, setShowCredentialsHint] = useState(false);
@@ -69,8 +69,8 @@ export default function AdminSettingsPage() {
   // Sync settings when data changes
   useEffect(() => {
     if (data) {
-      setSupportPhone(data.support_phone || '+91 98765 43210');
-      setWhatsappNumber(data.whatsapp_number || '919876543210');
+      setSupportPhone(data.support_phone || '+919876543210');
+      setWhatsappNumber(data.whatsapp_number || '+919876543210');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
@@ -86,9 +86,20 @@ export default function AdminSettingsPage() {
     setSettingsError('');
 
     try {
+      const formatPhone = (val) => {
+        if (!val) return val;
+        const digits = val.replace(/\D/g, '');
+        if (digits.length === 10) return `+91${digits}`;
+        if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+        return `+${digits}`;
+      };
+
+      const cleanSupport = formatPhone(supportPhone);
+      const cleanWa = formatPhone(whatsappNumber);
+
       const payload = {
-        support_phone: supportPhone,
-        whatsapp_number: whatsappNumber,
+        support_phone: cleanSupport,
+        whatsapp_number: cleanWa,
         site_logo_url: siteLogoUrl,
         site_favicon_url: siteFaviconUrl,
         show_credentials_hint: showCredentialsHint
@@ -252,7 +263,7 @@ export default function AdminSettingsPage() {
                     required
                     value={supportPhone}
                     onChange={(e) => setSupportPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
+                    placeholder="+919876543210"
                     className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
                   />
                 </div>
@@ -273,7 +284,7 @@ export default function AdminSettingsPage() {
                     required
                     value={whatsappNumber}
                     onChange={(e) => setWhatsappNumber(e.target.value)}
-                    placeholder="919876543210"
+                    placeholder="+919876543210"
                     className="w-full bg-zinc-900 border border-zinc-800 focus:border-[#25D366] rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
                   />
                 </div>
