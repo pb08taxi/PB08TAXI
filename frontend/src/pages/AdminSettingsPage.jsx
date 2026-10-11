@@ -1,0 +1,668 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Settings, 
+  Phone, 
+  MessageSquare, 
+  Image as ImageIcon, 
+  Upload, 
+  ShieldCheck, 
+  Lock, 
+  User, 
+  Eye, 
+  EyeOff, 
+  CheckCircle2, 
+  AlertCircle, 
+  Loader2, 
+  RefreshCw,
+  ExternalLink,
+  Trash2
+} from 'lucide-react';
+import AdminLayout from '../components/AdminLayout';
+import { 
+  getAdminSettings, 
+  updateAdminSettings, 
+  uploadSiteAsset, 
+  updateAdminCredentials 
+} from '../api/client';
+import { useSiteSettings } from '../context/SiteSettingsContext';
+
+export default function AdminSettingsPage() {
+  const { refreshSettings: refreshGlobalSettings } = useSiteSettings();
+
+  const [loading, setLoading] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
+  const [settingsError, setSettingsError] = useState('');
+
+  // Contact & Brand settings
+  const [supportPhone, setSupportPhone] = useState('+91 98765 43210');
+  const [whatsappNumber, setWhatsappNumber] = useState('919876543210');
+  const [siteLogoUrl, setSiteLogoUrl] = useState('');
+  const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
+  const [showCredentialsHint, setShowCredentialsHint] = useState(false);
+
+  // Upload loaders
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+
+  // Admin Credentials change states
+  const [currentUsername, setCurrentUsername] = useState('admin');
+  const [newUsername, setNewUsername] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Password eye visibility toggles
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+
+  const [savingCreds, setSavingCreds] = useState(false);
+  const [credMsg, setCredMsg] = useState('');
+  const [credError, setCredError] = useState('');
+
+  const loadSettings = async () => {
+    setLoading(true);
+    setSettingsError('');
+    try {
+      const data = await getAdminSettings();
+      setSupportPhone(data.support_phone || '+91 98765 43210');
+      setWhatsappNumber(data.whatsapp_number || '919876543210');
+      setSiteLogoUrl(data.site_logo_url || '');
+      setSiteFaviconUrl(data.site_favicon_url || '');
+      setShowCredentialsHint(data.show_credentials_hint ?? false);
+      setCurrentUsername(data.admin_username || 'admin');
+    } catch (err) {
+      console.error("Failed to load admin settings:", err);
+      setSettingsError("Failed to fetch settings from server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  // Handle saving general site settings (phone, whatsapp, logo, favicon, hint)
+  const handleSaveSiteSettings = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    setSettingsSavedMsg('');
+    setSettingsError('');
+
+    try {
+      await updateAdminSettings({
+        support_phone: supportPhone,
+        whatsapp_number: whatsappNumber,
+        site_logo_url: siteLogoUrl,
+        site_favicon_url: siteFaviconUrl,
+        show_credentials_hint: showCredentialsHint
+      });
+      await refreshGlobalSettings();
+      setSettingsSavedMsg('Site settings updated and published successfully!');
+      setTimeout(() => setSettingsSavedMsg(''), 4000);
+    } catch (err) {
+      setSettingsError(err.response?.data?.detail || 'Failed to update site settings.');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  // Upload Logo
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const res = await uploadSiteAsset(file, 'logo');
+      setSiteLogoUrl(res.url);
+    } catch (err) {
+      alert("Failed to upload logo: " + (err.response?.data?.detail || "Invalid format"));
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  // Upload Favicon
+  const handleFaviconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFavicon(true);
+    try {
+      const res = await uploadSiteAsset(file, 'favicon');
+      setSiteFaviconUrl(res.url);
+    } catch (err) {
+      alert("Failed to upload favicon: " + (err.response?.data?.detail || "Invalid format"));
+    } finally {
+      setUploadingFavicon(false);
+    }
+  };
+
+  // Handle changing Admin credentials
+  const handleChangeCredentials = async (e) => {
+    e.preventDefault();
+    setCredError('');
+    setCredMsg('');
+
+    if (!currentPassword) {
+      setCredError("Please enter your current password to authorize this change.");
+      return;
+    }
+
+    if (newPassword && newPassword !== confirmPassword) {
+      setCredError("New password and confirm password do not match.");
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      setCredError("New password must be at least 6 characters long.");
+      return;
+    }
+
+    setSavingCreds(true);
+    try {
+      const res = await updateAdminCredentials({
+        current_password: currentPassword,
+        new_username: newUsername.trim() || undefined,
+        new_password: newPassword.trim() || undefined
+      });
+
+      if (res.access_token) {
+        localStorage.setItem('pb08_admin_token', res.access_token);
+      }
+      if (res.username) {
+        localStorage.setItem('pb08_admin_user', res.username);
+        setCurrentUsername(res.username);
+      }
+
+      setCredMsg("Admin credentials updated successfully!");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setNewUsername('');
+      setTimeout(() => setCredMsg(''), 4000);
+    } catch (err) {
+      setCredError(err.response?.data?.detail || 'Failed to update credentials.');
+    } finally {
+      setSavingCreds(false);
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="space-y-8 max-w-5xl">
+        
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-white">Site & Security Settings</h1>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+              Configure public phone numbers, floating WhatsApp support, custom branding, and administrator security.
+            </p>
+          </div>
+          <button
+            onClick={loadSettings}
+            disabled={loading}
+            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Reload</span>
+          </button>
+        </div>
+
+        {/* Global Notifications */}
+        {settingsSavedMsg && (
+          <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5 animate-fade-in">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <span className="font-bold">{settingsSavedMsg}</span>
+          </div>
+        )}
+        {settingsError && (
+          <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <span>{settingsError}</span>
+          </div>
+        )}
+
+        {/* Form 1: Contact Numbers & WhatsApp Integration */}
+        <form onSubmit={handleSaveSiteSettings} className="space-y-8">
+          
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <Phone className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Public Contact Numbers</h2>
+                <p className="text-xs text-zinc-400">
+                  Update customer calling helpline and floating WhatsApp chat destination.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Helpline Calling Phone */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Helpline / Calling Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={supportPhone}
+                    onChange={(e) => setSupportPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Appears on Navbar call button, Hero "Call 24/7" button, Contact cards, and Footer.
+                </p>
+              </div>
+
+              {/* Floating WhatsApp Button Number */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Floating WhatsApp Button Number
+                </label>
+                <div className="relative">
+                  <MessageSquare className="w-4 h-4 text-[#25D366] absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="919876543210"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-[#25D366] rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Destination for the floating bottom-right <strong className="text-[#25D366]">"Chat with PB08 TAXI Support"</strong> WhatsApp button.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Form 2: Brand Assets (Site Logo & Favicon) */}
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <ImageIcon className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Site Branding (Logo & Favicon)</h2>
+                <p className="text-xs text-zinc-400">
+                  Upload custom branding assets with recommended sizes and resolutions.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              
+              {/* Site Logo Section */}
+              <div className="space-y-4 bg-zinc-900/40 p-5 rounded-2xl border border-zinc-850">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    Site Logo
+                  </span>
+                  {siteLogoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setSiteLogoUrl('')}
+                      className="text-[11px] text-red-400 hover:text-red-300 flex items-center space-x-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Reset to Default</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Recommended specifications */}
+                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-[11px] text-zinc-400 space-y-1">
+                  <p className="font-bold text-taxi-yellow">Recommended Specifications:</p>
+                  <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+                    <li><strong>Pixel Size:</strong> 512 × 512 px (Square) or 500 × 120 px (Horizontal)</li>
+                    <li><strong>Format:</strong> PNG / SVG with transparent background, or WebP</li>
+                    <li><strong>Max File Size:</strong> 2 MB</li>
+                  </ul>
+                </div>
+
+                {/* Logo Preview */}
+                <div className="h-28 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center p-3 relative overflow-hidden">
+                  {siteLogoUrl ? (
+                    <img src={siteLogoUrl} alt="Logo Preview" className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <div className="text-center text-zinc-600 text-xs">
+                      <ImageIcon className="w-8 h-8 mx-auto mb-1 text-zinc-700" />
+                      <span>Using default PB08 TAXI badge logo</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload or URL */}
+                <div className="space-y-2">
+                  <label className="cursor-pointer block bg-zinc-900 hover:bg-zinc-850 border border-dashed border-zinc-700 hover:border-taxi-yellow rounded-xl p-3 text-center transition-colors">
+                    <span className="text-xs text-zinc-300 flex items-center justify-center space-x-2">
+                      <Upload className="w-4 h-4 text-taxi-yellow" />
+                      <span>{uploadingLogo ? 'Uploading Logo...' : 'Upload Logo File'}</span>
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <input
+                    type="url"
+                    value={siteLogoUrl}
+                    onChange={(e) => setSiteLogoUrl(e.target.value)}
+                    placeholder="Or enter direct Logo URL (https://...)"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Site Favicon Section */}
+              <div className="space-y-4 bg-zinc-900/40 p-5 rounded-2xl border border-zinc-850">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                    Site Favicon (Browser Tab Icon)
+                  </span>
+                  {siteFaviconUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setSiteFaviconUrl('')}
+                      className="text-[11px] text-red-400 hover:text-red-300 flex items-center space-x-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Reset to Default</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Recommended specifications */}
+                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-[11px] text-zinc-400 space-y-1">
+                  <p className="font-bold text-taxi-yellow">Recommended Specifications:</p>
+                  <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+                    <li><strong>Pixel Size:</strong> 32 × 32 px or 64 × 64 px (Square 1:1)</li>
+                    <li><strong>Format:</strong> .ICO, .PNG, or .SVG</li>
+                    <li><strong>Max File Size:</strong> 512 KB</li>
+                  </ul>
+                </div>
+
+                {/* Favicon Preview */}
+                <div className="h-28 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center p-3 relative overflow-hidden">
+                  {siteFaviconUrl ? (
+                    <div className="flex flex-col items-center space-y-2">
+                      <img src={siteFaviconUrl} alt="Favicon Preview" className="w-10 h-10 object-contain" />
+                      <span className="text-[10px] text-zinc-500 font-mono">Live in browser tab</span>
+                    </div>
+                  ) : (
+                    <div className="text-center text-zinc-600 text-xs">
+                      <ImageIcon className="w-8 h-8 mx-auto mb-1 text-zinc-700" />
+                      <span>Using default taxi SVG favicon</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload or URL */}
+                <div className="space-y-2">
+                  <label className="cursor-pointer block bg-zinc-900 hover:bg-zinc-850 border border-dashed border-zinc-700 hover:border-taxi-yellow rounded-xl p-3 text-center transition-colors">
+                    <span className="text-xs text-zinc-300 flex items-center justify-center space-x-2">
+                      <Upload className="w-4 h-4 text-taxi-yellow" />
+                      <span>{uploadingFavicon ? 'Uploading Favicon...' : 'Upload Favicon File'}</span>
+                    </span>
+                    <input
+                      type="file"
+                      accept=".ico,.png,.svg,.webp,image/*"
+                      onChange={handleFaviconUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <input
+                    type="url"
+                    value={siteFaviconUrl}
+                    onChange={(e) => setSiteFaviconUrl(e.target.value)}
+                    placeholder="Or enter direct Favicon URL (https://...)"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Form 3: Login Page Credentials Hint Display */}
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-4">
+            <div className="flex items-center space-x-3 pb-3 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Admin Login Page Security</h2>
+                <p className="text-xs text-zinc-400">
+                  Control visibility of default credentials hint on <code className="text-zinc-300">/admin/login</code>.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-850">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showCredentialsHint}
+                  onChange={(e) => setShowCredentialsHint(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded bg-zinc-950 border-zinc-700 text-taxi-yellow focus:ring-taxi-yellow accent-taxi-yellow cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-bold text-white block">
+                    Show "Default credentials: admin / PB08Taxi@2026!" on Login Page
+                  </span>
+                  <span className="text-xs text-zinc-400 leading-relaxed block mt-0.5">
+                    Untick this box in production to hide the credentials helper from public visitors.
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Save Button for Site Settings */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={savingSettings}
+              className="bg-taxi-yellow hover:bg-taxi-yellowHover disabled:opacity-60 text-black font-black text-sm px-8 py-3.5 rounded-xl shadow-lg shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
+            >
+              {savingSettings ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving Settings...</span>
+                </>
+              ) : (
+                <span>Save Site Settings</span>
+              )}
+            </button>
+          </div>
+
+        </form>
+
+        {/* Section 4: Admin ID & Password Management */}
+        <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+            <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+              <Lock className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Change Admin ID & Password</h2>
+              <p className="text-xs text-zinc-400">
+                Update administrator login credentials with secure bcrypt password hashing.
+              </p>
+            </div>
+          </div>
+
+          {credMsg && (
+            <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+              <span className="font-bold">{credMsg}</span>
+            </div>
+          )}
+          {credError && (
+            <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <span>{credError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleChangeCredentials} className="space-y-5">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Current Username */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                  Current Admin ID (Username)
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    disabled
+                    value={currentUsername}
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-zinc-400 outline-none cursor-not-allowed font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* New Username (Optional) */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  New Admin ID (Optional)
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="Leave blank to keep current ID"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              
+              {/* Current Password (Required) */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Current Password <span className="text-taxi-yellow">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type={showCurrentPass ? "text" : "password"}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-10 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPass(!showCurrentPass)}
+                    className="absolute right-3.5 top-3.5 text-zinc-400 hover:text-white"
+                    title={showCurrentPass ? "Hide password" : "Show password"}
+                  >
+                    {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type={showNewPass ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-10 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(!showNewPass)}
+                    className="absolute right-3.5 top-3.5 text-zinc-400 hover:text-white"
+                    title={showNewPass ? "Hide password" : "Show password"}
+                  >
+                    {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm New Password */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type={showConfirmPass ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-type new password"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-10 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPass(!showConfirmPass)}
+                    className="absolute right-3.5 top-3.5 text-zinc-400 hover:text-white"
+                    title={showConfirmPass ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={savingCreds}
+                className="bg-taxi-yellow hover:bg-taxi-yellowHover disabled:opacity-60 text-black font-black text-sm px-8 py-3.5 rounded-xl shadow-lg shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
+              >
+                {savingCreds ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Updating Credentials...</span>
+                  </>
+                ) : (
+                  <span>Update Admin ID & Password</span>
+                )}
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </AdminLayout>
+  );
+}

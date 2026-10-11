@@ -1,0 +1,34 @@
+# Environment secrets
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+ENV/
+env/
+
+# Python cache & SQLite
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+*.sqlite3
+*.db
+backend/pb08taxi.db
+
+# Frontend build outputs
+dist/
+frontend/dist/
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

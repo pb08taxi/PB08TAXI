@@ -1,0 +1,103 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Attach JWT token to admin requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pb08_admin_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/login')) {
+        localStorage.removeItem('pb08_admin_token');
+        localStorage.removeItem('pb08_admin_user');
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Public APIs
+export const fetchPublicSliders = () => api.get('/api/slider-images').then(r => r.data);
+export const createBooking = (payload) => api.post('/api/bookings', payload).then(r => r.data);
+
+// Admin Auth APIs
+export const adminLogin = (username, password) => 
+  api.post('/api/admin/login', { username, password }).then(r => r.data);
+export const getAdminMe = () => api.get('/api/admin/me').then(r => r.data);
+
+// Admin Dashboard & Customers
+export const getAdminStats = () => api.get('/api/admin/stats').then(r => r.data);
+export const getCustomers = (q = '') => api.get(`/api/admin/customers${q ? `?q=${encodeURIComponent(q)}` : ''}`).then(r => r.data);
+export const updateCustomerConsent = (id, consent) => 
+  api.patch(`/api/admin/customers/${id}/consent?marketing_consent=${consent}`).then(r => r.data);
+
+// Admin Bookings
+export const getBookings = (status = '', q = '') => {
+  const params = new URLSearchParams();
+  if (status && status !== 'ALL') params.append('status_filter', status);
+  if (q) params.append('q', q);
+  return api.get(`/api/admin/bookings?${params.toString()}`).then(r => r.data);
+};
+export const updateBookingStatus = (id, status, notes = '') => 
+  api.patch(`/api/admin/bookings/${id}/status`, { status, notes }).then(r => r.data);
+
+// Admin Slider
+export const getAdminSliders = () => api.get('/api/admin/slider-images').then(r => r.data);
+export const createSlider = (data) => api.post('/api/admin/slider-images', data).then(r => r.data);
+export const updateSlider = (id, data) => api.put(`/api/admin/slider-images/${id}`, data).then(r => r.data);
+export const deleteSlider = (id) => api.delete(`/api/admin/slider-images/${id}`).then(r => r.data);
+export const uploadSliderImage = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/api/admin/slider-images/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(r => r.data);
+};
+
+// Admin WhatsApp Settings & Offers
+export const getWhatsAppStatus = () => api.get('/api/admin/whatsapp/status').then(r => r.data);
+export const connectWhatsApp = () => api.post('/api/admin/whatsapp/connect').then(r => r.data);
+export const getWhatsAppQR = () => api.get('/api/admin/whatsapp/qr').then(r => r.data);
+export const disconnectWhatsApp = () => api.post('/api/admin/whatsapp/disconnect').then(r => r.data);
+export const sendTestMessage = (phone, message) => 
+  api.post('/api/admin/whatsapp/test-message', { phone, message }).then(r => r.data);
+export const getEligibleOffersCount = () => api.get('/api/admin/whatsapp/offers/eligible-count').then(r => r.data);
+export const sendPromotionalOffer = (message) => 
+  api.post('/api/admin/whatsapp/offers/send', { message }).then(r => r.data);
+export const getWhatsAppLogs = (limit = 50, type = '') => {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit);
+  if (type) params.append('message_type', type);
+  return api.get(`/api/admin/whatsapp/logs?${params.toString()}`).then(r => r.data);
+};
+
+// Site Settings & Admin Credentials
+export const getPublicSiteSettings = () => api.get('/api/site-settings').then(r => r.data);
+export const getAdminSettings = () => api.get('/api/admin/settings').then(r => r.data);
+export const updateAdminSettings = (payload) => api.post('/api/admin/settings', payload).then(r => r.data);
+export const uploadSiteAsset = (file, assetType = 'logo') => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('asset_type', assetType);
+  return api.post('/api/admin/settings/upload-asset', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(r => r.data);
+};
+export const updateAdminCredentials = (payload) => api.post('/api/admin/settings/credentials', payload).then(r => r.data);
+
+export default api;
