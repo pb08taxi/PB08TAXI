@@ -13,7 +13,8 @@ import {
   Trash2, 
   X, 
   AlertTriangle,
-  UserPlus
+  UserPlus,
+  ChevronDown
 } from 'lucide-react';
 import { 
   getCustomers, 
@@ -24,6 +25,24 @@ import {
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
+
+const POPULAR_COUNTRY_CODES = [
+  { code: '+91', flag: '🇮🇳', label: 'IN +91' },
+  { code: '+1', flag: '🇨🇦', label: 'CA +1' },
+  { code: '+1', flag: '🇺🇸', label: 'US +1' },
+  { code: '+44', flag: '🇬🇧', label: 'UK +44' },
+  { code: '+971', flag: '🇦🇪', label: 'AE +971' },
+  { code: '+61', flag: '🇦🇺', label: 'AU +61' },
+  { code: '+64', flag: '🇳🇿', label: 'NZ +64' },
+  { code: '+49', flag: '🇩🇪', label: 'DE +49' },
+  { code: '+39', flag: '🇮🇹', label: 'IT +39' },
+  { code: '+65', flag: '🇸🇬', label: 'SG +65' },
+  { code: '+60', flag: '🇲🇾', label: 'MY +60' },
+  { code: '+974', flag: '🇶🇦', label: 'QA +974' },
+  { code: '+966', flag: '🇸🇦', label: 'SA +966' },
+  { code: '+965', flag: '🇰🇼', label: 'KW +965' },
+  { code: 'OTHER', flag: '🌐', label: 'Other (+...)' },
+];
 
 export default function AdminCustomersPage() {
   const { showSuccess, showError } = useToast();
@@ -37,7 +56,10 @@ export default function AdminCustomersPage() {
     name: '',
     marketing_consent: true,
   });
-  const [phone10, setPhone10] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [customCountryCode, setCustomCountryCode] = useState('');
+  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -67,7 +89,10 @@ export default function AdminCustomersPage() {
       name: '',
       marketing_consent: true,
     });
-    setPhone10('');
+    setCountryCode('+91');
+    setIsCustomCountry(false);
+    setCustomCountryCode('');
+    setPhoneDigits('');
     setFormError('');
     setIsModalOpen(true);
   };
@@ -78,8 +103,29 @@ export default function AdminCustomersPage() {
       name: customer.name || '',
       marketing_consent: customer.marketing_consent ?? true,
     });
-    const digits = (customer.whatsapp_number || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-    setPhone10(digits);
+    const raw = customer.whatsapp_number || '';
+    let detectedCode = '+91';
+    let digits = raw;
+    if (raw.startsWith('+')) {
+      const match = POPULAR_COUNTRY_CODES.find(c => c.code !== 'OTHER' && raw.startsWith(c.code));
+      if (match) {
+        detectedCode = match.code;
+        digits = raw.slice(match.code.length);
+        setIsCustomCountry(false);
+      } else {
+        const codeMatch = raw.match(/^(\+\d{1,4})/);
+        if (codeMatch) {
+          detectedCode = codeMatch[1];
+          digits = raw.slice(detectedCode.length);
+          setIsCustomCountry(true);
+          setCustomCountryCode(detectedCode);
+        }
+      }
+    } else {
+      digits = raw.replace(/\D/g, '');
+    }
+    setCountryCode(detectedCode);
+    setPhoneDigits(digits.replace(/\D/g, ''));
     setFormError('');
     setIsModalOpen(true);
   };
@@ -92,9 +138,29 @@ export default function AdminCustomersPage() {
       setFormError('Customer name is required.');
       return;
     }
-    const cleanDigits = phone10.replace(/\D/g, '');
-    if (cleanDigits.length !== 10) {
-      setFormError('Please enter a valid 10-digit mobile number (e.g. 98765 43210).');
+    const activeCode = isCustomCountry 
+      ? (customCountryCode.startsWith('+') ? customCountryCode : `+${customCountryCode}`) 
+      : countryCode;
+    const isIndia = activeCode === '+91';
+    const cleanDigits = phoneDigits.replace(/\D/g, '');
+
+    if (!cleanDigits) {
+      setFormError('WhatsApp phone number is required.');
+      return;
+    }
+
+    if (isIndia && cleanDigits.length !== 10) {
+      setFormError('Please enter a valid 10-digit mobile number for India (+91).');
+      return;
+    }
+
+    if (!isIndia && (cleanDigits.length < 7 || cleanDigits.length > 15)) {
+      setFormError('Please enter a valid mobile number (7-15 digits).');
+      return;
+    }
+
+    if (isCustomCountry && (!customCountryCode || customCountryCode === '+')) {
+      setFormError('Please enter a valid country code (e.g. +44, +1, +971).');
       return;
     }
 
@@ -102,7 +168,7 @@ export default function AdminCustomersPage() {
       setFormSubmitting(true);
       const payload = {
         name: formData.name.trim(),
-        whatsapp_number: `+91${cleanDigits}`,
+        whatsapp_number: `${activeCode}${cleanDigits}`,
         marketing_consent: Boolean(formData.marketing_consent),
       };
 
@@ -422,48 +488,115 @@ export default function AdminCustomersPage() {
                 />
               </div>
 
-              {/* WhatsApp Number with separated +91 badge & 10-digit lock */}
+              {/* WhatsApp Number with customizable country code (default +91) */}
               <div>
                 <label className="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
                   <span>
                     WhatsApp Number <span className="text-taxi-yellow">*</span>
                   </span>
-                  <span className={`text-[11px] font-mono ${phone10.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
-                    {phone10.length}/10 digits
+                  <span className={`text-[11px] font-mono ${phoneDigits.length >= 7 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {countryCode === '+91' && !isCustomCountry ? `${phoneDigits.length}/10 digits` : `${phoneDigits.length} digits`}
                   </span>
                 </label>
-                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all">
-                  <div className="bg-zinc-800/90 px-3.5 py-2.5 text-xs font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
-                    <span className="text-sm leading-none">🇮🇳</span>
-                    <span className="font-mono font-black tracking-wider">+91</span>
-                  </div>
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow transition-all bg-zinc-900">
+                  {/* Selectable / Changeable Country Code Badge */}
+                  {!isCustomCountry ? (
+                    <div className="relative bg-zinc-800/90 hover:bg-zinc-750 border-r border-zinc-700 select-none flex items-center flex-shrink-0 transition-colors">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => {
+                          if (e.target.value === 'OTHER') {
+                            setIsCustomCountry(true);
+                            setCustomCountryCode('+');
+                          } else {
+                            setIsCustomCountry(false);
+                            setCountryCode(e.target.value);
+                          }
+                          setFormError('');
+                        }}
+                        className="bg-transparent text-xs font-bold text-taxi-yellow pl-3 pr-6 py-2.5 font-mono cursor-pointer outline-none appearance-none select-none"
+                        title="Click to change country code"
+                      >
+                        {POPULAR_COUNTRY_CODES.map((c) => (
+                          <option key={c.label} value={c.code} className="bg-zinc-900 text-white font-sans py-1">
+                            {c.flag} {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3 h-3 text-taxi-yellow absolute right-1.5 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700 px-2 py-1 flex-shrink-0">
+                      <input
+                        type="text"
+                        value={customCountryCode}
+                        onChange={(e) => {
+                          let val = e.target.value.trim();
+                          if (!val.startsWith('+')) val = '+' + val.replace(/\+/g, '');
+                          const cleanCode = '+' + val.slice(1).replace(/\D/g, '').slice(0, 5);
+                          setCustomCountryCode(cleanCode);
+                          setFormError('');
+                        }}
+                        placeholder="+code"
+                        className="w-14 bg-zinc-900 text-taxi-yellow text-xs font-mono font-bold py-1 px-1 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCountry(false);
+                          setCountryCode('+91');
+                        }}
+                        className="text-[10px] text-zinc-400 hover:text-white ml-1 p-0.5 rounded hover:bg-zinc-800"
+                        title="Reset to default (+91)"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
                   <input
                     type="tel"
                     inputMode="numeric"
-                    maxLength={10}
+                    maxLength={countryCode === '+91' && !isCustomCountry ? 10 : 15}
                     required
-                    value={phone10}
+                    value={phoneDigits}
                     onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      setPhone10(digits);
+                      let raw = e.target.value;
+                      if (raw.startsWith('+91')) {
+                        setCountryCode('+91');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(3);
+                      } else if (raw.startsWith('+1')) {
+                        setCountryCode('+1');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(2);
+                      } else if (raw.startsWith('+44')) {
+                        setCountryCode('+44');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(3);
+                      }
+                      const maxLen = countryCode === '+91' && !isCustomCountry ? 10 : 15;
+                      const digits = raw.replace(/\D/g, '').slice(0, maxLen);
+                      setPhoneDigits(digits);
                       setFormError('');
                     }}
-                    placeholder="98765 43210"
-                    className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                    placeholder={countryCode === '+91' && !isCustomCountry ? '98765 43210' : 'Mobile number'}
+                    className="w-full bg-transparent py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
-                  {phone10.length === 10 && (
+                  {phoneDigits.length >= 7 && (
                     <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0">
                       <CheckCircle className="w-4 h-4" />
                     </div>
                   )}
                 </div>
-                {phone10.length === 10 ? (
+                {phoneDigits.length >= 7 ? (
                   <p className="text-[11px] text-emerald-400 mt-1 font-mono">
-                    ✓ Stored format: <strong>+91{phone10}</strong>
+                    ✓ Stored format: <strong>{isCustomCountry ? customCountryCode : countryCode}{phoneDigits}</strong>
                   </p>
                 ) : (
                   <p className="text-[11px] text-zinc-500 mt-1">
-                    Enter 10-digit mobile number. Country code <strong>+91</strong> is auto-attached.
+                    Default is <strong>+91</strong> (India). Click code above to change for international customers.
                   </p>
                 )}
               </div>

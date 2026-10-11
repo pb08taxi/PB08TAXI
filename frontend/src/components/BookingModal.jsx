@@ -12,10 +12,29 @@ import {
   User, 
   Phone,
   Calendar,
-  Clock
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 import { createBooking } from '../api/client';
 import { useToast } from '../context/ToastContext';
+
+export const POPULAR_COUNTRY_CODES = [
+  { code: '+91', flag: '🇮🇳', label: 'IN +91' },
+  { code: '+1', flag: '🇨🇦', label: 'CA +1' },
+  { code: '+1', flag: '🇺🇸', label: 'US +1' },
+  { code: '+44', flag: '🇬🇧', label: 'UK +44' },
+  { code: '+971', flag: '🇦🇪', label: 'AE +971' },
+  { code: '+61', flag: '🇦🇺', label: 'AU +61' },
+  { code: '+64', flag: '🇳🇿', label: 'NZ +64' },
+  { code: '+49', flag: '🇩🇪', label: 'DE +49' },
+  { code: '+39', flag: '🇮🇹', label: 'IT +39' },
+  { code: '+65', flag: '🇸🇬', label: 'SG +65' },
+  { code: '+60', flag: '🇲🇾', label: 'MY +60' },
+  { code: '+974', flag: '🇶🇦', label: 'QA +974' },
+  { code: '+966', flag: '🇸🇦', label: 'SA +966' },
+  { code: '+965', flag: '🇰🇼', label: 'KW +965' },
+  { code: 'OTHER', flag: '🌐', label: 'Other (+...)' },
+];
 
 export default function BookingModal({ isOpen, onClose }) {
   const { showSuccess, showError } = useToast();
@@ -43,11 +62,21 @@ export default function BookingModal({ isOpen, onClose }) {
     marketing_consent: true,
   });
 
-  const [whatsapp10, setWhatsapp10] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [customCountryCode, setCustomCountryCode] = useState('');
+  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [whatsappDigits, setWhatsappDigits] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successResult, setSuccessResult] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  const activeCode = isCustomCountry
+    ? (customCountryCode.startsWith('+') ? customCountryCode : `+${customCountryCode}`)
+    : countryCode;
+  const isIndia = activeCode === '+91';
+  const cleanDigits = whatsappDigits.replace(/\D/g, '');
+  const isPhoneValid = isIndia ? cleanDigits.length === 10 : (cleanDigits.length >= 7 && cleanDigits.length <= 15);
 
   if (!isOpen) return null;
 
@@ -67,9 +96,23 @@ export default function BookingModal({ isOpen, onClose }) {
       return;
     }
 
-    const cleanDigits = whatsapp10.replace(/\D/g, '');
-    if (cleanDigits.length !== 10) {
-      setError('Please enter your complete 10-digit WhatsApp phone number (e.g. 98765 43210).');
+    if (!cleanDigits) {
+      setError('Please enter your WhatsApp mobile number.');
+      return;
+    }
+
+    if (isIndia && cleanDigits.length !== 10) {
+      setError('Please enter your complete 10-digit mobile number for India (+91).');
+      return;
+    }
+
+    if (!isIndia && (cleanDigits.length < 7 || cleanDigits.length > 15)) {
+      setError('Please enter a valid mobile number (7-15 digits).');
+      return;
+    }
+
+    if (isCustomCountry && (!customCountryCode || customCountryCode === '+')) {
+      setError('Please enter a valid country dial code (e.g. +44, +1, +971).');
       return;
     }
 
@@ -89,7 +132,7 @@ export default function BookingModal({ isOpen, onClose }) {
     try {
       const payload = {
         ...formData,
-        whatsapp_number: `+91${cleanDigits}`,
+        whatsapp_number: `${activeCode}${cleanDigits}`,
       };
       const res = await createBooking(payload);
       setSuccessResult(res);
@@ -117,7 +160,10 @@ export default function BookingModal({ isOpen, onClose }) {
 
   const handleReset = () => {
     setSuccessResult(null);
-    setWhatsapp10('');
+    setCountryCode('+91');
+    setIsCustomCountry(false);
+    setCustomCountryCode('');
+    setWhatsappDigits('');
     setFormData({
       customer_name: '',
       pickup_location: '',
@@ -196,51 +242,121 @@ export default function BookingModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* WhatsApp Number with separated +91 and 10 Digit Lock */}
+              {/* WhatsApp Number with customizable country code (default +91) */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
                   <span>
                     WhatsApp Number <span className="text-taxi-yellow">*</span>
                   </span>
-                  <span className={`text-[11px] font-mono ${whatsapp10.length === 10 ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
-                    {whatsapp10.length}/10 digits
+                  <span className={`text-[11px] font-mono ${isPhoneValid ? 'text-emerald-400 font-bold' : 'text-zinc-500'}`}>
+                    {isIndia ? `${cleanDigits.length}/10 digits` : `${cleanDigits.length} digits`}
                   </span>
                 </label>
-                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all">
-                  {/* Visually separated +91 country badge */}
-                  <div className="bg-zinc-800/90 px-3.5 py-3 text-xs sm:text-sm font-bold text-taxi-yellow border-r border-zinc-700 select-none flex items-center space-x-1.5 flex-shrink-0">
-                    <span className="text-base leading-none">🇮🇳</span>
-                    <span className="font-mono font-black tracking-wider">+91</span>
-                  </div>
-                  {/* Strictly locked 10-digit input */}
+                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all bg-zinc-900">
+                  {/* Selectable / Changeable Country Code Badge */}
+                  {!isCustomCountry ? (
+                    <div className="relative bg-zinc-800/90 hover:bg-zinc-750 border-r border-zinc-700/80 flex items-center transition-colors flex-shrink-0">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => {
+                          if (e.target.value === 'OTHER') {
+                            setIsCustomCountry(true);
+                            setCustomCountryCode('+');
+                          } else {
+                            setIsCustomCountry(false);
+                            setCountryCode(e.target.value);
+                          }
+                          setError('');
+                        }}
+                        className="bg-transparent text-xs sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 py-3 font-mono cursor-pointer outline-none appearance-none select-none"
+                        title="Click to change country code"
+                      >
+                        {POPULAR_COUNTRY_CODES.map((c) => (
+                          <option key={c.label} value={c.code} className="bg-zinc-900 text-white font-sans py-1">
+                            {c.flag} {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3.5 h-3.5 text-taxi-yellow absolute right-2 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700/80 px-2 py-2 flex-shrink-0">
+                      <input
+                        type="text"
+                        value={customCountryCode}
+                        onChange={(e) => {
+                          let val = e.target.value.trim();
+                          if (!val.startsWith('+')) val = '+' + val.replace(/\+/g, '');
+                          const cleanCode = '+' + val.slice(1).replace(/\D/g, '').slice(0, 5);
+                          setCustomCountryCode(cleanCode);
+                          setError('');
+                        }}
+                        placeholder="+code"
+                        className="w-16 bg-zinc-900 text-taxi-yellow text-xs sm:text-sm font-mono font-black py-1 px-1.5 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCountry(false);
+                          setCountryCode('+91');
+                        }}
+                        className="text-[10px] text-zinc-400 hover:text-white ml-1.5 p-1 rounded hover:bg-zinc-800"
+                        title="Reset to default (+91)"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Phone input */}
                   <input
                     type="tel"
                     inputMode="numeric"
-                    maxLength={10}
+                    maxLength={isIndia ? 10 : 15}
                     required
-                    value={whatsapp10}
+                    value={whatsappDigits}
                     onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      setWhatsapp10(digits);
+                      let raw = e.target.value;
+                      if (raw.startsWith('+91')) {
+                        setCountryCode('+91');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(3);
+                      } else if (raw.startsWith('+1')) {
+                        setCountryCode('+1');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(2);
+                      } else if (raw.startsWith('+44')) {
+                        setCountryCode('+44');
+                        setIsCustomCountry(false);
+                        raw = raw.slice(3);
+                      }
+                      const maxLen = isIndia ? 10 : 15;
+                      const digits = raw.replace(/\D/g, '').slice(0, maxLen);
+                      setWhatsappDigits(digits);
                       setError('');
                     }}
-                    placeholder="98765 43210"
-                    className="w-full bg-zinc-900 py-3 px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                    placeholder={isIndia ? '98765 43210' : 'Mobile number'}
+                    className="w-full bg-transparent py-3 px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
-                  {whatsapp10.length === 10 && (
-                    <div className="pr-3 flex items-center bg-zinc-900 text-emerald-400 flex-shrink-0" title="Valid 10-digit number">
+
+                  {isPhoneValid && (
+                    <div className="pr-3 flex items-center text-emerald-400 flex-shrink-0" title="Valid phone number">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   )}
                 </div>
-                {whatsapp10.length === 10 ? (
+
+                {isPhoneValid ? (
                   <p className="text-[11px] text-emerald-400 mt-1 font-mono flex items-center space-x-1">
                     <span>✓</span>
-                    <span>Dispatches to: <strong>+91{whatsapp10}</strong> with live confirmation.</span>
+                    <span>Dispatches to: <strong>{activeCode} {cleanDigits}</strong> with live confirmation.</span>
                   </p>
                 ) : (
-                  <p className="text-[11px] text-zinc-500 mt-1">
-                    Enter your 10-digit mobile number. Country code <strong>+91</strong> is auto-attached.
+                  <p className="text-[11px] text-zinc-500 mt-1 flex items-center justify-between">
+                    <span>
+                      Default is <strong>+91</strong> (India). Click the code above to change for Canada, UK, US, or other countries.
+                    </span>
                   </p>
                 )}
               </div>
