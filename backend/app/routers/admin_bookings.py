@@ -1,12 +1,12 @@
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.database import get_db
 from app.models import AdminUser, Booking, Customer, WhatsAppMessage, Driver, MessageTemplate, SystemSetting
 from app.schemas import BookingOut, BookingStatusUpdate
-from app.services.whatsapp_service import whatsapp_service
+from app.services.whatsapp_service import whatsapp_service, send_background_message
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/admin/bookings", tags=["Admin Bookings"])
@@ -101,10 +101,11 @@ def list_bookings(
 async def update_booking_status(
     booking_id: int,
     payload: BookingStatusUpdate,
+    background_tasks: BackgroundTasks,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Update status, assign driver, and automatically dispatch template WhatsApp alerts."""
+    """Update status, assign driver, and dispatch template WhatsApp alerts asynchronously in background."""
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
@@ -126,7 +127,7 @@ async def update_booking_status(
 
     driver = db.query(Driver).filter(Driver.id == booking.driver_id).first() if booking.driver_id else None
 
-    # Handle automated WhatsApp dispatches based on status
+    # Handle automated WhatsApp dispatches in background (Instant UI response!)
     if payload.send_whatsapp:
         date_disp = format_friendly_date(booking.pickup_date) or "As scheduled"
         time_disp = format_friendly_time(booking.pickup_time) or "Immediate"
@@ -168,16 +169,16 @@ async def update_booking_status(
                     f"Have a pleasant trip!"
                 )
             
-            # Send to customer
-            await whatsapp_service.send_text_message(
-                db=db,
+            # Send to customer in background
+            background_tasks.add_task(
+                send_background_message,
                 phone=booking.customer.whatsapp_number,
                 message=cust_msg,
                 message_type="BOOKING_CONFIRMATION",
                 customer_id=booking.customer_id
             )
 
-            # Send duty alert to driver if driver is assigned
+            # Send duty alert to driver in background if driver is assigned
             if driver and driver.contact_number:
                 driver_tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "driver_assignment").first()
                 driver_ctx = {
@@ -205,8 +206,8 @@ async def update_booking_status(
                         f"🏁 *Destination:* {booking.destination}\n"
                         f"👉 Please coordinate with the customer."
                     )
-                await whatsapp_service.send_text_message(
-                    db=db,
+                background_tasks.add_task(
+                    send_background_message,
                     phone=driver.contact_number,
                     message=driver_msg,
                     message_type="DRIVER_DUTY_ALERT"
@@ -223,8 +224,8 @@ async def update_booking_status(
                     f"Dear {booking.customer.name}, your journey (Ref: #{booking.booking_reference}) has ended.\n"
                     f"Thank you for riding with PB08 TAXI! Call us anytime at {support_phone} for your next trip."
                 )
-            await whatsapp_service.send_text_message(
-                db=db,
+            background_tasks.add_task(
+                send_background_message,
                 phone=booking.customer.whatsapp_number,
                 message=comp_msg,
                 message_type="RIDE_COMPLETED",
@@ -243,8 +244,8 @@ async def update_booking_status(
                     f"Reason: {booking.notes or 'Cancelled by operator'}\n"
                     f"Contact {support_phone} for assistance."
                 )
-            await whatsapp_service.send_text_message(
-                db=db,
+            background_tasks.add_task(
+                send_background_message,
                 phone=booking.customer.whatsapp_number,
                 message=canc_msg,
                 message_type="BOOKING_CANCELLED",

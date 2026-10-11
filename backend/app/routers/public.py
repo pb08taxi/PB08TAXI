@@ -2,13 +2,13 @@ import random
 import string
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
 from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate
 from app.schemas import BookingCreate, BookingOut, SliderImageOut
-from app.services.whatsapp_service import whatsapp_service
+from app.services.whatsapp_service import whatsapp_service, send_background_message
 
 router = APIRouter(tags=["Public"])
 
@@ -71,14 +71,18 @@ def get_public_slider_images(db: Session = Depends(get_db)):
     return slides
 
 @router.post("/bookings", response_model=BookingOut, status_code=status.HTTP_201_CREATED)
-async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
+async def create_booking(
+    booking_in: BookingCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     """
     One Click Book Your Ride endpoint:
     1. Validate inputs.
     2. Save or update customer in Neon PostgreSQL (prevent duplicates).
     3. Create booking with unique reference.
-    4. Send confirmation WhatsApp message via OpenWA.
-    5. Always persist booking even if WhatsApp delivery fails.
+    4. Queue confirmation WhatsApp message in background (instant response!).
+    5. Queue admin alert WhatsApp notification in background.
     """
     clean_phone = booking_in.whatsapp_number.strip()
     customer_name = booking_in.customer_name.strip()
@@ -131,7 +135,7 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(booking)
 
-    # 4. WhatsApp Confirmation Message (Uses customizable template if configured)
+    # 4. Format WhatsApp Confirmation Message (Uses customizable template if configured)
     friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else "Immediate / Today"
     friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
     
@@ -163,15 +167,16 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
             f"(Booking Ref: #{booking.booking_reference}{schedule_text})"
         )
 
-    wa_success, wa_error = await whatsapp_service.send_text_message(
-        db=db,
+    # Dispatch to customer asynchronously in background task (Instant API response!)
+    background_tasks.add_task(
+        send_background_message,
         phone=clean_phone,
         message=confirmation_text,
         message_type="BOOKING_CONFIRMATION",
         customer_id=customer.id
     )
 
-    # 5. Automated WhatsApp Notification Alert for Admin
+    # 5. Format & Queue Automated WhatsApp Notification Alert for Admin
     try:
         admin_phone_setting = db.query(SystemSetting).filter(SystemSetting.key == "admin_alert_whatsapp_number").first()
         admin_enabled_setting = db.query(SystemSetting).filter(SystemSetting.key == "admin_alert_whatsapp_enabled").first()
@@ -183,7 +188,6 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
         admin_target_phone = admin_phone_setting.value.strip() if admin_phone_setting and admin_phone_setting.value else None
 
         if is_admin_alert_enabled and admin_target_phone:
-            # Indian Standard Time (IST = UTC + 5:30) for accurate timestamp
             ist_time = booking.created_at + timedelta(hours=5, minutes=30)
             booked_at_ist = ist_time.strftime("%d-%b-%Y, %I:%M %p")
 
@@ -204,15 +208,16 @@ async def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"👉 _Please contact customer promptly to confirm the ride._"
             )
-            await whatsapp_service.send_text_message(
-                db=db,
+
+            # Dispatch to admin asynchronously in background task (Zero blocking latency!)
+            background_tasks.add_task(
+                send_background_message,
                 phone=admin_target_phone,
                 message=admin_alert_text,
                 message_type="ADMIN_BOOKING_ALERT",
                 customer_id=customer.id
             )
     except Exception:
-        # Gracefully handle any admin alert issue without blocking customer booking
         pass
 
     # 6. Return booking details with customer info

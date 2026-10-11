@@ -1,8 +1,10 @@
 import re
+import time
 import httpx
 from typing import Optional, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 from app.config import get_settings
+from app.database import SessionLocal
 from app.models import WhatsAppMessage, Customer, SystemSetting
 
 settings = get_settings()
@@ -21,6 +23,8 @@ class WhatsAppService:
         self.api_key = settings.OPENWA_API_KEY
         self.session_name = settings.OPENWA_SESSION_NAME
         self.simulator_mode = settings.OPENWA_SIMULATOR_MODE
+        self._cached_session_id = None
+        self._session_cache_timestamp = 0
 
     def _headers(self) -> Dict[str, str]:
         headers = {"Content-Type": "application/json"}
@@ -36,6 +40,8 @@ class WhatsAppService:
         return self.session_name
 
     def _save_active_session_id(self, db: Session, session_id: str):
+        self._cached_session_id = session_id
+        self._session_cache_timestamp = time.time()
         setting = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
         if not setting:
             setting = SystemSetting(key="openwa_session_id", value=session_id)
@@ -44,8 +50,12 @@ class WhatsAppService:
             setting.value = session_id
         db.commit()
 
-    async def _resolve_session_id(self, client: httpx.AsyncClient, db: Session) -> Optional[str]:
-        """Resolve the active OpenWA session UUID, prioritizing connected sessions."""
+    async def _resolve_session_id(self, client: httpx.AsyncClient, db: Session, force_refresh: bool = False) -> Optional[str]:
+        """Resolve the active OpenWA session UUID, prioritizing connected sessions with in-memory caching."""
+        now = time.time()
+        if not force_refresh and self._cached_session_id and (now - self._session_cache_timestamp < 600):
+            return self._cached_session_id
+
         # 1. Check saved session ID from system settings
         saved_id = self._get_active_session_id(db)
         if saved_id and saved_id != self.session_name:
@@ -54,6 +64,8 @@ class WhatsAppService:
                 if check_res.status_code == 200:
                     s_data = check_res.json()
                     if s_data.get("status") in ("ready", "connected", "authenticated"):
+                        self._cached_session_id = saved_id
+                        self._session_cache_timestamp = now
                         return saved_id
             except Exception:
                 pass
@@ -392,19 +404,10 @@ class WhatsAppService:
             return True, None
 
         try:
-            # Pre-send check: verify session is connected
-            status_info = await self.get_status(db)
-            if not status_info.get("connected"):
-                err = "WhatsApp is not connected yet. Please link your phone via QR code in WhatsApp settings first."
-                log_entry.status = "FAILED"
-                log_entry.error_detail = err
-                db.commit()
-                return False, err
-
-            async with httpx.AsyncClient(timeout=12.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 session_id = await self._resolve_session_id(client, db)
                 if not session_id:
-                    err = "OpenWA session not initialized on gateway"
+                    err = "OpenWA session not initialized on gateway. Please verify WhatsApp connection in admin panel."
                     log_entry.status = "FAILED"
                     log_entry.error_detail = err
                     db.commit()
@@ -420,6 +423,17 @@ class WhatsAppService:
                     headers=self._headers(),
                     json=payload
                 )
+
+                # If session was expired/not found, invalidate cache and retry once
+                if res.status_code == 404:
+                    self._cached_session_id = None
+                    session_id = await self._resolve_session_id(client, db, force_refresh=True)
+                    if session_id:
+                        res = await client.post(
+                            f"{self.base_url}/sessions/{session_id}/messages/send-text",
+                            headers=self._headers(),
+                            json=payload
+                        )
 
                 if res.status_code in (200, 201):
                     log_entry.status = "SENT"
@@ -440,3 +454,29 @@ class WhatsAppService:
             return False, error_msg
 
 whatsapp_service = WhatsAppService()
+
+async def send_background_message(
+    phone: str,
+    message: str,
+    message_type: str = "BOOKING_CONFIRMATION",
+    customer_id: Optional[int] = None
+):
+    """
+    Safely dispatch a WhatsApp message in an asynchronous background worker.
+    Creates a dedicated DB session to log the delivery status and closes it cleanly.
+    This guarantees zero blocking latency for frontend API responses!
+    """
+    db = SessionLocal()
+    try:
+        await whatsapp_service.send_text_message(
+            db=db,
+            phone=phone,
+            message=message,
+            message_type=message_type,
+            customer_id=customer_id
+        )
+    except Exception as e:
+        print(f"[PB08 TAXI Background WhatsApp Error] {e}")
+    finally:
+        db.close()
+
