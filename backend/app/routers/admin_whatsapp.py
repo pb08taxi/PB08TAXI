@@ -264,13 +264,14 @@ DEFAULT_TEMPLATES = [
             "🚖 *PB08 TAXI — Booking Received*\n"
             "Hi {customer_name}, thank you for choosing PB08 TAXI!\n"
             "We have received your booking request (Ref: #{booking_ref}).\n"
+            "🚘 *Preferred Car:* {car_name}\n"
             "📅 *Pickup Date:* {pickup_date}\n"
             "⏰ *Pickup Time:* {pickup_time}\n"
             "📍 *Pickup Location:* {pickup_location}\n"
             "🏁 *Destination:* {destination}\n\n"
             "Our team will contact you shortly to confirm your ride. For immediate assistance call {support_phone}."
         ),
-        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {support_phone}"
+        "variables_hint": "{customer_name}, {booking_ref}, {car_name}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {support_phone}"
     },
     {
         "template_key": "booking_confirmed",
@@ -285,18 +286,19 @@ DEFAULT_TEMPLATES = [
             "🏁 *Destination:* {destination}\n\n"
             "🚗 *Assigned Cab & Driver Details:*\n"
             "👤 *Driver Name:* {driver_name}\n"
+            "🚘 *Car Model:* {car_name}\n"
             "🚖 *Taxi No:* {taxi_number}\n"
             "📞 *Driver Contact:* {driver_contact}\n\n"
             "Your driver will arrive on time. Have a safe journey!"
         ),
-        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {driver_name}, {taxi_number}, {driver_contact}, {support_phone}"
+        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {driver_name}, {car_name}, {taxi_number}, {driver_contact}, {support_phone}"
     },
     {
         "template_key": "driver_assignment",
         "title": "Duty Assignment Alert (To Driver)",
         "content": (
             "🚖 *PB08 TAXI — New Duty Assigned!*\n"
-            "Hello {driver_name}, a new booking has been assigned to your cab ({taxi_number}):\n"
+            "Hello {driver_name}, a new booking has been assigned to your cab ({car_name} - {taxi_number}):\n"
             "📌 *Booking Ref:* #{booking_ref}\n"
             "👤 *Customer Name:* {customer_name}\n"
             "📞 *Customer Contact:* {customer_contact}\n"
@@ -306,7 +308,7 @@ DEFAULT_TEMPLATES = [
             "🏁 *Destination:* {destination}\n\n"
             "👉 Please call the customer in advance to coordinate pickup."
         ),
-        "variables_hint": "{driver_name}, {taxi_number}, {booking_ref}, {customer_name}, {customer_contact}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}"
+        "variables_hint": "{driver_name}, {car_name}, {taxi_number}, {booking_ref}, {customer_name}, {customer_contact}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}"
     },
     {
         "template_key": "booking_completed",

@@ -26,6 +26,17 @@ class Customer(Base):
     messages = relationship("WhatsAppMessage", back_populates="customer")
     consents = relationship("MarketingConsent", back_populates="customer", cascade="all, delete-orphan")
 
+class FleetCar(Base):
+    __tablename__ = "fleet_cars"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)  # e.g., Maruti Suzuki Dzire, Toyota Innova Crysta
+    category = Column(String(50), nullable=True, default="Sedan")  # Sedan, SUV, MUV, Luxury, Hatchback, Van
+    seating_capacity = Column(String(30), nullable=True, default="4+1 Seater")
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
 class Driver(Base):
     __tablename__ = "drivers"
 
@@ -33,6 +44,7 @@ class Driver(Base):
     name = Column(String(150), nullable=False)
     taxi_registration = Column(String(50), nullable=False)  # e.g., PB01CC1372
     contact_number = Column(String(50), nullable=False)
+    car_name = Column(String(100), nullable=True)  # e.g., Toyota Innova Crysta
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -46,6 +58,7 @@ class Booking(Base):
     booking_reference = Column(String(50), unique=True, index=True, nullable=False)
     customer_id = Column(Integer, ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
     driver_id = Column(Integer, ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True)
+    car_name = Column(String(100), nullable=True)  # Preferred or assigned car name
     pickup_location = Column(String(255), nullable=True)
     destination = Column(String(255), nullable=True)
     pickup_date = Column(String(50), nullable=True)

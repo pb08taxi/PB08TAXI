@@ -283,6 +283,12 @@ export default function AdminBookingsPage() {
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 flex-shrink-0"></span>
                           <span className="truncate">{b.destination || 'Not provided'}</span>
                         </div>
+                        {b.car_name && (
+                          <div className="flex items-center space-x-1 text-taxi-yellow text-[11px] font-bold pt-0.5">
+                            <Car className="w-3 h-3 flex-shrink-0" />
+                            <span>Preferred: {b.car_name}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
 
@@ -414,6 +420,15 @@ export default function AdminBookingsPage() {
                 <span className="text-zinc-500">Destination:</span>
                 <span className="text-right max-w-[280px] truncate">{selectedBooking.destination || 'Not provided'}</span>
               </div>
+              {selectedBooking.car_name && (
+                <div className="flex justify-between pt-1 border-t border-zinc-800">
+                  <span className="text-zinc-500">Requested Car:</span>
+                  <span className="font-bold text-taxi-yellow flex items-center space-x-1">
+                    <Car className="w-3.5 h-3.5" />
+                    <span>{selectedBooking.car_name}</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSaveStatus} className="space-y-4">
@@ -503,8 +518,17 @@ export default function AdminBookingsPage() {
                                 </div>
                                 <div>
                                   <div className="font-bold text-white text-xs">{driver.name}</div>
-                                  <div className="flex items-center space-x-2 text-[10px]">
+                                  <div className="flex items-center space-x-2 text-[10px] mt-0.5">
                                     <span className="font-mono text-amber-300 font-bold">{driver.taxi_registration}</span>
+                                    {driver.car_name && (
+                                      <>
+                                        <span className="text-zinc-500">•</span>
+                                        <span className="text-taxi-yellow font-bold flex items-center space-x-1">
+                                          <Car className="w-2.5 h-2.5" />
+                                          <span>{driver.car_name}</span>
+                                        </span>
+                                      </>
+                                    )}
                                     <span className="text-zinc-500">•</span>
                                     <span className="text-zinc-400 font-mono">{driver.contact_number}</span>
                                   </div>

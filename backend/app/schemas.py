@@ -67,6 +67,7 @@ class CustomerOut(CustomerBase):
 class BookingCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=150)
     whatsapp_number: str = Field(..., min_length=8, max_length=50)
+    car_name: Optional[str] = Field(None, max_length=100)
     pickup_location: Optional[str] = Field(None, max_length=255)
     destination: Optional[str] = Field(None, max_length=255)
     pickup_date: Optional[str] = Field(None, max_length=50)
@@ -78,10 +79,35 @@ class BookingCreate(BaseModel):
     def validate_phone(cls, v: str) -> str:
         return clean_phone(v)
 
+class FleetCarBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    category: Optional[str] = Field("Sedan", max_length=50)
+    seating_capacity: Optional[str] = Field("4+1 Seater", max_length=30)
+    is_active: bool = True
+
+class FleetCarCreate(FleetCarBase):
+    pass
+
+class FleetCarUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    category: Optional[str] = Field(None, max_length=50)
+    seating_capacity: Optional[str] = Field(None, max_length=30)
+    is_active: Optional[bool] = None
+
+class FleetCarOut(FleetCarBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    drivers_count: int = 0
+
+    class Config:
+        from_attributes = True
+
 class DriverBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=150)
     taxi_registration: str = Field(..., min_length=3, max_length=50)  # e.g., PB01CC1372
     contact_number: str = Field(..., min_length=8, max_length=50)
+    car_name: Optional[str] = Field(None, max_length=100)  # e.g., Toyota Innova Crysta
     is_active: bool = True
 
     @field_validator("contact_number")
@@ -96,6 +122,7 @@ class DriverUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=150)
     taxi_registration: Optional[str] = Field(None, min_length=3, max_length=50)
     contact_number: Optional[str] = Field(None, min_length=8, max_length=50)
+    car_name: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None
 
     @field_validator("contact_number")
@@ -130,6 +157,7 @@ class BookingOut(BaseModel):
     driver_name: Optional[str] = None
     driver_taxi_registration: Optional[str] = None
     driver_contact: Optional[str] = None
+    car_name: Optional[str] = None
     pickup_location: Optional[str] = None
     destination: Optional[str] = None
     pickup_date: Optional[str] = None

@@ -85,6 +85,7 @@ def list_bookings(
                 driver_name=b.driver.name if b.driver else None,
                 driver_taxi_registration=b.driver.taxi_registration if b.driver else None,
                 driver_contact=b.driver.contact_number if b.driver else None,
+                car_name=b.car_name or (b.driver.car_name if b.driver else None),
                 pickup_location=b.pickup_location,
                 destination=b.destination,
                 pickup_date=b.pickup_date,
@@ -147,10 +148,12 @@ async def update_booking_status(
         # 1. Status CONFIRMED
         if payload.status == "CONFIRMED":
             # Context with driver details
+            car_name_val = (driver.car_name if driver and driver.car_name else None) or booking.car_name or "PB08 Dedicated Cab"
             cust_ctx = dict(base_ctx)
             cust_ctx["driver_name"] = driver.name if driver else "Assigned PB08 Driver"
             cust_ctx["taxi_number"] = driver.taxi_registration if driver else "PB08 TAXI"
             cust_ctx["driver_contact"] = driver.contact_number if driver else support_phone
+            cust_ctx["car_name"] = car_name_val
 
             tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_confirmed").first()
             if tmpl:
@@ -162,8 +165,9 @@ async def update_booking_status(
                     f"📅 *Pickup Date:* {date_disp} at {time_disp}\n"
                     f"📍 *Pickup:* {booking.pickup_location}\n"
                     f"🏁 *Destination:* {booking.destination}\n\n"
-                    f"🚗 *Driver Details:*\n"
+                    f"🚗 *Driver & Cab Details:*\n"
                     f"👤 *Driver Name:* {cust_ctx['driver_name']}\n"
+                    f"🚘 *Car:* {cust_ctx['car_name']}\n"
                     f"🚖 *Taxi No:* {cust_ctx['taxi_number']}\n"
                     f"📞 *Contact:* {cust_ctx['driver_contact']}\n\n"
                     f"Have a pleasant trip!"
@@ -183,6 +187,7 @@ async def update_booking_status(
                 driver_tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "driver_assignment").first()
                 driver_ctx = {
                     "driver_name": driver.name,
+                    "car_name": car_name_val,
                     "taxi_number": driver.taxi_registration,
                     "booking_ref": booking.booking_reference,
                     "customer_name": booking.customer.name,
@@ -197,7 +202,7 @@ async def update_booking_status(
                 else:
                     driver_msg = (
                         f"🚖 *PB08 TAXI — New Duty Assigned!*\n"
-                        f"Hello {driver.name}, a new ride has been assigned to your taxi ({driver.taxi_registration}):\n"
+                        f"Hello {driver.name}, a new ride has been assigned to your cab ({car_name_val} - {driver.taxi_registration}):\n"
                         f"📌 *Booking Ref:* #{booking.booking_reference}\n"
                         f"👤 *Customer Name:* {booking.customer.name}\n"
                         f"📞 *Contact:* {booking.customer.whatsapp_number}\n"
@@ -269,6 +274,7 @@ async def update_booking_status(
         driver_name=booking.driver.name if booking.driver else None,
         driver_taxi_registration=booking.driver.taxi_registration if booking.driver else None,
         driver_contact=booking.driver.contact_number if booking.driver else None,
+        car_name=booking.car_name or (booking.driver.car_name if booking.driver else None),
         pickup_location=booking.pickup_location,
         destination=booking.destination,
         pickup_date=booking.pickup_date,

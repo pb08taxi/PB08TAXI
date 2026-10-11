@@ -60,6 +60,13 @@ export const updateDriver = (id, data) => api.put(`/api/admin/drivers/${id}`, da
 export const deleteDriver = (id) => api.delete(`/api/admin/drivers/${id}`).then(r => r.data);
 export const toggleDriverActive = (id) => api.patch(`/api/admin/drivers/${id}/toggle-active`).then(r => r.data);
 
+// Fleet Cars Management
+export const getPublicFleetCars = () => api.get('/api/fleet-cars').then(r => r.data);
+export const getFleetCars = () => api.get('/api/admin/drivers/cars').then(r => r.data);
+export const createFleetCar = (data) => api.post('/api/admin/drivers/cars', data).then(r => r.data);
+export const updateFleetCar = (id, data) => api.put(`/api/admin/drivers/cars/${id}`, data).then(r => r.data);
+export const deleteFleetCar = (id) => api.delete(`/api/admin/drivers/cars/${id}`).then(r => r.data);
+
 // Admin Bookings
 export const getBookings = (status = '', q = '') => {
   const params = new URLSearchParams();

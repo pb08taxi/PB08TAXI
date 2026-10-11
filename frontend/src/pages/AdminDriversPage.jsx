@@ -11,16 +11,22 @@ import {
   XCircle, 
   RefreshCw, 
   X, 
-  AlertTriangle,
-  ShieldCheck,
-  Check
+  AlertTriangle, 
+  ShieldCheck, 
+  Check,
+  ChevronDown,
+  ListFilter
 } from 'lucide-react';
 import { 
   getDrivers, 
   createDriver, 
   updateDriver, 
   deleteDriver, 
-  toggleDriverActive 
+  toggleDriverActive,
+  getFleetCars,
+  createFleetCar,
+  updateFleetCar,
+  deleteFleetCar
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
@@ -37,6 +43,7 @@ export default function AdminDriversPage() {
   const [formData, setFormData] = useState({
     name: '',
     taxi_registration: '',
+    car_name: '',
     is_active: true
   });
   const [phone10, setPhone10] = useState('');
@@ -46,6 +53,41 @@ export default function AdminDriversPage() {
   // Delete Confirmation Modal
   const [deletingDriver, setDeletingDriver] = useState(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  // Fleet Cars Management States
+  const [carsList, setCarsList] = useState([]);
+  const [loadingCars, setLoadingCars] = useState(false);
+  const [isCarsModalOpen, setIsCarsModalOpen] = useState(false);
+  const [carSearchTerm, setCarSearchTerm] = useState('');
+  const [isCarDropdownOpen, setIsCarDropdownOpen] = useState(false);
+  const [carModalSearch, setCarModalSearch] = useState('');
+  const [editingCar, setEditingCar] = useState(null);
+  const [carForm, setCarForm] = useState({
+    name: '',
+    category: 'Sedan',
+    seating_capacity: '4+1 Seater'
+  });
+  const [carFormSubmitting, setCarFormSubmitting] = useState(false);
+  const [carFormError, setCarFormError] = useState('');
+  const [deletingCar, setDeletingCar] = useState(null);
+  const [deleteCarSubmitting, setDeleteCarSubmitting] = useState(false);
+
+  // Fetch cars list
+  const fetchCars = async () => {
+    try {
+      setLoadingCars(true);
+      const data = await getFleetCars();
+      setCarsList(data || []);
+    } catch (err) {
+      console.warn("Could not fetch fleet cars:", err);
+    } finally {
+      setLoadingCars(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCars();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -63,14 +105,15 @@ export default function AdminDriversPage() {
 
   const driversList = data || [];
 
-  // Filter in memory for instantaneous search experience
+  // Filter in memory for instantaneous search experience (Search by Driver, Taxi Plate, Phone, or Car Name)
   const filteredDrivers = driversList.filter((d) => {
     if (!debouncedSearch.trim()) return true;
     const q = debouncedSearch.toLowerCase().trim();
     return (
       (d.name && d.name.toLowerCase().includes(q)) ||
       (d.taxi_registration && d.taxi_registration.toLowerCase().includes(q)) ||
-      (d.contact_number && d.contact_number.includes(q))
+      (d.contact_number && d.contact_number.includes(q)) ||
+      (d.car_name && d.car_name.toLowerCase().includes(q))
     );
   });
 
@@ -83,10 +126,13 @@ export default function AdminDriversPage() {
     setFormData({
       name: '',
       taxi_registration: '',
+      car_name: '',
       is_active: true
     });
     setPhone10('');
     setFormError('');
+    setIsCarDropdownOpen(false);
+    setCarSearchTerm('');
     setIsModalOpen(true);
   };
 
@@ -95,12 +141,78 @@ export default function AdminDriversPage() {
     setFormData({
       name: driver.name || '',
       taxi_registration: driver.taxi_registration || '',
+      car_name: driver.car_name || '',
       is_active: driver.is_active ?? true
     });
     const digits = (driver.contact_number || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
     setPhone10(digits);
     setFormError('');
+    setIsCarDropdownOpen(false);
+    setCarSearchTerm('');
     setIsModalOpen(true);
+  };
+
+  // Fleet Car CRUD Handlers
+  const handleOpenAddCar = () => {
+    setEditingCar(null);
+    setCarForm({ name: '', category: 'Sedan', seating_capacity: '4+1 Seater' });
+    setCarFormError('');
+  };
+
+  const handleEditCar = (car) => {
+    setEditingCar(car);
+    setCarForm({
+      name: car.name,
+      category: car.category || 'Sedan',
+      seating_capacity: car.seating_capacity || '4+1 Seater'
+    });
+    setCarFormError('');
+  };
+
+  const handleSaveCar = async (e) => {
+    e.preventDefault();
+    setCarFormError('');
+    if (!carForm.name.trim()) {
+      setCarFormError('Car name is required (e.g., Toyota Innova Crysta).');
+      return;
+    }
+
+    try {
+      setCarFormSubmitting(true);
+      if (editingCar) {
+        const updated = await updateFleetCar(editingCar.id, carForm);
+        setCarsList((prev) => prev.map((c) => (c.id === editingCar.id ? updated : c)));
+        showSuccess(`Car model "${updated.name}" updated successfully!`, 'Car Updated');
+      } else {
+        const created = await createFleetCar(carForm);
+        setCarsList((prev) => [...prev, created]);
+        showSuccess(`New car model "${created.name}" added to fleet!`, 'Car Added');
+      }
+      handleOpenAddCar();
+      refresh();
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to save car model.';
+      setCarFormError(msg);
+      showError(msg, 'Save Error');
+    } finally {
+      setCarFormSubmitting(false);
+    }
+  };
+
+  const handleDeleteCar = async () => {
+    if (!deletingCar) return;
+    try {
+      setDeleteCarSubmitting(true);
+      await deleteFleetCar(deletingCar.id);
+      setCarsList((prev) => prev.filter((c) => c.id !== deletingCar.id));
+      showSuccess(`Car model "${deletingCar.name}" removed from fleet catalog.`, 'Car Removed');
+      setDeletingCar(null);
+      refresh();
+    } catch (err) {
+      showError(err.response?.data?.detail || 'Failed to remove car model.', 'Delete Error');
+    } finally {
+      setDeleteCarSubmitting(false);
+    }
   };
 
   const handleSubmitForm = async (e) => {
@@ -127,6 +239,7 @@ export default function AdminDriversPage() {
         name: formData.name.trim(),
         taxi_registration: formData.taxi_registration.trim().toUpperCase(),
         contact_number: `+91${cleanDigits}`,
+        car_name: formData.car_name ? formData.car_name.trim() : null,
         is_active: Boolean(formData.is_active)
       };
 
@@ -216,6 +329,18 @@ export default function AdminDriversPage() {
           </button>
 
           <button
+            onClick={() => {
+              handleOpenAddCar();
+              setIsCarsModalOpen(true);
+            }}
+            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-taxi-yellow px-3.5 py-2 rounded-xl text-xs font-bold border border-taxi-yellow/30 hover:border-taxi-yellow transition-colors shadow-sm"
+            title="Manage Fleet Car Models catalog"
+          >
+            <Car className="w-4 h-4 text-taxi-yellow" />
+            <span>Manage Car List ({carsList.length})</span>
+          </button>
+
+          <button
             onClick={handleOpenAddModal}
             className="inline-flex items-center space-x-2 bg-taxi-yellow hover:bg-yellow-400 text-black px-4 py-2 rounded-xl text-xs font-extrabold shadow-lg shadow-taxi-yellow/10 transition-colors"
           >
@@ -226,7 +351,7 @@ export default function AdminDriversPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-zinc-950 border border-zinc-850 p-4 sm:p-5 rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Fleet Drivers</span>
@@ -243,6 +368,15 @@ export default function AdminDriversPage() {
           </div>
           <div className="text-2xl font-black text-white mt-2">{activeDrivers}</div>
           <div className="text-[11px] text-zinc-500 mt-0.5">Ready for ride assignments</div>
+        </div>
+
+        <div className="bg-zinc-950 border border-zinc-850 p-4 sm:p-5 rounded-2xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-taxi-yellow uppercase tracking-wider">Fleet Car Models</span>
+            <Car className="w-4 h-4 text-taxi-yellow" />
+          </div>
+          <div className="text-2xl font-black text-white mt-2">{carsList.length}</div>
+          <div className="text-[11px] text-zinc-500 mt-0.5">Vehicle models in catalog</div>
         </div>
 
         <div className="bg-zinc-950 border border-zinc-850 p-4 sm:p-5 rounded-2xl">
@@ -313,6 +447,7 @@ export default function AdminDriversPage() {
             <thead className="text-[11px] uppercase tracking-wider text-zinc-500 bg-zinc-900/40 border-b border-zinc-850">
               <tr>
                 <th className="py-3.5 px-6">Driver Details</th>
+                <th className="py-3.5 px-6">Vehicle / Car</th>
                 <th className="py-3.5 px-6">Taxi Reg. Number</th>
                 <th className="py-3.5 px-6">Contact Number</th>
                 <th className="py-3.5 px-6 text-center">Status</th>
@@ -323,7 +458,7 @@ export default function AdminDriversPage() {
             <tbody className="divide-y divide-zinc-900 text-zinc-300">
               {loading && driversList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-zinc-500">
+                  <td colSpan={7} className="py-12 text-center text-zinc-500">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-taxi-yellow" />
                       <span>Loading driver fleet records...</span>
@@ -332,7 +467,7 @@ export default function AdminDriversPage() {
                 </tr>
               ) : filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-zinc-500">
+                  <td colSpan={7} className="py-12 text-center text-zinc-500">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <Car className="w-8 h-8 text-zinc-700" />
                       <p className="text-sm font-semibold text-zinc-400">No fleet drivers found</p>
@@ -356,6 +491,18 @@ export default function AdminDriversPage() {
                           </div>
                         </div>
                       </div>
+                    </td>
+
+                    {/* Vehicle / Car Model */}
+                    <td className="py-4 px-6">
+                      {driver.car_name ? (
+                        <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-taxi-yellow/10 text-taxi-yellow font-bold text-xs border border-taxi-yellow/20">
+                          <Car className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="truncate max-w-[130px]">{driver.car_name}</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-zinc-500 italic">No Car Assigned</span>
+                      )}
                     </td>
 
                     {/* Taxi Plate Reg Badge */}
@@ -512,6 +659,138 @@ export default function AdminDriversPage() {
                 </p>
               </div>
 
+              {/* Select Car (Vehicle Model) with Instant Search */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-zinc-300">
+                    Assigned Car Model <span className="text-zinc-500 font-normal">(Search & Select)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleOpenAddCar();
+                      setIsCarsModalOpen(true);
+                    }}
+                    className="text-[11px] text-taxi-yellow hover:underline font-bold flex items-center space-x-1"
+                  >
+                    <span>+ Manage Car List</span>
+                  </button>
+                </div>
+
+                {/* Car Selector Trigger */}
+                <div 
+                  onClick={() => setIsCarDropdownOpen(!isCarDropdownOpen)}
+                  className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center space-x-2 truncate">
+                    <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                    {formData.car_name ? (
+                      <span className="font-bold text-white truncate">{formData.car_name}</span>
+                    ) : (
+                      <span className="text-zinc-500">Select or search car model (e.g. Dzire, Innova)...</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1.5 flex-shrink-0">
+                    {formData.car_name && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, car_name: '' });
+                        }}
+                        className="text-zinc-500 hover:text-white p-1 rounded hover:bg-zinc-800 transition-colors"
+                        title="Clear car selection"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isCarDropdownOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </div>
+
+                {/* Searchable Dropdown Popup */}
+                {isCarDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2.5 max-h-64 overflow-hidden flex flex-col animate-scale-up">
+                    <div className="relative mb-2">
+                      <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={carSearchTerm}
+                        onChange={(e) => setCarSearchTerm(e.target.value)}
+                        placeholder="Search car by name (e.g. Swift, Ertiga, Scorpio)..."
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
+                      />
+                    </div>
+
+                    <div className="overflow-y-auto space-y-1 flex-1 pr-1 max-h-48">
+                      {carsList
+                        .filter((c) => 
+                          !carSearchTerm || 
+                          c.name.toLowerCase().includes(carSearchTerm.toLowerCase()) || 
+                          (c.category && c.category.toLowerCase().includes(carSearchTerm.toLowerCase()))
+                        )
+                        .map((car) => {
+                          const isSelected = formData.car_name === car.name;
+                          return (
+                            <div
+                              key={car.id}
+                              onClick={() => {
+                                setFormData({ ...formData, car_name: car.name });
+                                setIsCarDropdownOpen(false);
+                                setCarSearchTerm('');
+                              }}
+                              className={`p-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                                isSelected
+                                  ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30'
+                                  : 'hover:bg-zinc-800/80 text-zinc-200'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-2 truncate">
+                                <Car className={`w-3.5 h-3.5 ${isSelected ? 'text-taxi-yellow' : 'text-zinc-500'}`} />
+                                <span className="truncate">{car.name}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-[10px] text-zinc-500 flex-shrink-0">
+                                <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">{car.category || 'Sedan'}</span>
+                                {car.seating_capacity && (
+                                  <span className="hidden sm:inline">{car.seating_capacity}</span>
+                                )}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-taxi-yellow" />}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                      {carsList.filter((c) => 
+                        !carSearchTerm || 
+                        c.name.toLowerCase().includes(carSearchTerm.toLowerCase())
+                      ).length === 0 && (
+                        <div className="py-4 text-center text-xs text-zinc-500">
+                          <p>No car matches "{carSearchTerm}".</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCarDropdownOpen(false);
+                              handleOpenAddCar();
+                              setCarForm({ name: carSearchTerm, category: 'Sedan', seating_capacity: '4+1 Seater' });
+                              setIsCarsModalOpen(true);
+                            }}
+                            className="mt-1.5 text-taxi-yellow hover:underline font-bold text-xs"
+                          >
+                            + Add "{carSearchTerm}" to Car List
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  Customer will see this car model in confirmation WhatsApp messages when this driver is assigned.
+                </p>
+              </div>
+
               {/* Driver Contact with separated +91 badge & 10-digit lock */}
               <div>
                 <label className="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
@@ -633,6 +912,279 @@ export default function AdminDriversPage() {
               >
                 {deleteSubmitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                 <span>Delete Driver</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fleet Cars Management Modal */}
+      {isCarsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl my-auto animate-scale-up">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-zinc-850 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="p-2.5 bg-taxi-yellow/10 border border-taxi-yellow/20 rounded-xl text-taxi-yellow">
+                  <Car className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-black text-white">Fleet Cars Catalog (Car List)</h3>
+                  <p className="text-xs text-zinc-400">
+                    Add, edit, or remove vehicle models available for drivers and booking dispatch
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsCarsModalOpen(false);
+                  setEditingCar(null);
+                }}
+                className="text-zinc-500 hover:text-white p-1 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+              {/* Form to Add / Edit Car Model */}
+              <div className="bg-zinc-900/60 border border-zinc-850 p-4 sm:p-5 rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-white flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-taxi-yellow inline-block" />
+                    <span>{editingCar ? `Edit Car: ${editingCar.name}` : 'Add New Car Model to Fleet'}</span>
+                  </h4>
+                  {editingCar && (
+                    <button
+                      type="button"
+                      onClick={handleOpenAddCar}
+                      className="text-xs text-zinc-400 hover:text-white underline font-semibold"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+
+                {carFormError && (
+                  <div className="mb-3 p-2.5 bg-red-950/60 border border-red-800/80 rounded-xl text-xs text-red-300 flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                    <span>{carFormError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveCar} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Car Model Name */}
+                    <div className="sm:col-span-1">
+                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">
+                        Car Model Name <span className="text-taxi-yellow">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={carForm.name}
+                        onChange={(e) => setCarForm({ ...carForm, name: e.target.value })}
+                        placeholder="e.g. Dzire / Innova Crysta"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow"
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">
+                        Vehicle Category
+                      </label>
+                      <select
+                        value={carForm.category}
+                        onChange={(e) => setCarForm({ ...carForm, category: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-taxi-yellow"
+                      >
+                        <option value="Sedan">Sedan</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Hatchback">Hatchback</option>
+                        <option value="Luxury">Luxury</option>
+                        <option value="Tempo Traveller">Tempo Traveller</option>
+                        <option value="Mini Bus">Mini Bus</option>
+                      </select>
+                    </div>
+
+                    {/* Seating Capacity */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-300 mb-1">
+                        Seating Capacity
+                      </label>
+                      <select
+                        value={carForm.seating_capacity}
+                        onChange={(e) => setCarForm({ ...carForm, seating_capacity: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-taxi-yellow"
+                      >
+                        <option value="4+1 Seater">4+1 Seater</option>
+                        <option value="6+1 Seater">6+1 Seater</option>
+                        <option value="7+1 Seater">7+1 Seater</option>
+                        <option value="8+1 Seater">8+1 Seater</option>
+                        <option value="12+1 Seater">12+1 Seater</option>
+                        <option value="17+1 Seater">17+1 Seater</option>
+                        <option value="26+1 Seater">26+1 Seater</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="submit"
+                      disabled={carFormSubmitting}
+                      className="px-4 py-2 bg-taxi-yellow hover:bg-yellow-400 text-black rounded-xl text-xs font-extrabold shadow-md flex items-center space-x-1.5 transition-colors"
+                    >
+                      {carFormSubmitting ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Plus className="w-3.5 h-3.5" />
+                      )}
+                      <span>{editingCar ? 'Update Car Model' : 'Add to Car List'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Existing Fleet Cars List */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <h4 className="text-xs sm:text-sm font-bold text-white flex items-center space-x-2">
+                    <Car className="w-4 h-4 text-taxi-yellow" />
+                    <span>Active Fleet Cars ({carsList.length})</span>
+                  </h4>
+                  {/* Search inside cars modal */}
+                  <div className="relative w-full sm:w-60">
+                    <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      value={carModalSearch}
+                      onChange={(e) => setCarModalSearch(e.target.value)}
+                      placeholder="Search car list by name..."
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
+                    />
+                  </div>
+                </div>
+
+                <div className="divide-y divide-zinc-850 border border-zinc-850 rounded-2xl overflow-hidden bg-zinc-900/40">
+                  {loadingCars ? (
+                    <div className="py-8 text-center text-xs text-zinc-500 flex items-center justify-center space-x-2">
+                      <RefreshCw className="w-4 h-4 animate-spin text-taxi-yellow" />
+                      <span>Loading fleet cars...</span>
+                    </div>
+                  ) : carsList.filter(
+                      (c) =>
+                        !carModalSearch ||
+                        c.name.toLowerCase().includes(carModalSearch.toLowerCase()) ||
+                        (c.category && c.category.toLowerCase().includes(carModalSearch.toLowerCase()))
+                    ).length === 0 ? (
+                    <div className="py-8 text-center text-xs text-zinc-500">
+                      No car models found matching "{carModalSearch}".
+                    </div>
+                  ) : (
+                    carsList
+                      .filter(
+                        (c) =>
+                          !carModalSearch ||
+                          c.name.toLowerCase().includes(carModalSearch.toLowerCase()) ||
+                          (c.category && c.category.toLowerCase().includes(carModalSearch.toLowerCase()))
+                      )
+                      .map((car) => (
+                        <div
+                          key={car.id}
+                          className="p-3.5 flex items-center justify-between hover:bg-zinc-900/80 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3 truncate">
+                            <div className="w-8 h-8 rounded-xl bg-taxi-yellow/10 border border-taxi-yellow/20 flex items-center justify-center text-taxi-yellow flex-shrink-0">
+                              <Car className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-black text-white">{car.name}</div>
+                              <div className="flex items-center space-x-2 text-[10px] text-zinc-400 mt-0.5">
+                                <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300 font-medium">
+                                  {car.category || 'Sedan'}
+                                </span>
+                                <span>•</span>
+                                <span>{car.seating_capacity || '4+1 Seater'}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEditCar(car)}
+                              className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors"
+                              title="Edit car"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingCar(car)}
+                              className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition-colors"
+                              title="Remove car"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-zinc-850 flex items-center justify-end bg-zinc-950">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCarsModalOpen(false);
+                  setEditingCar(null);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors"
+              >
+                Done / Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Car Model Confirmation Modal */}
+      {deletingCar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-zinc-950 border border-red-900/40 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 text-center space-y-4 animate-scale-up">
+            <div className="w-12 h-12 rounded-2xl bg-red-950/60 border border-red-800/80 text-red-400 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-white">Remove Car Model?</h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Are you sure you want to remove <span className="text-white font-bold">{deletingCar.name}</span> from the fleet catalog? Drivers currently assigned this car will retain their vehicle name.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingCar(null)}
+                disabled={deleteCarSubmitting}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteCar}
+                disabled={deleteCarSubmitting}
+                className="px-4 py-2 rounded-xl text-xs font-extrabold bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/20 transition-colors flex items-center space-x-2"
+              >
+                {deleteCarSubmitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                <span>Remove Car</span>
               </button>
             </div>
           </div>

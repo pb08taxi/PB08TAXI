@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
-from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate
-from app.schemas import BookingCreate, BookingOut, SliderImageOut, normalize_phone_with_plus
+from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate, FleetCar
+from app.schemas import BookingCreate, BookingOut, SliderImageOut, FleetCarOut, normalize_phone_with_plus
 from app.services.whatsapp_service import whatsapp_service, send_background_message
 
 router = APIRouter(tags=["Public"])
@@ -59,6 +59,29 @@ def health_check(db: Session = Depends(get_db)):
         "database": db_status,
         "timestamp": datetime.utcnow().isoformat()
     }
+
+@router.get("/fleet-cars", response_model=List[FleetCarOut])
+def get_public_fleet_cars(db: Session = Depends(get_db)):
+    """Fetch active fleet cars for booking car selection and website visitors."""
+    cars = (
+        db.query(FleetCar)
+        .filter(FleetCar.is_active == True)
+        .order_by(FleetCar.id.asc())
+        .all()
+    )
+    return [
+        FleetCarOut(
+            id=c.id,
+            name=c.name,
+            category=c.category or "Sedan",
+            seating_capacity=c.seating_capacity or "4+1 Seater",
+            is_active=c.is_active,
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+            drivers_count=0
+        )
+        for c in cars
+    ]
 
 @router.get("/slider-images", response_model=List[SliderImageOut])
 def get_public_slider_images(db: Session = Depends(get_db)):
@@ -120,10 +143,12 @@ async def create_booking(
     ref_code = generate_booking_reference(db)
     pickup_date_clean = booking_in.pickup_date.strip() if booking_in.pickup_date else None
     pickup_time_clean = booking_in.pickup_time.strip() if booking_in.pickup_time else None
+    car_name_val = booking_in.car_name.strip() if (booking_in.car_name and booking_in.car_name.strip()) else None
 
     booking = Booking(
         booking_reference=ref_code,
         customer_id=customer.id,
+        car_name=car_name_val,
         pickup_location=booking_in.pickup_location.strip() if booking_in.pickup_location else None,
         destination=booking_in.destination.strip() if booking_in.destination else None,
         pickup_date=pickup_date_clean,
@@ -149,6 +174,7 @@ async def create_booking(
             "customer_name": customer.name,
             "customer_contact": customer.whatsapp_number,
             "booking_ref": booking.booking_reference,
+            "car_name": car_name_val or "Dedicated Cab",
             "pickup_date": friendly_date,
             "pickup_time": friendly_time,
             "pickup_location": booking.pickup_location or "Not specified",
@@ -161,11 +187,12 @@ async def create_booking(
             confirmation_text = confirmation_text.replace(f"{{{k}}}", str(v) if v is not None else "")
     else:
         schedule_text = f" for {friendly_date} at {friendly_time}" if (friendly_date and friendly_time) else ""
+        vehicle_text = f" [Car: {car_name_val}]" if car_name_val else ""
         confirmation_text = (
             f"Hi {customer.name}, our support team will contact you shortly. "
             f"You will receive a call from us soon. "
             f"Thank you for connecting with PB08 TAXI! "
-            f"(Booking Ref: #{booking.booking_reference}{schedule_text})"
+            f"(Booking Ref: #{booking.booking_reference}{schedule_text}{vehicle_text})"
         )
 
     # Dispatch to customer asynchronously in background task (Instant API response!)
@@ -196,6 +223,7 @@ async def create_booking(
 
             date_disp = format_friendly_date(booking.pickup_date)
             time_disp = format_friendly_time(booking.pickup_time)
+            car_disp = car_name_val if car_name_val else "Any Available Cab"
 
             admin_alert_text = (
                 f"🚖 *PB08 TAXI — New Booking Alert!*\n"
@@ -203,6 +231,7 @@ async def create_booking(
                 f"📌 *Booking Ref:* #{booking.booking_reference}\n"
                 f"👤 *Customer Name:* {customer.name}\n"
                 f"📞 *Contact Number:* {customer.whatsapp_number}\n"
+                f"🚘 *Selected Car:* {car_disp}\n"
                 f"📅 *Pickup Date:* {date_disp}\n"
                 f"⏰ *Pickup Time:* {time_disp}\n"
                 f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}\n"

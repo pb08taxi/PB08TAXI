@@ -10,9 +10,10 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from sqlalchemy import text
 from app.config import get_settings
 from app.database import engine, Base, SessionLocal
-from app.models import AdminUser, SliderImage
+from app.models import AdminUser, SliderImage, FleetCar
 from app.security import hash_password
 from app.routers import (
     public,
@@ -37,8 +38,17 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def initialize_database():
-    """Ensure database tables exist and seed initial admin & sample slides if empty."""
+    """Ensure database tables exist, migrate columns, and seed initial admin, slides & cars."""
     Base.metadata.create_all(bind=engine)
+
+    # Safe column migrations for existing Postgres/SQLite tables
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE drivers ADD COLUMN IF NOT EXISTS car_name VARCHAR(100);"))
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS car_name VARCHAR(100);"))
+    except Exception as mig_err:
+        print(f"[PB08 TAXI] Migration notice: {mig_err}")
+
     db = SessionLocal()
     try:
         # 1. Seed initial admin user if none exists
@@ -82,6 +92,23 @@ def initialize_database():
             db.add_all(sample_slides)
             db.commit()
             print("[PB08 TAXI] Initialized default homepage slider images")
+
+        # 3. Seed initial popular fleet car models if empty
+        fleet_cars_count = db.query(FleetCar).count()
+        if fleet_cars_count == 0:
+            sample_cars = [
+                FleetCar(name="Maruti Suzuki Dzire", category="Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Toyota Innova Crysta", category="Luxury SUV", seating_capacity="6+1 / 7+1 Seater", is_active=True),
+                FleetCar(name="Maruti Suzuki Ertiga", category="MUV", seating_capacity="6+1 Seater", is_active=True),
+                FleetCar(name="Hyundai Aura", category="Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Honda City", category="Executive Sedan", seating_capacity="4+1 Seater", is_active=True),
+                FleetCar(name="Mahindra Scorpio", category="Rugged SUV", seating_capacity="7 Seater", is_active=True),
+                FleetCar(name="Toyota Fortuner", category="VIP SUV", seating_capacity="7 Seater", is_active=True),
+                FleetCar(name="Tempo Traveller", category="Group Cab", seating_capacity="12+1 Seater", is_active=True),
+            ]
+            db.add_all(sample_cars)
+            db.commit()
+            print("[PB08 TAXI] Initialized default fleet cars catalog")
     finally:
         db.close()
 

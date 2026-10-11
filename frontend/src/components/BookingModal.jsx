@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Car, 
@@ -13,9 +13,10 @@ import {
   Phone,
   Calendar,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Search
 } from 'lucide-react';
-import { createBooking } from '../api/client';
+import { createBooking, getPublicFleetCars } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
@@ -60,10 +61,38 @@ export default function BookingModal({ isOpen, onClose }) {
     customer_name: '',
     pickup_location: '',
     destination: '',
+    car_name: '',
     pickup_date: getTodayDateString(),
     pickup_time: getCurrentTimeString(),
     marketing_consent: true,
   });
+
+  // Fleet Cars selection & search state
+  const [fleetCars, setFleetCars] = useState([]);
+  const [loadingFleetCars, setLoadingFleetCars] = useState(false);
+  const [carSearchQuery, setCarSearchQuery] = useState('');
+  const [isCarPickerOpen, setIsCarPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      let isMounted = true;
+      const fetchFleetCars = async () => {
+        try {
+          setLoadingFleetCars(true);
+          const data = await getPublicFleetCars();
+          if (isMounted && Array.isArray(data)) {
+            setFleetCars(data);
+          }
+        } catch (e) {
+          console.warn("Could not load fleet cars for booking modal:", e);
+        } finally {
+          if (isMounted) setLoadingFleetCars(false);
+        }
+      };
+      fetchFleetCars();
+      return () => { isMounted = false; };
+    }
+  }, [isOpen]);
 
   const [countryCode, setCountryCode] = useState('+91');
   const [customCountryCode, setCustomCountryCode] = useState('');
@@ -135,6 +164,7 @@ export default function BookingModal({ isOpen, onClose }) {
     try {
       const payload = {
         ...formData,
+        car_name: formData.car_name ? formData.car_name.trim() : undefined,
         whatsapp_number: `${activeCode}${cleanDigits}`,
       };
       const res = await createBooking(payload);
@@ -171,10 +201,13 @@ export default function BookingModal({ isOpen, onClose }) {
       customer_name: '',
       pickup_location: '',
       destination: '',
+      car_name: '',
       pickup_date: getTodayDateString(),
       pickup_time: getCurrentTimeString(),
       marketing_consent: true,
     });
+    setCarSearchQuery('');
+    setIsCarPickerOpen(false);
     setError('');
     onClose();
   };
@@ -481,6 +514,132 @@ export default function BookingModal({ isOpen, onClose }) {
                 </div>
               </div>
 
+              {/* Select Car (Preferred Vehicle Model - Searchable by Car Name) */}
+              <div className="relative">
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center justify-between">
+                  <span>
+                    Select Car <span className="text-zinc-500 text-[10px] font-normal lowercase">(optional preferred vehicle)</span>
+                  </span>
+                  {formData.car_name && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, car_name: '' }));
+                        setCarSearchQuery('');
+                      }}
+                      className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
+                    >
+                      <span>Clear selection</span>
+                    </button>
+                  )}
+                </label>
+
+                {/* Car Selector Trigger */}
+                <div
+                  onClick={() => setIsCarPickerOpen(!isCarPickerOpen)}
+                  className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl py-3 px-3.5 text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center space-x-2.5 truncate">
+                    <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                    {formData.car_name ? (
+                      <span className="font-bold text-white truncate">{formData.car_name}</span>
+                    ) : (
+                      <span className="text-zinc-500">Any Available Cab (Or search & pick preferred car)</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1.5 flex-shrink-0">
+                    <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isCarPickerOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </div>
+
+                {/* Dropdown with Live Search by Car Name */}
+                {isCarPickerOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2.5 max-h-60 overflow-hidden flex flex-col animate-scale-up">
+                    <div className="relative mb-2">
+                      <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={carSearchQuery}
+                        onChange={(e) => setCarSearchQuery(e.target.value)}
+                        placeholder="Search car by name (e.g. Dzire, Innova, Ertiga)..."
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
+                      />
+                    </div>
+
+                    <div className="overflow-y-auto space-y-1 flex-1 pr-1 max-h-44">
+                      {/* Default "Any Available" option */}
+                      <div
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, car_name: '' }));
+                          setIsCarPickerOpen(false);
+                          setCarSearchQuery('');
+                        }}
+                        className={`p-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                          !formData.car_name
+                            ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30'
+                            : 'hover:bg-zinc-800 text-zinc-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Car className="w-3.5 h-3.5 text-taxi-yellow" />
+                          <span>Any Available Cab (Best Match)</span>
+                        </div>
+                        {!formData.car_name && <Check className="w-3.5 h-3.5 text-taxi-yellow" />}
+                      </div>
+
+                      {/* Filtered Fleet Cars */}
+                      {fleetCars
+                        .filter((c) =>
+                          !carSearchQuery ||
+                          c.name.toLowerCase().includes(carSearchQuery.toLowerCase()) ||
+                          (c.category && c.category.toLowerCase().includes(carSearchQuery.toLowerCase()))
+                        )
+                        .map((car) => {
+                          const isSelected = formData.car_name === car.name;
+                          return (
+                            <div
+                              key={car.id}
+                              onClick={() => {
+                                setFormData((prev) => ({ ...prev, car_name: car.name }));
+                                setIsCarPickerOpen(false);
+                                setCarSearchQuery('');
+                              }}
+                              className={`p-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                                isSelected
+                                  ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30'
+                                  : 'hover:bg-zinc-800 text-zinc-200'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-2 truncate">
+                                <Car className={`w-3.5 h-3.5 ${isSelected ? 'text-taxi-yellow' : 'text-zinc-500'}`} />
+                                <span className="truncate">{car.name}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-[10px] text-zinc-500 flex-shrink-0">
+                                <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">{car.category || 'Sedan'}</span>
+                                {car.seating_capacity && (
+                                  <span className="hidden sm:inline">{car.seating_capacity}</span>
+                                )}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-taxi-yellow" />}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                      {fleetCars.filter((c) =>
+                        !carSearchQuery ||
+                        c.name.toLowerCase().includes(carSearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <div className="py-4 text-center text-xs text-zinc-500">
+                          No car found matching "{carSearchQuery}".
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Marketing Consent Checkbox */}
               <div className="pt-1">
                 <label className="flex items-start space-x-2.5 cursor-pointer">
@@ -567,6 +726,12 @@ export default function BookingModal({ isOpen, onClose }) {
                     <span className="text-taxi-yellow font-bold">
                       {successResult.pickup_date || 'Today'} {successResult.pickup_time ? `at ${successResult.pickup_time}` : ''}
                     </span>
+                  </p>
+                )}
+                {successResult.car_name && (
+                  <p>
+                    <span className="text-zinc-500 font-medium">Selected Car:</span>{' '}
+                    <span className="text-taxi-yellow font-bold">{successResult.car_name}</span>
                   </p>
                 )}
                 {successResult.pickup_location && (
