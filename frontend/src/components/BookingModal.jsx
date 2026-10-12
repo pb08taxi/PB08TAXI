@@ -345,7 +345,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     value={formData.customer_name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-base sm:text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           }
                           setError('');
                         }}
-                        className="bg-transparent text-xs sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 h-full font-mono cursor-pointer outline-none appearance-none select-none"
+                        className="bg-transparent text-base sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 h-full font-mono cursor-pointer outline-none appearance-none select-none"
                         title="Click to change country code"
                       >
                         {POPULAR_COUNTRY_CODES.map((c) => (
@@ -400,7 +400,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           setError('');
                         }}
                         placeholder="+code"
-                        className="w-16 bg-zinc-900 text-taxi-yellow text-xs sm:text-sm font-mono font-black py-1 px-1.5 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
+                        className="w-16 bg-zinc-900 text-taxi-yellow text-base sm:text-sm font-mono font-black py-1 px-1.5 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
                         autoFocus
                       />
                       <button
@@ -445,7 +445,7 @@ export default function BookingModal({ isOpen, onClose }) {
                       setError('');
                     }}
                     placeholder={isIndia ? '98765 43210' : 'Mobile number'}
-                    className="w-full h-full bg-transparent px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                    className="w-full h-full bg-transparent px-3.5 text-base sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
 
                   {isPhoneValid && (
@@ -485,7 +485,7 @@ export default function BookingModal({ isOpen, onClose }) {
                       min={getTodayDateString()}
                       value={formData.pickup_date}
                       onChange={handleChange}
-                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-xs sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-base sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
                     />
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export default function BookingModal({ isOpen, onClose }) {
                       required
                       value={formData.pickup_time}
                       onChange={handleChange}
-                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-xs sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-base sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
                     />
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     value={formData.pickup_location}
                     onChange={handleChange}
                     placeholder="e.g. Model Town, Jalandhar / Home"
-                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-base sm:text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -540,7 +540,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     value={formData.destination}
                     onChange={handleChange}
                     placeholder="e.g. Amritsar Airport, Chandigarh, Delhi NCR"
-                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-base sm:text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -568,7 +568,7 @@ export default function BookingModal({ isOpen, onClose }) {
                 {/* Car Selector Trigger */}
                 <div
                   onClick={() => setIsCarPickerOpen(!isCarPickerOpen)}
-                  className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl px-3.5 text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
+                  className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl px-3.5 text-base sm:text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
                 >
                   <div className="flex items-center space-x-2.5 truncate">
                     <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
@@ -595,7 +595,7 @@ export default function BookingModal({ isOpen, onClose }) {
                         placeholder="Search car by name (e.g. Dzire, Innova, Ertiga)..."
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-base sm:text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
                       />
                     </div>
 

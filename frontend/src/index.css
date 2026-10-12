@@ -3,11 +3,27 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-[#0A0A0A] text-white font-sans;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    touch-action: manipulation;
   }
 }
 
@@ -179,5 +195,20 @@ input[type="time"]::-webkit-date-and-time-value {
   margin: 0;
   padding: 0;
 }
+
+/* ==========================================================================
+   MOBILE AUTO-ZOOM PREVENTION
+   1. iOS Safari automatically zooms the screen when focusing any input with font-size < 16px.
+      Setting font-size: 16px on mobile form controls completely disables this unwanted auto-zoom.
+   2. Preserves full manual two-finger pinch-to-zoom (zoom in & zoom out).
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 
 
