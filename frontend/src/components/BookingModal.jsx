@@ -108,6 +108,25 @@ export default function BookingModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  // Lock background web page scrolling when booking modal is open, and restore when closed
+  useEffect(() => {
+    if (isOpen) {
+      const prevOverflow = document.body.style.overflow;
+      const prevPaddingRight = document.body.style.paddingRight;
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+      document.body.style.overflow = 'hidden';
+      if (scrollBarWidth > 0) {
+        document.body.style.paddingRight = `${scrollBarWidth}px`;
+      }
+
+      return () => {
+        document.body.style.overflow = prevOverflow;
+        document.body.style.paddingRight = prevPaddingRight;
+      };
+    }
+  }, [isOpen]);
+
   const [countryCode, setCountryCode] = useState('+91');
   const [customCountryCode, setCustomCountryCode] = useState('');
   const [isCustomCountry, setIsCustomCountry] = useState(false);
@@ -274,15 +293,15 @@ export default function BookingModal({ isOpen, onClose }) {
         )}
 
         {/* Modal Dialog Card (100% Solid & Stable — No scaling, jitter, or pulse!) */}
-        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-6 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
+        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-5 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
         
         {/* Top Checker Pattern Accent */}
-        <div className="absolute top-0 left-8 right-8 h-1.5 taxi-checker rounded-t-full" />
+        <div className="absolute top-0 left-6 right-6 sm:left-8 sm:right-8 h-1.5 taxi-checker rounded-t-full" />
 
         {/* Close Button */}
         <button
           onClick={handleReset}
-          className="absolute top-5 right-5 text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-zinc-800 transition-colors z-20"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -317,8 +336,8 @@ export default function BookingModal({ isOpen, onClose }) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
                   Customer Name <span className="text-taxi-yellow">*</span>
                 </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                <div className="relative flex items-center">
+                  <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     name="customer_name"
@@ -326,7 +345,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     value={formData.customer_name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -341,7 +360,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     {isIndia ? `${cleanDigits.length}/10 digits` : `${cleanDigits.length} digits`}
                   </span>
                 </label>
-                <div className="flex rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all bg-zinc-900">
+                <div className="flex h-11 sm:h-12 rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all bg-zinc-900">
                   {/* Selectable / Changeable Country Code Badge */}
                   {!isCustomCountry ? (
                     <div className="relative bg-zinc-800/90 hover:bg-zinc-750 border-r border-zinc-700/80 flex items-center transition-colors flex-shrink-0">
@@ -357,7 +376,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           }
                           setError('');
                         }}
-                        className="bg-transparent text-xs sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 py-3 font-mono cursor-pointer outline-none appearance-none select-none"
+                        className="bg-transparent text-xs sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 h-full font-mono cursor-pointer outline-none appearance-none select-none"
                         title="Click to change country code"
                       >
                         {POPULAR_COUNTRY_CODES.map((c) => (
@@ -369,7 +388,7 @@ export default function BookingModal({ isOpen, onClose }) {
                       <ChevronDown className="w-3.5 h-3.5 text-taxi-yellow absolute right-2 pointer-events-none" />
                     </div>
                   ) : (
-                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700/80 px-2 py-2 flex-shrink-0">
+                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700/80 px-2 h-full flex-shrink-0">
                       <input
                         type="text"
                         value={customCountryCode}
@@ -426,7 +445,7 @@ export default function BookingModal({ isOpen, onClose }) {
                       setError('');
                     }}
                     placeholder={isIndia ? '98765 43210' : 'Mobile number'}
-                    className="w-full bg-transparent py-3 px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                    className="w-full h-full bg-transparent px-3.5 text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
 
                   {isPhoneValid && (
@@ -450,15 +469,15 @@ export default function BookingModal({ isOpen, onClose }) {
                 )}
               </div>
 
-              {/* Pickup Date & Time Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Pickup Date (Use Calendar) */}
+              {/* Pickup Date & Time Row - Perfectly balanced side-by-side on mobile & desktop */}
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+                {/* Pickup Date */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
-                    Pickup Date (Calendar) <span className="text-taxi-yellow">*</span>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
+                    Pickup Date <span className="text-taxi-yellow">*</span>
                   </label>
-                  <div className="relative">
-                    <Calendar className="w-4 h-4 text-taxi-yellow absolute left-3.5 top-3.5 pointer-events-none" />
+                  <div className="relative flex items-center">
+                    <Calendar className="w-4 h-4 text-taxi-yellow absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="date"
                       name="pickup_date"
@@ -466,29 +485,27 @@ export default function BookingModal({ isOpen, onClose }) {
                       min={getTodayDateString()}
                       value={formData.pickup_date}
                       onChange={handleChange}
-                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-xs sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-500 mt-1">Pick date via calendar</p>
                 </div>
 
                 {/* Pickup Time */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
                     Pickup Time <span className="text-taxi-yellow">*</span>
                   </label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-taxi-yellow absolute left-3.5 top-3.5 pointer-events-none" />
+                  <div className="relative flex items-center">
+                    <Clock className="w-4 h-4 text-taxi-yellow absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="time"
                       name="pickup_time"
                       required
                       value={formData.pickup_time}
                       onChange={handleChange}
-                      className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-xs sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-500 mt-1">Pick scheduled time</p>
                 </div>
               </div>
 
@@ -497,15 +514,15 @@ export default function BookingModal({ isOpen, onClose }) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
                   Pickup Location <span className="text-zinc-500 text-[10px] font-normal">(Optional)</span>
                 </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                <div className="relative flex items-center">
+                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     name="pickup_location"
                     value={formData.pickup_location}
                     onChange={handleChange}
                     placeholder="e.g. Model Town, Jalandhar / Home"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -515,15 +532,15 @@ export default function BookingModal({ isOpen, onClose }) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
                   Destination <span className="text-zinc-500 text-[10px] font-normal">(Optional)</span>
                 </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                <div className="relative flex items-center">
+                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     name="destination"
                     value={formData.destination}
                     onChange={handleChange}
                     placeholder="e.g. Amritsar Airport, Chandigarh, Delhi NCR"
-                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
+                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -551,7 +568,7 @@ export default function BookingModal({ isOpen, onClose }) {
                 {/* Car Selector Trigger */}
                 <div
                   onClick={() => setIsCarPickerOpen(!isCarPickerOpen)}
-                  className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl py-3 px-3.5 text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
+                  className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl px-3.5 text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
                 >
                   <div className="flex items-center space-x-2.5 truncate">
                     <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
