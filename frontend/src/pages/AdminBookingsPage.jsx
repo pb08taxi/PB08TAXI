@@ -22,11 +22,13 @@ import {
 import { getBookings, updateBookingStatus, getDrivers } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
+import { useOpenWAChat } from '../context/ChatContext';
 
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
 export default function AdminBookingsPage() {
   const { showSuccess, showError } = useToast();
+  const { openChat } = useOpenWAChat();
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -335,15 +337,22 @@ export default function AdminBookingsPage() {
                               {b.driver_taxi_registration || 'TAXI'}
                             </span>
                             {b.driver_contact && (
-                              <a
-                                href={`https://wa.me/${b.driver_contact.replace(/[^\d]/g, '')}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[10px] text-[#25D366] hover:underline"
-                                title="Chat with driver"
+                              <button
+                                type="button"
+                                onClick={() => openChat({
+                                  name: b.driver_name,
+                                  role: 'Driver',
+                                  phone: b.driver_contact,
+                                  taxiReg: b.driver_taxi_registration,
+                                  bookingRef: b.booking_reference,
+                                  initialMessage: `Hi ${b.driver_name}, regarding assigned ride (#${b.booking_reference}): `
+                                })}
+                                className="text-[10px] text-[#25D366] hover:underline flex items-center space-x-1 cursor-pointer"
+                                title={`Chat with Driver ${b.driver_name} via OpenWA`}
                               >
-                                {b.driver_contact}
-                              </a>
+                                <MessageCircle className="w-2.5 h-2.5" />
+                                <span>{b.driver_contact}</span>
+                              </button>
                             )}
                           </div>
                         </div>
@@ -382,15 +391,20 @@ export default function AdminBookingsPage() {
                         <Edit3 className="w-3.5 h-3.5 text-taxi-yellow" />
                         <span>Update & Assign</span>
                       </button>
-                      <a
-                        href={`https://wa.me/${b.whatsapp_number.replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi ${b.customer_name}, regarding your PB08 TAXI booking (#${b.booking_reference}): `)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center space-x-1 text-xs text-[#25D366] hover:text-white bg-[#25D366]/10 hover:bg-[#25D366]/20 px-2.5 py-1.5 rounded-lg border border-[#25D366]/30 transition-colors"
-                        title="Chat with Customer"
+                      <button
+                        type="button"
+                        onClick={() => openChat({
+                          name: b.customer_name,
+                          role: 'Customer',
+                          phone: b.whatsapp_number,
+                          bookingRef: b.booking_reference,
+                          initialMessage: `Hi ${b.customer_name}, regarding your PB08 TAXI booking (#${b.booking_reference}): `
+                        })}
+                        className="inline-flex items-center space-x-1 text-xs text-[#25D366] hover:text-white bg-[#25D366]/10 hover:bg-[#25D366]/20 px-2.5 py-1.5 rounded-lg border border-[#25D366]/30 transition-colors cursor-pointer"
+                        title={`Chat with Customer ${b.customer_name} via OpenWA`}
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 ))

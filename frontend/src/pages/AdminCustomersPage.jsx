@@ -25,6 +25,7 @@ import {
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
+import { useOpenWAChat } from '../context/ChatContext';
 
 const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -46,6 +47,7 @@ const POPULAR_COUNTRY_CODES = [
 
 export default function AdminCustomersPage() {
   const { showSuccess, showError } = useToast();
+  const { openChat } = useOpenWAChat();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -398,17 +400,21 @@ export default function AdminCustomersPage() {
                     {/* Actions: Edit, Delete, Chat */}
                     <td className="py-4 px-6 text-right">
                       <div className="inline-flex items-center space-x-2">
-                        {/* Direct WhatsApp Chat */}
-                        <a
-                          href={`https://wa.me/${c.whatsapp_number.replace(/[^\d]/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center space-x-1 text-xs text-[#25D366] hover:text-white bg-[#25D366]/10 hover:bg-[#25D366]/20 px-2.5 py-1.5 rounded-lg border border-[#25D366]/30 transition-colors"
-                          title="Open WhatsApp chat"
+                        {/* Direct OpenWA WhatsApp Chat */}
+                        <button
+                          type="button"
+                          onClick={() => openChat({
+                            name: c.name,
+                            role: 'Customer',
+                            phone: c.whatsapp_number,
+                            customerId: c.id
+                          })}
+                          className="inline-flex items-center space-x-1 text-xs text-[#25D366] hover:text-white bg-[#25D366]/10 hover:bg-[#25D366]/20 px-2.5 py-1.5 rounded-lg border border-[#25D366]/30 transition-colors cursor-pointer"
+                          title="Open Direct OpenWA Chat"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           <span>Chat</span>
-                        </a>
+                        </button>
 
                         {/* Edit Button */}
                         <button

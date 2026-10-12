@@ -213,6 +213,19 @@ class WhatsAppTestMessage(BaseModel):
     def validate_phone(cls, v: str) -> str:
         return clean_phone(v)
 
+class DirectChatMessageIn(BaseModel):
+    phone: str
+    message: str = Field(..., min_length=1, max_length=2500)
+    recipient_name: Optional[str] = None
+    recipient_role: Optional[str] = "Customer"
+    customer_id: Optional[int] = None
+    booking_reference: Optional[str] = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        return clean_phone(v)
+
 class WhatsAppOfferRequest(BaseModel):
     message: str = Field(..., min_length=5, max_length=2000)
 

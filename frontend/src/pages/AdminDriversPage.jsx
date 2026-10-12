@@ -30,6 +30,7 @@ import {
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
+import { useOpenWAChat } from '../context/ChatContext';
 
 const DEFAULT_PRESET_CARS = [
   { id: 'c1', name: 'Swift Dzire', category: 'Sedan', seating_capacity: '4+1 Seater', is_active: true },
@@ -44,6 +45,7 @@ const DEFAULT_PRESET_CARS = [
 
 export default function AdminDriversPage() {
   const { showSuccess, showError } = useToast();
+  const { openChat } = useOpenWAChat();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -535,19 +537,24 @@ export default function AdminDriversPage() {
                       </span>
                     </td>
 
-                    {/* Contact Number with WhatsApp link */}
+                    {/* Contact Number with OpenWA Direct Chat */}
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
                         <span className="font-mono text-zinc-300 font-medium">{driver.contact_number}</span>
-                        <a
-                          href={`https://wa.me/${driver.contact_number.replace(/[^\d]/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1 rounded bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
-                          title="Open WhatsApp chat"
+                        <button
+                          type="button"
+                          onClick={() => openChat({
+                            name: driver.name,
+                            role: 'Driver',
+                            phone: driver.contact_number,
+                            taxiReg: driver.taxi_registration,
+                            carName: driver.car_name
+                          })}
+                          className="p-1 rounded bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors cursor-pointer"
+                          title={`Chat with Driver ${driver.name} via OpenWA`}
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
-                        </a>
+                        </button>
                       </div>
                     </td>
 

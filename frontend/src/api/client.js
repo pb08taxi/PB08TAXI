@@ -106,6 +106,12 @@ export const getWhatsAppAdminSettings = () => api.get('/api/admin/whatsapp/setti
 export const updateWhatsAppAdminSettings = (payload) => api.post('/api/admin/whatsapp/settings', payload).then(r => r.data);
 export const sendTestMessage = (phone, message) => 
   api.post('/api/admin/whatsapp/test-message', { phone, message }).then(r => r.data);
+export const sendDirectChatMessage = (payload) => 
+  api.post('/api/admin/whatsapp/chat/send', payload).then(r => r.data);
+export const getDirectChatHistory = (phone) => {
+  const params = new URLSearchParams({ phone });
+  return api.get(`/api/admin/whatsapp/chat/history?${params.toString()}`).then(r => r.data);
+};
 export const getEligibleOffersCount = () => api.get('/api/admin/whatsapp/offers/eligible-count').then(r => r.data);
 export const sendPromotionalOffer = (message) => 
   api.post('/api/admin/whatsapp/offers/send', { message }).then(r => r.data);

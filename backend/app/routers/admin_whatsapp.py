@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,6 +9,7 @@ from app.models import AdminUser, Customer, WhatsAppMessage, SystemSetting, Mess
 from app.schemas import (
     WhatsAppStatusOut,
     WhatsAppTestMessage,
+    DirectChatMessageIn,
     WhatsAppOfferRequest,
     WhatsAppMessageOut,
     WhatsAppSettingsIn,
@@ -170,6 +172,52 @@ async def send_test_whatsapp_message(
         "success": True,
         "message": f"Test message dispatched successfully to {payload.phone} via OpenWA"
     }
+
+@router.post("/chat/send")
+async def send_direct_chat_message(
+    payload: DirectChatMessageIn,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Dispatch a direct WhatsApp chat message to a customer or driver via OpenWA."""
+    role_suffix = (payload.recipient_role or "CHAT").upper()
+    message_type = f"CHAT_{role_suffix}"
+    success, error = await whatsapp_service.send_text_message(
+        db=db,
+        phone=payload.phone,
+        message=payload.message,
+        message_type=message_type,
+        customer_id=payload.customer_id
+    )
+    if not success:
+        return {
+            "success": False,
+            "message": "Failed to deliver WhatsApp message via OpenWA",
+            "error": error
+        }
+    return {
+        "success": True,
+        "message": f"Message dispatched successfully to {payload.phone} via OpenWA",
+        "phone": payload.phone,
+        "sent_at": datetime.utcnow().isoformat()
+    }
+
+@router.get("/chat/history", response_model=List[WhatsAppMessageOut])
+def get_direct_chat_history(
+    phone: str = Query(..., min_length=5),
+    limit: int = Query(30, ge=1, le=100),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Retrieve message history for this specific customer/driver phone number."""
+    clean_digits = re.sub(r"\D", "", phone)
+    last_10 = clean_digits[-10:] if len(clean_digits) >= 10 else clean_digits
+    query = db.query(WhatsAppMessage).filter(
+        WhatsAppMessage.phone.like(f"%{last_10}%")
+    ).order_by(WhatsAppMessage.sent_at.desc()).limit(limit)
+    logs = query.all()
+    # Reverse so messages are chronological (oldest to newest)
+    return list(reversed(logs))
 
 @router.get("/offers/eligible-count")
 def get_eligible_offer_customers_count(

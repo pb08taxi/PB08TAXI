@@ -20,6 +20,7 @@ import {
 import { getWhatsAppStatus } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { adminCache } from '../utils/adminCache';
+import OpenWAChatModal from './OpenWAChatModal';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
@@ -176,6 +177,9 @@ export default function AdminLayout({ children }) {
           {children || <Outlet />}
         </div>
       </main>
+
+      {/* Global OpenWA Direct Chat Box Popup */}
+      <OpenWAChatModal />
 
     </div>
   );
