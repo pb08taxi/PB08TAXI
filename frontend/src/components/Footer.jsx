@@ -99,9 +99,21 @@ export default function Footer({ onOpenBooking }) {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Admin & Trust</h4>
             <ul className="space-y-2 text-xs">
-              <li><span className="hover:text-zinc-300">Privacy Policy</span></li>
-              <li><span className="hover:text-zinc-300">Terms of Service</span></li>
-              <li><span className="hover:text-zinc-300">Safe Travel Guidelines</span></li>
+              <li>
+                <Link to="/privacy-policy" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms-of-service" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms-of-service#passenger-conduct" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
+                  Safe Travel Guidelines
+                </Link>
+              </li>
               <li className="pt-2">
                 <Link
                   to="/admin/login"
@@ -118,7 +130,15 @@ export default function Footer({ onOpenBooking }) {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 space-y-4 sm:space-y-0">
-          <p>© {new Date().getFullYear()} PB08 TAXI. All rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <p>© {new Date().getFullYear()} PB08 TAXI. All rights reserved.</p>
+            <div className="flex items-center space-x-3 text-zinc-500">
+              <span>•</span>
+              <Link to="/privacy-policy" className="hover:text-taxi-yellow transition-colors">Privacy Policy</Link>
+              <span>•</span>
+              <Link to="/terms-of-service" className="hover:text-taxi-yellow transition-colors">Terms of Service</Link>
+            </div>
+          </div>
           <p className="flex items-center space-x-1">
             <span>Built for Punjab with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" />

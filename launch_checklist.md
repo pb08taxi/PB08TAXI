@@ -18,6 +18,12 @@
 - [x] **Bookings Management Integration:**
   - Displayed requested car model in `AdminBookingsPage.jsx` table & details card.
   - Displayed driver's vehicle model in driver duty assignment list.
+- [x] **Privacy Policy & Terms of Service Legal Pages:**
+  - Designed and deployed comprehensive `PrivacyPolicyPage.jsx` compliant with DPDP Act 2023 & IT Act 2000.
+  - Designed and deployed comprehensive `TermsOfServicePage.jsx` covering fare transparency, cancellations, and passenger safety.
+  - Added `/privacy-policy`, `/terms-of-service`, `/privacy`, and `/terms` routes in `App.jsx`.
+  - Linked in `Footer.jsx` and added disclaimer links in `BookingModal.jsx`.
+  - Added URLs to `sitemap.xml`.
 
 ---
 

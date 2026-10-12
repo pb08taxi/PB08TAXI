@@ -13,6 +13,8 @@ import AdminOffersPage from './pages/AdminOffersPage';
 import AdminLogsPage from './pages/AdminLogsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminSEOPage from './pages/AdminSEOPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 
 // Protected Route Component for Admin section
 function ProtectedAdminRoute({ children }) {
@@ -28,6 +30,12 @@ export default function App() {
     <Routes>
       {/* Public Taxi Homepage */}
       <Route path="/" element={<HomePage />} />
+
+      {/* Legal & Trust Pages */}
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+      <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+      <Route path="/terms" element={<Navigate to="/terms-of-service" replace />} />
 
       {/* Admin Authentication */}
       <Route path="/admin/login" element={<AdminLoginPage />} />

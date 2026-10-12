@@ -706,8 +706,15 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
 
               <div className="text-center pt-1">
-                <p className="text-[11px] text-zinc-500">
-                  By clicking Book Now, you agree to connect with PB08 TAXI dispatch team.
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  By clicking Book Now, you agree to our{' '}
+                  <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-taxi-yellow underline decoration-zinc-700">
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-taxi-yellow underline decoration-zinc-700">
+                    Privacy Policy
+                  </a>.
                 </p>
               </div>
 
