@@ -1,0 +1,31 @@
+{
+  "short_name": "PB08 TAXI",
+  "name": "PB08 TAXI — 24/7 Cab Service",
+  "description": "Fast, reliable 24/7 taxi booking in Jalandhar, Punjab, and airport transfers with instant WhatsApp confirmation.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0A0A0A",
+  "theme_color": "#FACC15",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

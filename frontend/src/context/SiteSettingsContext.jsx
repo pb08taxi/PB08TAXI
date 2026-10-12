@@ -60,12 +60,28 @@ export function SiteSettingsProvider({ children }) {
     }
   }, []);
 
-  // Synchronously ensure favicon is set if cached on initial mount
+  const applyAppIcons = useCallback((logoUrl) => {
+    if (!logoUrl) return;
+    try {
+      const appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
+      appleIcons.forEach((el) => {
+        el.href = logoUrl;
+      });
+    } catch (e) {
+      console.warn("Could not update apple touch icon:", e);
+    }
+  }, []);
+
+  // Synchronously ensure favicon and app icons are set if cached on initial mount
   useEffect(() => {
     if (settings.site_favicon_url) {
       applyFavicon(settings.site_favicon_url);
     }
-  }, [settings.site_favicon_url, applyFavicon]);
+    const icon = settings.site_logo_url || settings.site_favicon_url;
+    if (icon) {
+      applyAppIcons(icon);
+    }
+  }, [settings.site_favicon_url, settings.site_logo_url, applyFavicon, applyAppIcons]);
 
   // Method to immediately update settings in memory and localStorage (zero latency)
   const updateLocalSettings = useCallback((newSettings) => {
@@ -79,9 +95,12 @@ export function SiteSettingsProvider({ children }) {
       if (merged.site_favicon_url) {
         applyFavicon(merged.site_favicon_url);
       }
+      if (merged.site_logo_url || merged.site_favicon_url) {
+        applyAppIcons(merged.site_logo_url || merged.site_favicon_url);
+      }
       return merged;
     });
-  }, [applyFavicon]);
+  }, [applyFavicon, applyAppIcons]);
 
   // Background revalidation with server
   const refreshSettings = useCallback(async () => {
@@ -98,6 +117,9 @@ export function SiteSettingsProvider({ children }) {
           if (merged.site_favicon_url) {
             applyFavicon(merged.site_favicon_url);
           }
+          if (merged.site_logo_url || merged.site_favicon_url) {
+            applyAppIcons(merged.site_logo_url || merged.site_favicon_url);
+          }
           return merged;
         });
       }
@@ -106,7 +128,7 @@ export function SiteSettingsProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [applyFavicon]);
+  }, [applyFavicon, applyAppIcons]);
 
   useEffect(() => {
     refreshSettings();

@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <link id="app-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FACC15'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z'/></svg>" />
     
+    <!-- Web Application Manifest (PWA & Android Add to Home Screen) -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Apple iOS Safari & Mobile Add to Home Screen Application Icons -->
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PB08 TAXI" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="PB08 TAXI" />
+
     <!-- Instant Zero-Flicker Synchronous Favicon & Brand Hydration -->
     <script>
       (function() {
@@ -11,12 +25,23 @@
           var raw = localStorage.getItem('pb08_site_settings_cache');
           if (raw) {
             var s = JSON.parse(raw);
-            if (s && s.site_favicon_url) {
+            var logoUrl = s.site_logo_url || s.site_favicon_url;
+            if (logoUrl) {
+              var appleIcons = document.querySelectorAll("link[rel='apple-touch-icon']");
+              for (var i = 0; i < appleIcons.length; i++) {
+                appleIcons[i].href = logoUrl;
+              }
+            }
+            if (s.site_favicon_url) {
               var f = document.getElementById('app-favicon');
               if (f) f.href = s.site_favicon_url;
             }
-            if (s && s.brand_title) {
+            if (s.brand_title) {
               document.title = s.brand_title + ' — One Click Book Your Ride | 24/7 Cab Service';
+              var metaAppleTitle = document.querySelector("meta[name='apple-mobile-web-app-title']");
+              if (metaAppleTitle) metaAppleTitle.content = s.brand_title;
+              var metaAppName = document.querySelector("meta[name='application-name']");
+              if (metaAppName) metaAppName.content = s.brand_title;
             }
           }
           var seoRaw = localStorage.getItem('pb08_seo_settings_cache');
