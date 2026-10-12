@@ -22,7 +22,8 @@ import {
   Car,
   Type,
   Sparkles,
-  Check
+  Check,
+  Sliders
 } from 'lucide-react';
 import { 
   getAdminSettings, 
@@ -91,6 +92,7 @@ export default function AdminSettingsPage() {
   const [whatsappNumber, setWhatsappNumber] = useState('+919876543210');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
+  const [siteLogoSize, setSiteLogoSize] = useState(48);
   const [brandTitle, setBrandTitle] = useState('PB08 TAXI');
   const [brandTagline, setBrandTagline] = useState('Fast • Safe • Reliable');
   const [showCredentialsHint, setShowCredentialsHint] = useState(false);
@@ -128,6 +130,7 @@ export default function AdminSettingsPage() {
       setWhatsappNumber(data.whatsapp_number || '+919876543210');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
+      setSiteLogoSize(data.site_logo_size || 48);
       setBrandTitle(data.brand_title || 'PB08 TAXI');
       setBrandTagline(data.brand_tagline || 'Fast • Safe • Reliable');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
@@ -158,6 +161,7 @@ export default function AdminSettingsPage() {
         whatsapp_number: cleanWa,
         site_logo_url: siteLogoUrl,
         site_favicon_url: siteFaviconUrl,
+        site_logo_size: Number(siteLogoSize) || 48,
         brand_title: brandTitle.trim() || 'PB08 TAXI',
         brand_tagline: brandTagline.trim() || 'Fast • Safe • Reliable',
         show_credentials_hint: showCredentialsHint,
@@ -463,8 +467,8 @@ export default function AdminSettingsPage() {
               {/* Site Logo Section */}
               <div className="space-y-4 bg-zinc-900/40 p-5 rounded-2xl border border-zinc-850">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-white">
-                    Site Logo
+                  <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center space-x-1.5">
+                    <span>Site Logo</span>
                   </span>
                   {siteLogoUrl && (
                     <button
@@ -488,16 +492,154 @@ export default function AdminSettingsPage() {
                   </ul>
                 </div>
 
-                {/* Logo Preview */}
-                <div className="h-28 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center p-3 relative overflow-hidden">
-                  {siteLogoUrl ? (
-                    <img src={siteLogoUrl} alt="Logo Preview" className="max-h-full max-w-full object-contain" />
-                  ) : (
-                    <div className="text-center text-zinc-600 text-xs">
-                      <ImageIcon className="w-8 h-8 mx-auto mb-1 text-zinc-700" />
-                      <span>Using default PB08 TAXI badge logo</span>
+                {/* Logo Size Control Slide Bar */}
+                <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center space-x-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-taxi-yellow" />
+                      <span>Logo Display Size</span>
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-taxi-yellow font-mono font-bold text-xs">
+                        {siteLogoSize} px
+                      </span>
+                      {siteLogoSize !== 48 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSiteLogoSize(48);
+                            if (updateLocalSettings) updateLocalSettings({ site_logo_size: 48 });
+                          }}
+                          className="text-[10px] text-zinc-400 hover:text-taxi-yellow underline decoration-dotted"
+                          title="Reset to 48px standard"
+                        >
+                          Default
+                        </button>
+                      )}
                     </div>
-                  )}
+                  </div>
+
+                  {/* Range Slider */}
+                  <div className="space-y-1">
+                    <input
+                      type="range"
+                      min="24"
+                      max="120"
+                      step="2"
+                      value={siteLogoSize}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setSiteLogoSize(val);
+                        if (updateLocalSettings) updateLocalSettings({ site_logo_size: val });
+                      }}
+                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-taxi-yellow"
+                    />
+                    <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                      <span>24px (Small)</span>
+                      <span>48px (Standard)</span>
+                      <span>120px (Large)</span>
+                    </div>
+                  </div>
+
+                  {/* Quick Preset Buttons */}
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {[
+                      { label: '36px', size: 36, desc: 'Compact' },
+                      { label: '48px', size: 48, desc: 'Default' },
+                      { label: '64px', size: 64, desc: 'Medium' },
+                      { label: '80px', size: 80, desc: 'Large' },
+                      { label: '100px', size: 100, desc: 'X-Large' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.size}
+                        type="button"
+                        onClick={() => {
+                          setSiteLogoSize(preset.size);
+                          if (updateLocalSettings) updateLocalSettings({ site_logo_size: preset.size });
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${
+                          siteLogoSize === preset.size
+                            ? 'bg-taxi-yellow text-black border-taxi-yellow shadow-sm font-black'
+                            : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-700'
+                        }`}
+                      >
+                        {preset.label} <span className="font-normal opacity-75">({preset.desc})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Logo Live Preview Area */}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3.5 space-y-3">
+                  <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                    <span className="font-bold text-zinc-300">Live Logo Preview:</span>
+                    <span className="font-mono text-taxi-yellow text-[10px] bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                      Height: {siteLogoSize}px
+                    </span>
+                  </div>
+
+                  {/* Standalone Logo Preview Box */}
+                  <div className="min-h-[130px] bg-zinc-900/50 border border-zinc-850 rounded-xl flex items-center justify-center p-4 relative overflow-hidden transition-all">
+                    {siteLogoUrl ? (
+                      <img
+                        src={siteLogoUrl}
+                        alt="Logo Preview"
+                        style={{ height: `${siteLogoSize}px`, width: 'auto' }}
+                        className="max-w-full object-contain rounded-xl p-1 bg-zinc-900/90 border border-zinc-800 transition-all duration-150"
+                      />
+                    ) : (
+                      <div
+                        style={{ width: `${siteLogoSize}px`, height: `${siteLogoSize}px` }}
+                        className="rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-lg shadow-taxi-yellow/20 flex-shrink-0 transition-all duration-150"
+                      >
+                        <Car
+                          style={{
+                            width: `${Math.max(14, Math.round(siteLogoSize * 0.55))}px`,
+                            height: `${Math.max(14, Math.round(siteLogoSize * 0.55))}px`
+                          }}
+                          className="text-black stroke-[2.5]"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Live Header Simulation Preview (Shows text stable & only logo sized) */}
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block mb-1">
+                      Header Preview (Beside Brand Title)
+                    </span>
+                    <div className="bg-black/80 border border-zinc-850 rounded-xl p-3 flex items-center space-x-3 overflow-hidden">
+                      {siteLogoUrl ? (
+                        <img
+                          src={siteLogoUrl}
+                          alt={brandTitle}
+                          style={{ height: `${siteLogoSize}px`, width: 'auto' }}
+                          className="max-w-[140px] object-contain rounded-lg p-0.5 bg-zinc-900/80 border border-zinc-800 transition-all duration-150 flex-shrink-0"
+                        />
+                      ) : (
+                        <div
+                          style={{ width: `${siteLogoSize}px`, height: `${siteLogoSize}px` }}
+                          className="rounded-lg bg-taxi-yellow flex items-center justify-center text-black shadow-md flex-shrink-0 transition-all duration-150"
+                        >
+                          <Car
+                            style={{
+                              width: `${Math.max(14, Math.round(siteLogoSize * 0.55))}px`,
+                              height: `${Math.max(14, Math.round(siteLogoSize * 0.55))}px`
+                            }}
+                            className="text-black stroke-[2.5]"
+                          />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <span className="text-sm sm:text-base font-black text-white truncate block leading-tight">
+                          {brandTitle || 'PB08 TAXI'}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold truncate block mt-0.5">
+                          {brandTagline || 'Fast • Safe • Reliable'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Upload or URL */}

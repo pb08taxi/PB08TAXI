@@ -26,10 +26,20 @@ export default function Footer({ onOpenBooking }) {
                 <img
                   src={settings.site_logo_url}
                   alt={brandTitle}
-                  className="h-10 w-10 object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800"
+                  style={{
+                    height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
+                    width: 'auto'
+                  }}
+                  className="max-h-14 max-w-[150px] object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md flex-shrink-0">
+                <div
+                  style={{
+                    width: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
+                    height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`
+                  }}
+                  className="rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md flex-shrink-0"
+                >
                   <Car className="w-6 h-6 stroke-[2.5]" />
                 </div>
               )}

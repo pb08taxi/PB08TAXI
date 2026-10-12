@@ -25,7 +25,7 @@ export default function Navbar({ onOpenBooking }) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between min-h-20 py-2.5">
           
           {/* Brand Logo & Editable Text */}
           <a href="#" className="flex items-center space-x-3 group">
@@ -33,11 +33,24 @@ export default function Navbar({ onOpenBooking }) {
               <img
                 src={settings.site_logo_url}
                 alt={brandTitle}
-                className="h-11 w-11 sm:h-12 sm:w-12 object-contain rounded-xl shadow-md group-hover:scale-105 transition-transform bg-zinc-900/60 p-1 border border-zinc-800"
+                style={{ height: `${settings?.site_logo_size || 48}px`, width: 'auto' }}
+                className="max-h-28 max-w-[220px] object-contain rounded-xl shadow-md group-hover:scale-105 transition-all bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0"
               />
             ) : (
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-lg shadow-taxi-yellow/20 group-hover:scale-105 transition-transform flex-shrink-0">
-                <Car className="w-6 h-6 sm:w-7 sm:h-7 text-black stroke-[2.5]" />
+              <div
+                style={{
+                  width: `${settings?.site_logo_size || 48}px`,
+                  height: `${settings?.site_logo_size || 48}px`
+                }}
+                className="rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-lg shadow-taxi-yellow/20 group-hover:scale-105 transition-all flex-shrink-0"
+              >
+                <Car
+                  style={{
+                    width: `${Math.max(16, Math.round((settings?.site_logo_size || 48) * 0.55))}px`,
+                    height: `${Math.max(16, Math.round((settings?.site_logo_size || 48) * 0.55))}px`
+                  }}
+                  className="text-black stroke-[2.5]"
+                />
               </div>
             )}
             

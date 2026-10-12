@@ -54,6 +54,11 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     whatsapp_number = _get_setting_val(db, "whatsapp_number", settings_cfg.SUPPORT_WHATSAPP)
     site_logo_url = _get_setting_val(db, "site_logo_url", "")
     site_favicon_url = _get_setting_val(db, "site_favicon_url", "")
+    site_logo_size_raw = _get_setting_val(db, "site_logo_size", "48")
+    try:
+        site_logo_size = int(site_logo_size_raw)
+    except (ValueError, TypeError):
+        site_logo_size = 48
     brand_title = _get_setting_val(db, "brand_title", "PB08 TAXI")
     brand_tagline = _get_setting_val(db, "brand_tagline", "Fast • Safe • Reliable")
     show_hint_str = _get_setting_val(db, "show_credentials_hint", "false").lower()
@@ -65,6 +70,7 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         whatsapp_number=whatsapp_number,
         site_logo_url=site_logo_url or None,
         site_favicon_url=site_favicon_url or None,
+        site_logo_size=site_logo_size,
         brand_title=brand_title or "PB08 TAXI",
         brand_tagline=brand_tagline or "Fast • Safe • Reliable",
         show_credentials_hint=show_credentials_hint,
@@ -104,6 +110,10 @@ def update_admin_site_settings(
         
     if payload.site_favicon_url is not None:
         _set_setting_val(db, "site_favicon_url", payload.site_favicon_url.strip())
+
+    if payload.site_logo_size is not None:
+        bounded_size = max(20, min(150, payload.site_logo_size))
+        _set_setting_val(db, "site_logo_size", str(bounded_size))
 
     if payload.brand_title is not None:
         _set_setting_val(db, "brand_title", payload.brand_title.strip() or "PB08 TAXI")

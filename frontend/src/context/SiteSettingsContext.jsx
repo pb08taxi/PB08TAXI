@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   whatsapp_number: "+919876543210",
   site_logo_url: null,
   site_favicon_url: null,
+  site_logo_size: 48,
   brand_title: "PB08 TAXI",
   brand_tagline: "Fast • Safe • Reliable",
   show_credentials_hint: false,
