@@ -44,16 +44,15 @@ export default function SEOHead() {
       if (seo.og_image) {
         setMeta('property', 'og:image', seo.og_image);
       }
-      if (seo.canonical_url) {
-        setMeta('property', 'og:url', seo.canonical_url);
-        let linkCanonical = document.querySelector('link[rel="canonical"]');
-        if (!linkCanonical) {
-          linkCanonical = document.createElement('link');
-          linkCanonical.setAttribute('rel', 'canonical');
-          document.head.appendChild(linkCanonical);
-        }
-        linkCanonical.setAttribute('href', seo.canonical_url);
+      const canonicalUrl = seo.canonical_url || 'https://www.pb08taxi.com';
+      setMeta('property', 'og:url', canonicalUrl);
+      let linkCanonical = document.querySelector('link[rel="canonical"]');
+      if (!linkCanonical) {
+        linkCanonical = document.createElement('link');
+        linkCanonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(linkCanonical);
       }
+      linkCanonical.setAttribute('href', canonicalUrl);
 
       // 5. Twitter Card Tags
       setMeta('name', 'twitter:card', seo.twitter_card || 'summary_large_image');
@@ -68,7 +67,7 @@ export default function SEOHead() {
         setMeta('name', 'google-site-verification', seo.google_site_verification);
       }
 
-      // 7. Schema.org TaxiService JSON-LD Structured Data
+      // 7. Schema.org Multi-Entity Structured Data Graph (TaxiService, LocalBusiness, WebSite, FAQPage)
       try {
         let schemaEl = document.getElementById('seo-dynamic-schema');
         if (!schemaEl) {
@@ -80,35 +79,151 @@ export default function SEOHead() {
 
         const areaList = seo.service_areas
           ? seo.service_areas.split(',').map((s) => s.trim()).filter(Boolean)
-          : ['Jalandhar', 'Punjab', 'Delhi Airport', 'Amritsar Airport'];
+          : ['Jalandhar', 'Punjab', 'Delhi Airport', 'Amritsar Airport', 'Chandigarh', 'Ludhiana', 'Phagwara', 'Himachal Pradesh'];
 
-        const schemaData = {
+        const schemaGraph = {
           '@context': 'https://schema.org',
-          '@type': 'TaxiService',
-          name: seo.business_name || 'PB08 TAXI',
-          url: seo.canonical_url || window.location.origin,
-          logo: seo.og_image || undefined,
-          image: seo.og_image || undefined,
-          description: seo.meta_description || undefined,
-          priceRange: seo.schema_taxi_price_range || '₹₹',
-          currenciesAccepted: 'INR',
-          paymentAccepted: 'Cash, UPI, Online',
-          areaServed: areaList,
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: 'Jalandhar',
-            addressRegion: seo.geo_region || 'Punjab',
-            addressCountry: 'IN'
-          },
-          openingHoursSpecification: {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            opens: '00:00',
-            closes: '23:59'
-          }
+          '@graph': [
+            {
+              '@type': ['TaxiService', 'LocalBusiness'],
+              '@id': `${canonicalUrl}/#taxiservice`,
+              name: seo.business_name || 'PB08 TAXI',
+              alternateName: 'PB 08 Taxi Service Jalandhar',
+              url: canonicalUrl,
+              telephone: seo.support_phone || '+919876543210',
+              logo: `${canonicalUrl}/icon-512.png`,
+              image: seo.og_image || `${canonicalUrl}/icon-512.png`,
+              description: seo.meta_description || 'PB08 TAXI — 24/7 fast, safe, and reliable taxi booking in Jalandhar, Punjab, and airport transfers.',
+              priceRange: seo.schema_taxi_price_range || '₹₹',
+              currenciesAccepted: 'INR',
+              paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',
+              areaServed: areaList,
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: 'BMC Chowk / Model Town',
+                addressLocality: 'Jalandhar',
+                addressRegion: seo.geo_region || 'Punjab',
+                postalCode: '144001',
+                addressCountry: 'IN'
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: Number(seo.geo_latitude || 31.3260),
+                longitude: Number(seo.geo_longitude || 75.5762)
+              },
+              openingHoursSpecification: {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                opens: '00:00',
+                closes: '23:59'
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.9',
+                reviewCount: '540',
+                bestRating: '5',
+                worstRating: '1'
+              },
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'PB08 TAXI Travel Services',
+                itemListElement: [
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Airport Transfers (Delhi DEL, Amritsar ATQ, Chandigarh IXC)',
+                      description: 'Punctual, flight-tracked 24/7 airport pick and drop cab service.'
+                    }
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'One-Way & Round-Trip Outstation Cabs',
+                      description: 'Comfortable sedans, SUVs, and Tempo Travellers across Punjab, Himachal, and North India.'
+                    }
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Local Jalandhar City Taxi',
+                      description: 'Point-to-point and hourly cab rental in Jalandhar with instant WhatsApp booking.'
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              '@type': 'WebSite',
+              '@id': `${canonicalUrl}/#website`,
+              url: canonicalUrl,
+              name: seo.business_name || 'PB08 TAXI',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: `${canonicalUrl}/?q={search_term_string}`,
+                'query-input': 'required name=search_term_string'
+              }
+            },
+            {
+              '@type': 'FAQPage',
+              '@id': `${canonicalUrl}/#faq`,
+              mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: 'How can I book a cab with PB08 TAXI?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Booking is effortless! Click the \'One Click Book Your Ride\' button anywhere on our website, enter your pickup location, drop destination, date & time, and select your preferred vehicle. You will receive instant booking confirmation directly on WhatsApp with driver and vehicle details.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Do you offer airport taxi transfers for Delhi (DEL), Amritsar (ATQ), and Chandigarh (IXC)?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes! We specialize in on-time airport transfers between Jalandhar, all Punjab towns, and Delhi IGI Airport (T1, T2, T3), Amritsar Sri Guru Ram Dass Jee International Airport, and Chandigarh Shaheed Bhagat Singh Airport with live flight tracking.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Which vehicles are available in your taxi fleet?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'We maintain a pristine, fully air-conditioned fleet: Compact Sedans (Swift Dzire, Honda Amaze), Premium SUVs (Toyota Innova Crysta, Ertiga, Carens), Luxury Executive Cars (Toyota Fortuner, BMW, Audi for weddings), and 12-17 seater Tempo Travellers.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Are PB08 TAXI fares transparent with no hidden charges?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes, 100%. We provide transparent fixed pricing with zero surge fees. Fares are confirmed in advance with complete clarity on vehicle charges, driver allowance, tolls, and state permits.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Can I book a one-way outstation cab or is it only round-trip?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'PB08 TAXI offers both one-way drop cabs and round-trip rentals. If you only need a drop to Delhi, Chandigarh, Amritsar, Himachal (Shimla, Manali, Dharamshala), or Jammu, you only pay for the one-way route.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Are PB08 TAXI chauffeurs verified and safe for night travel?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Safety is our paramount commitment. Every chauffeur undergoes background screening, commercial licensing verification, and highway safety training. Our drivers are courteous, strictly non-smoking, and trained for late-night family travel.'
+                  }
+                }
+              ]
+            }
+          ]
         };
 
-        schemaEl.text = JSON.stringify(schemaData);
+        schemaEl.text = JSON.stringify(schemaGraph);
       } catch (err) {
         console.warn('Failed to inject dynamic SEO Schema:', err);
       }

@@ -74,6 +74,7 @@ export default function Footer({ onOpenBooking }) {
               <li><a href="#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
               <li><a href="#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
               <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
+              <li><a href="#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
               <li><a href="#contact" className="hover:text-taxi-yellow transition-colors">Contact Information</a></li>
               <li>
                 <button onClick={onOpenBooking} className="text-taxi-yellow hover:underline font-bold">

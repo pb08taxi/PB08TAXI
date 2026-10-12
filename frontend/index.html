@@ -56,6 +56,7 @@
     </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="canonical" href="https://www.pb08taxi.com/" />
     <meta name="description" content="PB08 TAXI — Fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation." />
     <meta name="keywords" content="PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab" />
     <meta name="theme-color" content="#FACC15" />
@@ -70,60 +71,147 @@
     <!-- OpenGraph (Facebook, Instagram, WhatsApp, LinkedIn Link Previews) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PB08 TAXI" />
+    <meta property="og:url" content="https://www.pb08taxi.com/" />
     <meta property="og:title" content="PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking" />
     <meta property="og:description" content="Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation." />
-    <meta property="og:image" content="https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png" />
+    <meta property="og:image" content="https://www.pb08taxi.com/icon-512.png" />
     <meta property="og:locale" content="en_IN" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="PB08 TAXI — 24/7 Cab Service in Punjab" />
     <meta name="twitter:description" content="One-click taxi booking with live WhatsApp confirmation across Punjab & Airports." />
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png" />
+    <meta name="twitter:image" content="https://www.pb08taxi.com/icon-512.png" />
 
     <!-- Structured Data (Schema.org JSON-LD for Google Rich Results) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "TaxiService",
-      "name": "PB08 TAXI",
-      "url": "https://pb08taxi.com",
-      "logo": "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791754759.png",
-      "image": "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png",
-      "description": "Fast, safe, and reliable 24/7 taxi booking service across Jalandhar, Punjab, and major airports.",
-      "telephone": "+919876543210",
-      "priceRange": "₹₹",
-      "currenciesAccepted": "INR",
-      "paymentAccepted": "Cash, UPI, Online",
-      "areaServed": [
-        "Jalandhar",
-        "Amritsar",
-        "Ludhiana",
-        "Chandigarh",
-        "Delhi Airport (DEL)",
-        "Amritsar Airport (ATQ)",
-        "Punjab"
-      ],
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Jalandhar",
-        "addressRegion": "Punjab",
-        "addressCountry": "IN"
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday"
-        ],
-        "opens": "00:00",
-        "closes": "23:59"
-      }
+      "@graph": [
+        {
+          "@type": ["TaxiService", "LocalBusiness"],
+          "@id": "https://www.pb08taxi.com/#taxiservice",
+          "name": "PB08 TAXI",
+          "alternateName": "PB 08 Taxi Service Jalandhar",
+          "url": "https://www.pb08taxi.com/",
+          "logo": "https://www.pb08taxi.com/icon-512.png",
+          "image": "https://www.pb08taxi.com/icon-512.png",
+          "description": "Fast, safe, and reliable 24/7 taxi booking service across Jalandhar, Punjab, and major airports.",
+          "telephone": "+919876543210",
+          "priceRange": "₹₹",
+          "currenciesAccepted": "INR",
+          "paymentAccepted": "Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking",
+          "areaServed": [
+            "Jalandhar",
+            "Amritsar",
+            "Ludhiana",
+            "Chandigarh",
+            "Delhi Airport (DEL)",
+            "Amritsar Airport (ATQ)",
+            "Punjab",
+            "Himachal Pradesh"
+          ],
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "BMC Chowk / Model Town",
+            "addressLocality": "Jalandhar",
+            "addressRegion": "Punjab",
+            "postalCode": "144001",
+            "addressCountry": "IN"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 31.3260,
+            "longitude": 75.5762
+          },
+          "openingHoursSpecification": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "opens": "00:00",
+            "closes": "23:59"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "540",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.pb08taxi.com/#website",
+          "url": "https://www.pb08taxi.com/",
+          "name": "PB08 TAXI",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.pb08taxi.com/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://www.pb08taxi.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How can I book a cab with PB08 TAXI?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Booking is effortless! Click the 'One Click Book Your Ride' button anywhere on our website, enter your pickup location, drop destination, date & time, and select your preferred vehicle. You will receive instant booking confirmation directly on WhatsApp with driver and vehicle details."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do you offer airport taxi transfers for Delhi (DEL), Amritsar (ATQ), and Chandigarh (IXC)?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! We specialize in on-time airport transfers between Jalandhar, all Punjab towns, and Delhi IGI Airport (T1, T2, T3), Amritsar Sri Guru Ram Dass Jee International Airport, and Chandigarh Shaheed Bhagat Singh Airport with live flight tracking."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which vehicles are available in your taxi fleet?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We maintain a pristine, fully air-conditioned fleet: Compact Sedans (Swift Dzire, Honda Amaze), Premium SUVs (Toyota Innova Crysta, Ertiga, Carens), Luxury Executive Cars (Toyota Fortuner, BMW, Audi for weddings), and 12-17 seater Tempo Travellers."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are PB08 TAXI fares transparent with no hidden charges?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, 100%. We provide transparent fixed pricing with zero surge fees. Fares are confirmed in advance with complete clarity on vehicle charges, driver allowance, tolls, and state permits."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I book a one-way outstation cab or is it only round-trip?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "PB08 TAXI offers both one-way drop cabs and round-trip rentals. If you only need a drop to Delhi, Chandigarh, Amritsar, Himachal (Shimla, Manali, Dharamshala), or Jammu, you only pay for the one-way route."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are PB08 TAXI chauffeurs verified and safe for night travel?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Safety is our paramount commitment. Every chauffeur undergoes background screening, commercial licensing verification, and highway safety training. Our drivers are courteous, strictly non-smoking, and trained for late-night family travel."
+              }
+            }
+          ]
+        }
+      ]
     }
     </script>
 

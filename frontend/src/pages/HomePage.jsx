@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import HeroSlider from '../components/HeroSlider';
 import ServicesSection from '../components/ServicesSection';
 import WhyChooseUs from '../components/WhyChooseUs';
+import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
@@ -31,6 +32,9 @@ export default function HomePage() {
 
       {/* Why Choose PB08 TAXI Section */}
       <WhyChooseUs onOpenBooking={handleOpenBooking} />
+
+      {/* Frequently Asked Questions Section */}
+      <FAQSection onOpenBooking={handleOpenBooking} />
 
       {/* Contact Section */}
       <ContactSection onOpenBooking={handleOpenBooking} />

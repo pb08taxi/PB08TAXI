@@ -22,7 +22,7 @@ SEO_DEFAULTS = {
     "seo_meta_title": "PB08 TAXI — One Click Book Your Ride | 24/7 Cab Service",
     "seo_meta_description": "PB08 TAXI provides fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation.",
     "seo_meta_keywords": "PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab",
-    "seo_canonical_url": "https://pb08taxi.com",
+    "seo_canonical_url": "https://www.pb08taxi.com",
     "seo_robots_directive": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     
     "seo_og_title": "PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking",

@@ -1,7 +1,12 @@
+# Robots.txt for PB08 TAXI (https://www.pb08taxi.com)
 User-agent: *
 Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /api/*
 
-Sitemap: https://pb08taxi.com/sitemap.xml
+# XML Sitemap Location
+Sitemap: https://www.pb08taxi.com/sitemap.xml
+Host: https://www.pb08taxi.com

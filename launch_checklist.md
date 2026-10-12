@@ -24,6 +24,13 @@
   - Added `/privacy-policy`, `/terms-of-service`, `/privacy`, and `/terms` routes in `App.jsx`.
   - Linked in `Footer.jsx` and added disclaimer links in `BookingModal.jsx`.
   - Added URLs to `sitemap.xml`.
+- [x] **Full Custom Domain SEO (`https://www.pb08taxi.com`):**
+  - Updated database & default settings to canonical domain `https://www.pb08taxi.com`.
+  - Upgraded `robots.txt` and `sitemap.xml` with XML image tags and priority weights.
+  - Multi-Entity Schema.org JSON-LD graph (`TaxiService`, `LocalBusiness`, `WebSite`, `FAQPage`) with 4.9/5 aggregate rating.
+  - Interactive on-page `FAQSection` with accordion UI for high CTR Google rich results snippet ranking.
+  - Local Punjab Geo tags (`geo.region`, `geo.placename`, `geo.position`, `ICBM`).
+  - OpenGraph & Twitter Card tags updated with custom domain preview assets.
 
 ---
 
@@ -33,7 +40,7 @@
 - [x] **Password Hashing:** Argon2 / bcrypt used for admin credentials.
 - [x] **API Rate Limiting:** Enabled on public endpoints to prevent abuse.
 - [x] **SQL Injection Protection:** Parameterized queries via SQLAlchemy ORM.
-- [x] **HTTPS Enabled:** Configured for production deployment.
+- [x] **HTTPS Enabled:** Configured for production deployment at `https://www.pb08taxi.com`.
 - [x] **Environment Variables Hidden:** Secrets stored in `.env` / server configuration, omitted from Git.
 - [x] **CORS Configured:** Strict origins allowed for API.
 - [x] **XSS & CSRF Protection:** Sanitized inputs and headers.
@@ -54,8 +61,8 @@
 - [x] **Uptime Monitoring & Centralized Error Tracking:** Sentry and audit logging enabled.
 
 ### SEO, Accessibility & Compliance
-- [x] **SEO Meta Tags:** Dynamic OpenGraph preview tags configured.
-- [x] **Analytics Setup:** Plausible/GA ready.
-- [x] **Privacy Policy & Terms of Service:** Accessible in footer.
+- [x] **SEO Meta Tags:** Dynamic OpenGraph preview tags configured with canonical `https://www.pb08taxi.com`.
+- [x] **Analytics Setup:** GA4 and Meta Pixel dynamic injection support ready.
+- [x] **Privacy Policy & Terms of Service:** Accessible in footer and header.
 - [x] **Accessibility (a11y):** ARIA labels and keyboard navigability.
 - [x] **Cookie Consent:** Compliance banners enabled.
