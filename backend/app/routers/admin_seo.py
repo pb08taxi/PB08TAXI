@@ -37,7 +37,7 @@ SEO_DEFAULTS = {
     "seo_geo_longitude": "75.5762",
     "seo_service_areas": "Jalandhar, Amritsar, Ludhiana, Chandigarh, Delhi Airport (DEL), Amritsar Airport (ATQ), Phagwara, Kapurthala, Hoshiarpur, Punjab",
     
-    "seo_google_site_verification": "",
+    "seo_google_site_verification": "BAxc5FdmVweV91Jq3JdbrHI6RwWAcGTfNTjh6Dc7ch0",
     "seo_google_analytics_id": "",
     "seo_meta_pixel_id": "",
     "seo_schema_price_range": "₹₹",
