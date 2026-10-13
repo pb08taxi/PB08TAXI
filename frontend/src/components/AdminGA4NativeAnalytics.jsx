@@ -255,7 +255,7 @@ export default function AdminGA4NativeAnalytics() {
           <div className="space-y-6">
             
             {/* Warning: Missing GA4 Permission / 403 Error */}
-            {(data?.error || !data?.connected) && (
+            {!loading && data && (data?.error || data?.connected === false) && (
               <div className="bg-amber-950/40 border border-amber-500/70 rounded-2xl p-5 space-y-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3.5">
@@ -403,120 +403,118 @@ export default function AdminGA4NativeAnalytics() {
               </div>
             </div>
 
-            {/* Daily Trend & Deep Dive Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              {/* Left Column: Daily Trend Chart (7 Cols) */}
-              <div className="lg:col-span-7 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Daily Traffic Trend (Users vs Sessions)</h3>
-                    <p className="text-xs text-zinc-400">Google Analytics 4 activity over the last {days} days</p>
-                  </div>
-                  <div className="flex items-center space-x-3 text-xs">
-                    <span className="flex items-center space-x-1">
-                      <span className="w-2.5 h-2.5 rounded bg-blue-500" />
-                      <span className="text-zinc-400">Users</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <span className="w-2.5 h-2.5 rounded bg-taxi-yellow" />
-                      <span className="text-zinc-400">Sessions</span>
-                    </span>
-                  </div>
+            {/* Daily Traffic Trend (Full Width Card) */}
+            <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                    <TrendingUp className="w-4 h-4 text-taxi-yellow" />
+                    <span>Daily Traffic Trend (Users vs Sessions)</span>
+                  </h3>
+                  <p className="text-xs text-zinc-400">Google Analytics 4 activity over the last {days} days</p>
                 </div>
-
-                {/* Trend Bars */}
-                <div className="pt-4 overflow-x-auto">
-                  <div className="min-w-[450px] flex items-end justify-between gap-3 h-36 border-b border-zinc-800 pb-2">
-                    {data?.trends?.map((t, idx) => {
-                      const uHeight = t.users > 0 ? Math.max(10, Math.round((t.users / maxTrend) * 100)) : 4;
-                      const sHeight = t.sessions > 0 ? Math.max(10, Math.round((t.sessions / maxTrend) * 100)) : 4;
-
-                      return (
-                        <div key={idx} className="flex-1 flex flex-col items-center justify-end group">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-950 border border-zinc-700 text-white text-[10px] rounded-lg py-1 px-2 mb-2 pointer-events-none whitespace-nowrap z-20 shadow-xl">
-                            <p className="font-bold">{t.date}</p>
-                            <p className="text-blue-400">Users: {t.users}</p>
-                            <p className="text-taxi-yellow">Sessions: {t.sessions}</p>
-                          </div>
-                          {t.users > 0 && (
-                            <span className="text-[10px] font-bold text-blue-400 mb-1 font-mono">
-                              {t.users}
-                            </span>
-                          )}
-                          <div className="w-full flex items-end justify-center space-x-1">
-                            <div
-                              style={{ height: `${uHeight}px` }}
-                              className={`w-3.5 rounded-t transition-all ${
-                                t.users > 0 ? 'bg-blue-500 shadow-sm shadow-blue-500/50 group-hover:brightness-125' : 'bg-zinc-800/80'
-                              }`}
-                            />
-                            <div
-                              style={{ height: `${sHeight}px` }}
-                              className={`w-3.5 rounded-t transition-all ${
-                                t.sessions > 0 ? 'bg-taxi-yellow shadow-sm shadow-yellow-500/50 group-hover:brightness-125' : 'bg-zinc-800/50'
-                              }`}
-                            />
-                          </div>
-                          <span className="text-[10px] text-zinc-500 mt-2 font-mono">{t.date}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="flex items-center space-x-4 text-xs">
+                  <span className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 rounded bg-blue-500" />
+                    <span className="text-zinc-400">Users</span>
+                  </span>
+                  <span className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 rounded bg-taxi-yellow" />
+                    <span className="text-zinc-400">Sessions</span>
+                  </span>
                 </div>
               </div>
 
-              {/* Right Column: Top Indian Cities & Sources (5 Cols) */}
-              <div className="lg:col-span-5 space-y-6">
-                
-                {/* Top Cities */}
-                <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                      <Globe className="w-4 h-4 text-taxi-yellow" />
-                      <span>Top User Cities (Punjab &amp; NCR)</span>
-                    </h3>
-                  </div>
+              {/* Trend Bars */}
+              <div className="pt-4 overflow-x-auto">
+                <div className="min-w-[500px] flex items-end justify-between gap-3 h-40 border-b border-zinc-800 pb-2">
+                  {data?.trends?.map((t, idx) => {
+                    const uHeight = t.users > 0 ? Math.max(12, Math.round((t.users / maxTrend) * 115)) : 4;
+                    const sHeight = t.sessions > 0 ? Math.max(12, Math.round((t.sessions / maxTrend) * 115)) : 4;
 
-                  <div className="space-y-2.5">
-                    {!data?.top_cities || data.top_cities.length === 0 ? (
-                      <p className="text-xs text-zinc-500 py-3">No city data recorded yet in this time frame.</p>
-                    ) : (
-                      data.top_cities.map((c, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-300 font-medium">{c.city}</span>
-                          <span className="font-mono font-bold text-white bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/60">
-                            {c.users} users
-                          </span>
+                    return (
+                      <div key={idx} className="flex-1 flex flex-col items-center justify-end group">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-950 border border-zinc-700 text-white text-[10px] rounded-lg py-1 px-2 mb-2 pointer-events-none whitespace-nowrap z-20 shadow-xl">
+                          <p className="font-bold">{t.date}</p>
+                          <p className="text-blue-400">Users: {t.users}</p>
+                          <p className="text-taxi-yellow">Sessions: {t.sessions}</p>
                         </div>
-                      ))
-                    )}
-                  </div>
+                        {t.users > 0 && (
+                          <span className="text-[10px] font-bold text-blue-400 mb-1 font-mono">
+                            {t.users}
+                          </span>
+                        )}
+                        <div className="w-full flex items-end justify-center space-x-1 sm:space-x-1.5">
+                          <div
+                            style={{ height: `${uHeight}px` }}
+                            className={`w-3.5 sm:w-5 rounded-t transition-all ${
+                              t.users > 0 ? 'bg-blue-500 shadow-sm shadow-blue-500/50 group-hover:brightness-125' : 'bg-zinc-800/80'
+                            }`}
+                          />
+                          <div
+                            style={{ height: `${sHeight}px` }}
+                            className={`w-3.5 sm:w-5 rounded-t transition-all ${
+                              t.sessions > 0 ? 'bg-taxi-yellow shadow-sm shadow-yellow-500/50 group-hover:brightness-125' : 'bg-zinc-800/50'
+                            }`}
+                          />
+                        </div>
+                        <span className="text-[10px] text-zinc-500 mt-2 font-mono">{t.date}</span>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            </div>
 
-                {/* Traffic Acquisition Sources */}
-                <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+            {/* Deep Dive Grid: Top User Cities & Traffic Sources (Side-by-Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Top Cities */}
+              <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                    <Share2 className="w-4 h-4 text-blue-400" />
-                    <span>Traffic Sources (Google Search, Direct)</span>
+                    <Globe className="w-4 h-4 text-taxi-yellow" />
+                    <span>Top User Cities (Punjab &amp; NCR)</span>
                   </h3>
-
-                  <div className="space-y-2.5">
-                    {!data?.traffic_sources || data.traffic_sources.length === 0 ? (
-                      <p className="text-xs text-zinc-500 py-3">No traffic source data recorded yet.</p>
-                    ) : (
-                      data.traffic_sources.map((s, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-300 font-medium">{s.source}</span>
-                          <span className="font-mono font-bold text-blue-300 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-900/60">
-                            {s.sessions} sessions
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
                 </div>
 
+                <div className="space-y-2.5">
+                  {!data?.top_cities || data.top_cities.length === 0 ? (
+                    <p className="text-xs text-zinc-500 py-3">No city data recorded yet in this time frame.</p>
+                  ) : (
+                    data.top_cities.map((c, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 font-medium">{c.city}</span>
+                        <span className="font-mono font-bold text-white bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/60">
+                          {c.users} users
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Traffic Acquisition Sources */}
+              <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <Share2 className="w-4 h-4 text-blue-400" />
+                  <span>Traffic Sources (Google Search, Direct)</span>
+                </h3>
+
+                <div className="space-y-2.5">
+                  {!data?.traffic_sources || data.traffic_sources.length === 0 ? (
+                    <p className="text-xs text-zinc-500 py-3">No traffic source data recorded yet.</p>
+                  ) : (
+                    data.traffic_sources.map((s, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 font-medium">{s.source}</span>
+                        <span className="font-mono font-bold text-blue-300 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-900/60">
+                          {s.sessions} sessions
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
             </div>
