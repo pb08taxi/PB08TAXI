@@ -19,14 +19,14 @@ router = APIRouter(tags=["Advance SEO"])
 DEFAULT_OG_BANNER_URL = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png"
 
 SEO_DEFAULTS = {
-    "seo_meta_title": "PB08 TAXI — One Click Book Your Ride | 24/7 Cab Service",
-    "seo_meta_description": "PB08 TAXI provides fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation.",
-    "seo_meta_keywords": "PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab",
+    "seo_meta_title": "PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & 24/7 Airport Taxi Service",
+    "seo_meta_description": "Book PB08 TAXI — #1 Jalandhar Taxi & One Way Jalandhar cab service. 24/7 Airport Taxi for Delhi to Jalandhar, Jalandhar to Delhi, Amritsar to Jalandhar, Jalandhar to Amritsar, Chandigarh, Ludhiana & Hoshiarpur.",
+    "seo_meta_keywords": "Jalandhar Taxi, One Way Jalandhar, PB08 TAXI, Delhi to Jalandhar, Jalandhar to Delhi, Amritsar to Jalandhar, Jalandhar to Amritsar, Ludhiana to Jalandhar, Jalandhar to Ludhiana, Chandigarh to Jalandhar, Jalandhar to Chandigarh, Hoshiarpur to Jalandhar, Jalandhar to Hoshiarpur, Airport taxi",
     "seo_canonical_url": "https://www.pb08taxi.com",
     "seo_robots_directive": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     
-    "seo_og_title": "PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking",
-    "seo_og_description": "Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation.",
+    "seo_og_title": "PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & 24/7 Airport Taxi",
+    "seo_og_description": "Book PB08 TAXI for Jalandhar to Delhi, Delhi to Jalandhar, Jalandhar to Amritsar, Amritsar to Jalandhar, Chandigarh, Ludhiana & Hoshiarpur. Instant WhatsApp confirmation.",
     "seo_og_image": DEFAULT_OG_BANNER_URL,
     "seo_twitter_card": "summary_large_image",
     
@@ -35,7 +35,7 @@ SEO_DEFAULTS = {
     "seo_geo_placename": "Jalandhar, Punjab, India",
     "seo_geo_latitude": "31.3260",
     "seo_geo_longitude": "75.5762",
-    "seo_service_areas": "Jalandhar, Amritsar, Ludhiana, Chandigarh, Delhi Airport (DEL), Amritsar Airport (ATQ), Phagwara, Kapurthala, Hoshiarpur, Punjab",
+    "seo_service_areas": "Jalandhar, Delhi, Amritsar, Ludhiana, Chandigarh, Hoshiarpur, Delhi Airport (DEL), Amritsar Airport (ATQ), Chandigarh Airport (IXC), Phagwara, Punjab",
     
     "seo_google_site_verification": "BAxc5FdmVweV91Jq3JdbrHI6RwWAcGTfNTjh6Dc7ch0",
     "seo_google_analytics_id": "",

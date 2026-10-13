@@ -73,6 +73,7 @@ export default function Footer({ onOpenBooking }) {
             <ul className="space-y-2 text-xs">
               <li><a href="#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
               <li><a href="#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar Routes</a></li>
               <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
               <li><a href="#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
               <li><a href="#contact" className="hover:text-taxi-yellow transition-colors">Contact Information</a></li>
@@ -86,13 +87,14 @@ export default function Footer({ onOpenBooking }) {
 
           {/* Popular Routes */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Popular Routes</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Popular Taxi Routes</h4>
             <ul className="space-y-2 text-xs">
-              <li><span>Jalandhar ➔ Amritsar Airport (ATQ)</span></li>
-              <li><span>Jalandhar ➔ Chandigarh Airport (IXC)</span></li>
-              <li><span>Jalandhar ➔ Delhi IGI Airport (DEL)</span></li>
-              <li><span>Jalandhar ➔ Dharamshala / Manali</span></li>
-              <li><span>Jalandhar ➔ Ludhiana / Phagwara</span></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Delhi / Delhi to Jalandhar</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Amritsar / Amritsar to Jalandhar</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Chandigarh / Chandigarh to Jalandhar</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Ludhiana / Ludhiana to Jalandhar</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Hoshiarpur / Hoshiarpur to Jalandhar</a></li>
+              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar &amp; Airport Taxi</a></li>
             </ul>
           </div>
 

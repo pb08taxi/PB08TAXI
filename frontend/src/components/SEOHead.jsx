@@ -85,22 +85,36 @@ export default function SEOHead() {
           '@context': 'https://schema.org',
           '@graph': [
             {
+              '@type': 'Organization',
+              '@id': `${canonicalUrl}/#organization`,
+              name: seo.business_name || 'PB08 TAXI',
+              url: canonicalUrl,
+              logo: {
+                '@type': 'ImageObject',
+                url: `${canonicalUrl}/icon-512.png`,
+                width: 512,
+                height: 512
+              },
+              image: `${canonicalUrl}/icon-512.png`,
+              telephone: seo.support_phone || '+919888079736'
+            },
+            {
               '@type': ['TaxiService', 'LocalBusiness'],
               '@id': `${canonicalUrl}/#taxiservice`,
               name: seo.business_name || 'PB08 TAXI',
-              alternateName: 'PB 08 Taxi Service Jalandhar',
+              alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
               url: canonicalUrl,
-              telephone: seo.support_phone || '+919876543210',
+              telephone: seo.support_phone || '+919888079736',
               logo: `${canonicalUrl}/icon-512.png`,
               image: seo.og_image || `${canonicalUrl}/icon-512.png`,
-              description: seo.meta_description || 'PB08 TAXI — 24/7 fast, safe, and reliable taxi booking in Jalandhar, Punjab, and airport transfers.',
+              description: seo.meta_description || 'PB08 TAXI — #1 Jalandhar Taxi, One Way Jalandhar & 24/7 Airport Taxi Service for Delhi to Jalandhar, Jalandhar to Delhi, Amritsar, Chandigarh, Ludhiana, and Hoshiarpur.',
               priceRange: seo.schema_taxi_price_range || '₹₹',
               currenciesAccepted: 'INR',
               paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',
               areaServed: areaList,
               address: {
                 '@type': 'PostalAddress',
-                streetAddress: 'BMC Chowk / Model Town',
+                streetAddress: 'Jalandhar City',
                 addressLocality: 'Jalandhar',
                 addressRegion: seo.geo_region || 'Punjab',
                 postalCode: '144001',
@@ -126,30 +140,54 @@ export default function SEOHead() {
               },
               hasOfferCatalog: {
                 '@type': 'OfferCatalog',
-                name: 'PB08 TAXI Travel Services',
+                name: 'PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & Airport Taxi Routes',
                 itemListElement: [
                   {
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Airport Transfers (Delhi DEL, Amritsar ATQ, Chandigarh IXC)',
-                      description: 'Punctual, flight-tracked 24/7 airport pick and drop cab service.'
+                      name: 'Jalandhar to Delhi & Delhi to Jalandhar Taxi',
+                      description: '24/7 One Way Jalandhar and round-trip Airport taxi between Jalandhar and Delhi IGI Airport / NCR.'
                     }
                   },
                   {
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'One-Way & Round-Trip Outstation Cabs',
-                      description: 'Comfortable sedans, SUVs, and Tempo Travellers across Punjab, Himachal, and North India.'
+                      name: 'Jalandhar to Amritsar & Amritsar to Jalandhar Taxi',
+                      description: 'Fast cab service for Jalandhar to Amritsar Golden Temple, ATQ Airport, and Amritsar to Jalandhar.'
                     }
                   },
                   {
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Local Jalandhar City Taxi',
-                      description: 'Point-to-point and hourly cab rental in Jalandhar with instant WhatsApp booking.'
+                      name: 'Jalandhar to Chandigarh & Chandigarh to Jalandhar Taxi',
+                      description: 'One-way and round-trip taxi service connecting Jalandhar to Chandigarh and Chandigarh to Jalandhar.'
+                    }
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Jalandhar to Ludhiana & Ludhiana to Jalandhar Taxi',
+                      description: 'Express intercity taxi for Jalandhar to Ludhiana and Ludhiana to Jalandhar.'
+                    }
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar Taxi',
+                      description: '24/7 local and outstation cab between Jalandhar to Hoshiarpur and Hoshiarpur to Jalandhar.'
+                    }
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'One Way Jalandhar & 24/7 Airport Taxi',
+                      description: 'Top-rated Jalandhar Taxi with one-way drop fares and zero return charges.'
                     }
                   }
                 ]

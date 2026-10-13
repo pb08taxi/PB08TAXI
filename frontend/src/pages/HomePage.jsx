@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSlider from '../components/HeroSlider';
 import ServicesSection from '../components/ServicesSection';
+import PopularRoutesSection from '../components/PopularRoutesSection';
 import WhyChooseUs from '../components/WhyChooseUs';
 import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
@@ -24,20 +25,25 @@ export default function HomePage() {
       {/* Navigation */}
       <Navbar onOpenBooking={handleOpenBooking} />
 
-      {/* Hero Slider with 'One Click Book Your Ride' CTA */}
-      <HeroSlider onOpenBooking={handleOpenBooking} />
+      <main id="main-content">
+        {/* Hero Slider with 'One Click Book Your Ride' CTA */}
+        <HeroSlider onOpenBooking={handleOpenBooking} />
 
-      {/* Services Section */}
-      <ServicesSection onOpenBooking={handleOpenBooking} />
+        {/* Services Section */}
+        <ServicesSection onOpenBooking={handleOpenBooking} />
 
-      {/* Why Choose PB08 TAXI Section */}
-      <WhyChooseUs onOpenBooking={handleOpenBooking} />
+        {/* Popular Routes Section (One Way Jalandhar, Delhi, Amritsar, Chandigarh, Ludhiana, Hoshiarpur, Airport Taxi) */}
+        <PopularRoutesSection onOpenBooking={handleOpenBooking} />
 
-      {/* Frequently Asked Questions Section */}
-      <FAQSection onOpenBooking={handleOpenBooking} />
+        {/* Why Choose PB08 TAXI Section */}
+        <WhyChooseUs onOpenBooking={handleOpenBooking} />
 
-      {/* Contact Section */}
-      <ContactSection onOpenBooking={handleOpenBooking} />
+        {/* Frequently Asked Questions Section */}
+        <FAQSection onOpenBooking={handleOpenBooking} />
+
+        {/* Contact Section */}
+        <ContactSection onOpenBooking={handleOpenBooking} />
+      </main>
 
       {/* Footer */}
       <Footer onOpenBooking={handleOpenBooking} />

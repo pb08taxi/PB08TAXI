@@ -72,6 +72,9 @@ export default function Navbar({ onOpenBooking }) {
             <a href="#services" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
               Our Services
             </a>
+            <a href="#routes" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
+              Popular Routes
+            </a>
             <a href="#why-us" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
               Why Choose Us
             </a>
@@ -139,6 +142,13 @@ export default function Navbar({ onOpenBooking }) {
               className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
             >
               Our Services
+            </a>
+            <a
+              href="#routes"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
+            >
+              Popular Routes
             </a>
             <a
               href="#why-us"

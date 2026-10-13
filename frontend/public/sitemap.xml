@@ -5,7 +5,7 @@
   <!-- Primary Homepage -->
   <url>
     <loc>https://www.pb08taxi.com/</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -18,7 +18,7 @@
   <!-- Privacy Policy Legal Page -->
   <url>
     <loc>https://www.pb08taxi.com/privacy-policy</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -26,7 +26,7 @@
   <!-- Terms of Service Legal Page -->
   <url>
     <loc>https://www.pb08taxi.com/terms-of-service</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
