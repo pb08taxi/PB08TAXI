@@ -36,7 +36,7 @@ export default function AdminGA4NativeAnalytics() {
   // Modal for API Credentials
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
-  const [propertyIdInput, setPropertyIdInput] = useState('411659377');
+  const [propertyIdInput, setPropertyIdInput] = useState('558570751');
   const [savingCredentials, setSavingCredentials] = useState(false);
 
   const fetchStatusAndData = async (isManual = false) => {
@@ -44,6 +44,9 @@ export default function AdminGA4NativeAnalytics() {
     try {
       const statusRes = await getGA4Status();
       setStatus(statusRes);
+      if (statusRes?.property_id) {
+        setPropertyIdInput(statusRes.property_id);
+      }
 
       if (statusRes.connected) {
         const dataRes = await getGA4DashboardData(days);
@@ -93,7 +96,7 @@ export default function AdminGA4NativeAnalytics() {
     try {
       await deleteGA4Credentials();
       showSuccess('GA4 API credentials removed.');
-      setStatus({ connected: false, property_id: '411659377', measurement_id: 'G-MD0W9GNM7V' });
+      setStatus({ connected: false, property_id: '558570751', measurement_id: 'G-MD0W9GNM7V' });
       setData(null);
     } catch (err) {
       showError('Failed to remove credentials.');
@@ -124,7 +127,7 @@ export default function AdminGA4NativeAnalytics() {
 
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className="text-[11px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 px-2.5 py-0.5 rounded-lg">
-                Property: #{status?.property_id || '411659377'}
+                Property: #{status?.property_id || '558570751'}
               </span>
               <span className="text-[11px] font-mono bg-blue-950/60 border border-blue-900/60 text-blue-300 px-2.5 py-0.5 rounded-lg">
                 GA4 ID: G-MD0W9GNM7V
@@ -173,7 +176,7 @@ export default function AdminGA4NativeAnalytics() {
             </button>
 
             <a
-              href={`https://analytics.google.com/analytics/web/#/p${status?.property_id || '411659377'}/realtime`}
+              href={`https://analytics.google.com/analytics/web/#/p${status?.property_id || '558570751'}/realtime`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-xl text-xs font-medium border border-zinc-800 transition-colors"
@@ -230,7 +233,7 @@ export default function AdminGA4NativeAnalytics() {
                 </div>
                 <h4 className="text-xs font-bold text-white">GA4 Me Viewer Access Dein</h4>
                 <p className="text-[11px] text-zinc-400">
-                  Service Account ka email copy karein aur <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-taxi-yellow underline">Google Analytics</a> Property (<strong>#411659377</strong>) ke Access Management me Viewer add karein.
+                  Service Account ka email copy karein aur <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-taxi-yellow underline">Google Analytics</a> Property (<strong>#558570751</strong>) ke Access Management me Viewer add karein.
                 </p>
               </div>
 
@@ -267,7 +270,7 @@ export default function AdminGA4NativeAnalytics() {
                         </span>
                       </h4>
                       <p className="text-xs text-amber-200/90 mt-1 leading-relaxed">
-                        Aapka Google Cloud JSON bilkul valid hai! Lekin is Service Account email ko Google Analytics Property <strong>#{status?.property_id || '411659377'}</strong> me <strong>Viewer</strong> access dena baaki hai.
+                        Aapka Google Cloud JSON bilkul valid hai! Lekin is Service Account email ko Google Analytics Property <strong>#{status?.property_id || '558570751'}</strong> me <strong>Viewer</strong> access dena baaki hai.
                       </p>
                     </div>
                   </div>
@@ -539,7 +542,7 @@ export default function AdminGA4NativeAnalytics() {
                   type="text"
                   value={propertyIdInput}
                   onChange={(e) => setPropertyIdInput(e.target.value)}
-                  placeholder="411659377"
+                  placeholder="558570751"
                   className="w-full bg-zinc-900 border border-zinc-800 focus:border-blue-500 rounded-xl px-4 py-2.5 text-xs text-white outline-none font-mono"
                   required
                 />

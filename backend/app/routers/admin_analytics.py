@@ -312,7 +312,7 @@ def get_ga4_status(
     prop_row = db.query(SystemSetting).filter(SystemSetting.key == "ga4_property_id").first()
     ga_id_row = db.query(SystemSetting).filter(SystemSetting.key == "seo_google_analytics_id").first()
     
-    prop_id = prop_row.value if prop_row and prop_row.value else "411659377"
+    prop_id = prop_row.value if prop_row and prop_row.value else "558570751"
     measurement_id = ga_id_row.value if ga_id_row and ga_id_row.value else "G-MD0W9GNM7V"
     
     if not row or not row.value:
@@ -352,7 +352,7 @@ def save_ga4_credentials(
 ):
     """Save and validate Google Cloud Service Account JSON for GA4 API."""
     json_str = payload.service_account_json.strip()
-    prop_id = payload.property_id.strip() if payload.property_id else "411659377"
+    prop_id = payload.property_id.strip() if payload.property_id else "558570751"
     
     client_email = GA4Service.get_service_account_email(json_str)
     if not client_email:
@@ -424,7 +424,7 @@ async def get_ga4_dashboard_data(
     """Fetch live analytics from Google Analytics 4 Data API."""
     row = db.query(SystemSetting).filter(SystemSetting.key == "ga4_service_account_json").first()
     prop_row = db.query(SystemSetting).filter(SystemSetting.key == "ga4_property_id").first()
-    prop_id = prop_row.value if prop_row and prop_row.value else "411659377"
+    prop_id = prop_row.value if prop_row and prop_row.value else "558570751"
     
     if not row or not row.value:
         return {
@@ -447,13 +447,17 @@ async def get_ga4_dashboard_data(
         # Run real-time report
         rt_users = 0
         rt_devices = {}
+        rt_cities = {}
         try:
             rt_res = await GA4Service.run_realtime_report(row.value, prop_id)
             for r in rt_res.get("rows", []):
                 count = int(r.get("metricValues", [{}])[0].get("value", 0))
+                city = r.get("dimensionValues", [{}, {}])[0].get("value", "Unknown")
                 device = r.get("dimensionValues", [{}, {}])[1].get("value", "Other")
                 rt_users += count
                 rt_devices[device] = rt_devices.get(device, 0) + count
+                if city and city not in ("(not set)", "Unknown"):
+                    rt_cities[city] = rt_cities.get(city, 0) + count
         except Exception as e_rt:
             logger.warning(f"GA4 Realtime report warning: {e_rt}")
             
@@ -487,6 +491,10 @@ async def get_ga4_dashboard_data(
             if c_name not in ("(not set)", "Unknown"):
                 top_cities.append({"city": c_name, "users": c_users})
                 
+        # If historical top_cities is empty because GA4 processes batch with 24h delay, use realtime cities
+        if not top_cities and rt_cities:
+            top_cities = [{"city": c, "users": cnt} for c, cnt in sorted(rt_cities.items(), key=lambda x: x[1], reverse=True)]
+
         # Run traffic sources
         src_res = await GA4Service.run_traffic_sources(row.value, prop_id, days=days)
         traffic_sources = []
@@ -496,6 +504,9 @@ async def get_ga4_dashboard_data(
             traffic_sources.append({"source": ch_name, "sessions": ch_sessions})
             
         avg_time_sec = round(tot_duration / tot_sessions, 1) if tot_sessions > 0 else 0
+        display_users = tot_users if tot_users > 0 else rt_users
+        display_sessions = tot_sessions if tot_sessions > 0 else rt_users
+        display_views = tot_views if tot_views > 0 else rt_users
         
         return {
             "connected": True,
@@ -503,9 +514,9 @@ async def get_ga4_dashboard_data(
             "measurement_id": "G-MD0W9GNM7V",
             "realtime_active_users": rt_users,
             "realtime_devices": rt_devices,
-            "total_users": tot_users,
-            "total_sessions": tot_sessions,
-            "total_views": tot_views,
+            "total_users": display_users,
+            "total_sessions": display_sessions,
+            "total_views": display_views,
             "avg_engagement_time": avg_time_sec,
             "trends": trends,
             "top_cities": top_cities,
