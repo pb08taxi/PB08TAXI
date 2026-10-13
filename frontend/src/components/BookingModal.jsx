@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   X, 
   Car, 
@@ -14,6 +14,8 @@ import {
   Calendar,
   Clock,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Search
 } from 'lucide-react';
 import { createBooking, getPublicFleetCars } from '../api/client';
@@ -50,25 +52,41 @@ export const DEFAULT_PRESET_CARS = [
   { id: 'c7', name: 'Toyota Fortuner', category: 'Luxury', seating_capacity: '6+1 Seater' },
   { id: 'c8', name: 'Tempo Traveller', category: 'Tempo Traveller', seating_capacity: '12+1 Seater' },
 ];
+export const getTodayDateString = () => {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+export const getCurrentTimeString = () => {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+};
+
+export const getTomorrowDateString = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const yyyy = tomorrow.getFullYear();
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const dd = String(tomorrow.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+export const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+export const WEEK_DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 export default function BookingModal({ isOpen, onClose }) {
   const { showSuccess, showError } = useToast();
   const { settings } = useSiteSettings();
   const modalAnimation = settings?.booking_modal_animation || 'golden-glow';
-  const getTodayDateString = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const getCurrentTimeString = () => {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  };
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -80,12 +98,61 @@ export default function BookingModal({ isOpen, onClose }) {
     marketing_consent: true,
   });
 
+  const [countryCode, setCountryCode] = useState('+91');
+  const [customCountryCode, setCustomCountryCode] = useState('');
+  const [isCustomCountry, setIsCustomCountry] = useState(false);
+  const [whatsappDigits, setWhatsappDigits] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successResult, setSuccessResult] = useState(null);
+  const [copied, setCopied] = useState(false);
+
   // Fleet Cars selection & search state
   const [fleetCars, setFleetCars] = useState(DEFAULT_PRESET_CARS);
   const [loadingFleetCars, setLoadingFleetCars] = useState(false);
   const [carSearchQuery, setCarSearchQuery] = useState('');
   const [isCarPickerOpen, setIsCarPickerOpen] = useState(false);
 
+  // Custom Interactive Calendar States
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const calendarRef = useRef(null);
+  const [calendarViewDate, setCalendarViewDate] = useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  });
+
+  // Sync calendar view month/year if formData.pickup_date changes
+  useEffect(() => {
+    if (formData.pickup_date) {
+      const parts = formData.pickup_date.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(y) && !isNaN(m)) {
+          setCalendarViewDate({ year: y, month: m });
+        }
+      }
+    }
+  }, [formData.pickup_date]);
+
+  // Click outside to close custom calendar
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (calendarRef.current && !calendarRef.current.contains(e.target)) {
+        setIsCalendarOpen(false);
+      }
+    };
+    if (isCalendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isCalendarOpen]);
+
+  // Fetch Fleet Cars
   useEffect(() => {
     if (isOpen) {
       let isMounted = true;
@@ -129,14 +196,67 @@ export default function BookingModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  const [countryCode, setCountryCode] = useState('+91');
-  const [customCountryCode, setCustomCountryCode] = useState('');
-  const [isCustomCountry, setIsCustomCountry] = useState(false);
-  const [whatsappDigits, setWhatsappDigits] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successResult, setSuccessResult] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const calendarDays = useMemo(() => {
+    const year = calendarViewDate.year;
+    const month = calendarViewDate.month;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday, 1 is Monday
+    const startPadding = (firstDay + 6) % 7; // Monday = 0, Tuesday = 1 ... Sunday = 6
+
+    const items = [];
+    for (let i = 0; i < startPadding; i++) {
+      items.push({ empty: true, key: `pad-${i}` });
+    }
+    const todayStr = getTodayDateString();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const isPast = dateStr < todayStr;
+      const isSelected = dateStr === formData.pickup_date;
+      const isToday = dateStr === todayStr;
+      items.push({
+        empty: false,
+        key: dateStr,
+        dayNum: d,
+        dateStr,
+        isPast,
+        isSelected,
+        isToday,
+      });
+    }
+    return items;
+  }, [calendarViewDate.year, calendarViewDate.month, formData.pickup_date]);
+
+  const handlePrevMonth = (e) => {
+    e?.stopPropagation?.();
+    const today = new Date();
+    const isCurrentMonthOrEarlier =
+      calendarViewDate.year < today.getFullYear() ||
+      (calendarViewDate.year === today.getFullYear() && calendarViewDate.month <= today.getMonth());
+    if (isCurrentMonthOrEarlier) return;
+
+    setCalendarViewDate((prev) => {
+      if (prev.month === 0) {
+        return { year: prev.year - 1, month: 11 };
+      }
+      return { ...prev, month: prev.month - 1 };
+    });
+  };
+
+  const handleNextMonth = (e) => {
+    e?.stopPropagation?.();
+    setCalendarViewDate((prev) => {
+      if (prev.month === 11) {
+        return { year: prev.year + 1, month: 0 };
+      }
+      return { ...prev, month: prev.month + 1 };
+    });
+  };
+
+  const handleSelectDate = (dateStr) => {
+    setFormData((prev) => ({ ...prev, pickup_date: dateStr }));
+    setIsCalendarOpen(false);
+    setError('');
+  };
 
   const activeCode = isCustomCountry
     ? (customCountryCode.startsWith('+') ? customCountryCode : `+${customCountryCode}`)
@@ -475,37 +595,162 @@ export default function BookingModal({ isOpen, onClose }) {
               {/* Pickup Date & Time Row - Perfectly balanced side-by-side on mobile & desktop */}
               <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                 {/* Pickup Date */}
-                <div>
+                <div className="relative" ref={calendarRef}>
                   <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
                     Pickup Date <span className="text-taxi-yellow">*</span>
                   </label>
-                  <div className="relative flex items-center group">
-                    {/* Visual Custom Display Container (Guaranteed DD/MM/YYYY Format) */}
-                    <div className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 group-focus-within:border-taxi-yellow group-focus-within:ring-1 group-focus-within:ring-taxi-yellow rounded-xl px-3 sm:px-3.5 flex items-center justify-between text-base sm:text-sm text-white transition-colors pointer-events-none">
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <Calendar className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
-                        <span className="font-mono font-bold text-white tracking-wide truncate">
-                          {formatDateSlash(formData.pickup_date)}
+                  
+                  {/* Clickable Pickup Date Trigger Box */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                    className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-3 sm:px-3.5 flex items-center justify-between text-base sm:text-sm text-white transition-all cursor-pointer ${
+                      isCalendarOpen 
+                        ? 'border-taxi-yellow ring-1 ring-taxi-yellow shadow-lg shadow-taxi-yellow/10' 
+                        : 'border-zinc-800 hover:border-zinc-700'
+                    }`}
+                    title="Click to select pickup date"
+                  >
+                    <div className="flex items-center space-x-2.5 min-w-0">
+                      <Calendar className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                      <span className="font-mono font-bold text-white tracking-wide truncate">
+                        {formatDateSlash(formData.pickup_date)}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 flex-shrink-0 pl-1">
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase hidden xs:inline">IST</span>
+                      <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isCalendarOpen ? 'rotate-180 text-taxi-yellow' : ''}`} />
+                    </div>
+                  </button>
+
+                  {/* Hidden form input for standard form submission */}
+                  <input
+                    type="hidden"
+                    name="pickup_date"
+                    value={formData.pickup_date}
+                  />
+
+                  {/* Custom Interactive Calendar Popover */}
+                  {isCalendarOpen && (
+                    <div 
+                      className="absolute top-full left-0 mt-2 w-[280px] xs:w-[295px] sm:w-[310px] bg-[#141416] border border-zinc-700/90 rounded-2xl p-3.5 shadow-2xl shadow-black/95 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                      style={{ filter: 'drop-shadow(0 20px 25px rgba(0,0,0,0.9))' }}
+                    >
+                      {/* Top Header: Quick Chips (Today / Tomorrow) */}
+                      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-zinc-800/80">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                          Select Date
                         </span>
+                        <div className="flex items-center space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectDate(getTodayDateString())}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              formData.pickup_date === getTodayDateString()
+                                ? 'bg-taxi-yellow text-black shadow-sm font-extrabold'
+                                : 'bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white'
+                            }`}
+                          >
+                            Today
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectDate(getTomorrowDateString())}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              formData.pickup_date === getTomorrowDateString()
+                                ? 'bg-taxi-yellow text-black shadow-sm font-extrabold'
+                                : 'bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white'
+                            }`}
+                          >
+                            Tomorrow
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1.5 flex-shrink-0 pl-1">
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase hidden xs:inline">IST</span>
-                        <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+
+                      {/* Month & Year Navigation Row */}
+                      <div className="flex items-center justify-between mb-2.5 px-0.5">
+                        <button
+                          type="button"
+                          onClick={handlePrevMonth}
+                          disabled={
+                            calendarViewDate.year < new Date().getFullYear() ||
+                            (calendarViewDate.year === new Date().getFullYear() && calendarViewDate.month <= new Date().getMonth())
+                          }
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-20 disabled:pointer-events-none transition-colors cursor-pointer"
+                          title="Previous Month"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        
+                        <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
+                          {MONTH_NAMES[calendarViewDate.month]} {calendarViewDate.year}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={handleNextMonth}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                          title="Next Month"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Day of Week Labels */}
+                      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                        {WEEK_DAYS.map((day) => (
+                          <div key={day} className="text-[10px] font-bold text-zinc-400 uppercase py-0.5">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Days Grid */}
+                      <div className="grid grid-cols-7 gap-1">
+                        {calendarDays.map((item) => {
+                          if (item.empty) {
+                            return <div key={item.key} className="h-7 sm:h-8" />;
+                          }
+
+                          if (item.isPast) {
+                            return (
+                              <button
+                                key={item.key}
+                                type="button"
+                                disabled
+                                className="h-7 sm:h-8 rounded-lg text-xs font-medium text-zinc-600 line-through opacity-30 cursor-not-allowed flex items-center justify-center"
+                              >
+                                {item.dayNum}
+                              </button>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => handleSelectDate(item.dateStr)}
+                              className={`h-7 sm:h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                                item.isSelected
+                                  ? 'bg-taxi-yellow text-black font-black shadow-md shadow-taxi-yellow/30 scale-105'
+                                  : item.isToday
+                                  ? 'border border-taxi-yellow/70 text-taxi-yellow hover:bg-zinc-800'
+                                  : 'text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                              }`}
+                            >
+                              {item.dayNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Footer notice */}
+                      <div className="mt-2.5 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400 px-0.5 font-mono">
+                        <span>Format: <strong>DD/MM/YYYY</strong></span>
+                        <span className="text-taxi-yellow font-bold">{formatDateSlash(formData.pickup_date)}</span>
                       </div>
                     </div>
-
-                    {/* Invisible Native Input (Captures clicks, triggers native OS/browser date picker) */}
-                    <input
-                      type="date"
-                      name="pickup_date"
-                      required
-                      min={getTodayDateString()}
-                      value={formData.pickup_date}
-                      onChange={handleChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      title="Select Pickup Date (DD/MM/YYYY)"
-                    />
-                  </div>
+                  )}
                 </div>
 
                 {/* Pickup Time */}
