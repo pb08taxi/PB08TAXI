@@ -3,13 +3,26 @@ import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, date, timedelta
 import httpx
-from google.oauth2 import service_account
-import google.auth.transport.requests
+import time
+
+try:
+    from google.oauth2 import service_account
+    import google.auth.transport.requests
+    HAS_GOOGLE_AUTH = True
+except ImportError:
+    service_account = None
+    HAS_GOOGLE_AUTH = False
+
+try:
+    import jwt
+except ImportError:
+    jwt = None
 
 logger = logging.getLogger("ga4_service")
 
 GA4_SCOPES = ["https://www.googleapis.com/auth/analytics.readonly"]
 GA4_API_BASE = "https://analyticsdata.googleapis.com/v1beta"
+GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 class GA4Service:
     @staticmethod
@@ -17,10 +30,51 @@ class GA4Service:
         """Generate a Google OAuth2 access token from service account JSON string."""
         try:
             info = json.loads(sa_json_str)
-            creds = service_account.Credentials.from_service_account_info(info, scopes=GA4_SCOPES)
-            req = google.auth.transport.requests.Request()
-            creds.refresh(req)
-            return creds.token
+            
+            # Method 1: Use google-auth if installed
+            if HAS_GOOGLE_AUTH and service_account is not None:
+                try:
+                    creds = service_account.Credentials.from_service_account_info(info, scopes=GA4_SCOPES)
+                    req = google.auth.transport.requests.Request()
+                    creds.refresh(req)
+                    if creds.token:
+                        return creds.token
+                except Exception as ex:
+                    logger.warning(f"google-auth refresh failed, falling back to direct JWT: {ex}")
+
+            # Method 2: Standard RFC 7523 JWT Bearer grant fallback using PyJWT & httpx
+            if jwt is not None and "private_key" in info and "client_email" in info:
+                now = int(time.time())
+                payload = {
+                    "iss": info["client_email"],
+                    "sub": info["client_email"],
+                    "aud": GOOGLE_TOKEN_URI,
+                    "scope": " ".join(GA4_SCOPES),
+                    "iat": now,
+                    "exp": now + 3600
+                }
+                headers = {}
+                if "private_key_id" in info:
+                    headers["kid"] = info["private_key_id"]
+                    
+                signed_jwt = jwt.encode(payload, info["private_key"], algorithm="RS256", headers=headers)
+                
+                with httpx.Client(timeout=10.0) as client:
+                    resp = client.post(
+                        GOOGLE_TOKEN_URI,
+                        data={
+                            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                            "assertion": signed_jwt
+                        }
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        return data.get("access_token")
+                    else:
+                        logger.error(f"Google OAuth token endpoint returned {resp.status_code}: {resp.text}")
+                        return None
+
+            return None
         except Exception as e:
             logger.error(f"Failed to generate access token from service account: {e}")
             return None
