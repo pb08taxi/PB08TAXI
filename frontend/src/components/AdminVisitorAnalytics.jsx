@@ -43,17 +43,38 @@ export default function AdminVisitorAnalytics() {
     fetchStats(days);
   }, [days]);
 
-  // Format time ago for recent events
+  // Parse UTC date string safely ensuring UTC interpretation
+  const parseUtcDate = (dateStr) => {
+    if (!dateStr) return new Date();
+    let s = String(dateStr).trim();
+    if (s.includes('T') && !s.endsWith('Z') && !/[+-]\d{2}:\d{2}$/.test(s)) {
+      s += 'Z';
+    } else if (!s.includes('T') && !s.endsWith('Z')) {
+      s = s.replace(' ', 'T') + 'Z';
+    }
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? new Date(dateStr) : d;
+  };
+
+  // Format accurate relative time (Just now, 2m ago, etc.)
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
     const now = new Date();
-    const d = new Date(dateStr);
-    const diffSec = Math.floor((now - d) / 1000);
+    const d = parseUtcDate(dateStr);
+    const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
 
-    if (diffSec < 60) return 'Just now';
+    // Negative or under 45 seconds due to slight clock drift
+    if (diffSec < 45) return 'Just now';
     if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
     if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
     return `${Math.floor(diffSec / 86400)}d ago`;
+  };
+
+  // Format exact local time (e.g. 05:08 PM)
+  const formatExactTime = (dateStr) => {
+    if (!dateStr) return '';
+    const d = parseUtcDate(dateStr);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   // Get readable icon and color for event types
@@ -390,9 +411,14 @@ export default function AdminVisitorAnalytics() {
                         </div>
                       </div>
 
-                      <span className="text-[10px] font-mono text-zinc-500 flex-shrink-0 whitespace-nowrap">
-                        {formatTimeAgo(ev.created_at)}
-                      </span>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-[11px] font-mono font-bold text-zinc-300 block">
+                          {formatTimeAgo(ev.created_at)}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-500 block">
+                          {formatExactTime(ev.created_at)}
+                        </span>
+                      </div>
                     </div>
                   );
                 })

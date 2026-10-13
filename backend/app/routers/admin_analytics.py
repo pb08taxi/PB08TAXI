@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
@@ -69,8 +69,19 @@ def get_analytics_stats(
     """
     Aggregates live visitor analytics, click tracking metrics, and booking conversion funnel.
     """
-    today_start = datetime.combine(date.today(), datetime.min.time())
-    period_start = datetime.combine(date.today() - timedelta(days=days - 1), datetime.min.time())
+    # Indian Standard Time (UTC+5:30) for Punjab business operations
+    IST = timezone(timedelta(hours=5, minutes=30))
+    now_ist = datetime.now(IST)
+    today_ist = now_ist.date()
+
+    # Midnight of today in IST converted to UTC naive for DB query
+    today_start_ist = datetime.combine(today_ist, datetime.min.time(), tzinfo=IST)
+    today_start = today_start_ist.astimezone(timezone.utc).replace(tzinfo=None)
+
+    # Period start in IST converted to UTC naive
+    period_start_date_ist = today_ist - timedelta(days=days - 1)
+    period_start_ist = datetime.combine(period_start_date_ist, datetime.min.time(), tzinfo=IST)
+    period_start = period_start_ist.astimezone(timezone.utc).replace(tzinfo=None)
 
     # 1. Today's live metrics
     today_visitors = db.query(distinct(AnalyticsEvent.visitor_id)).filter(
@@ -163,9 +174,11 @@ def get_analytics_stats(
     # 5. Daily Trends for chart
     daily_trends: List[AnalyticsDailyPoint] = []
     for i in range(days):
-        day_date = date.today() - timedelta(days=days - 1 - i)
-        d_start = datetime.combine(day_date, datetime.min.time())
-        d_end = datetime.combine(day_date, datetime.max.time())
+        day_date = today_ist - timedelta(days=days - 1 - i)
+        d_start_ist = datetime.combine(day_date, datetime.min.time(), tzinfo=IST)
+        d_end_ist = datetime.combine(day_date, datetime.max.time(), tzinfo=IST)
+        d_start = d_start_ist.astimezone(timezone.utc).replace(tzinfo=None)
+        d_end = d_end_ist.astimezone(timezone.utc).replace(tzinfo=None)
 
         d_visitors = db.query(distinct(AnalyticsEvent.visitor_id)).filter(
             AnalyticsEvent.created_at >= d_start,
