@@ -67,6 +67,8 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     slider_transition_effect = _get_setting_val(db, "slider_transition_effect", "fade")
     slider_fade_duration_raw = _get_setting_val(db, "slider_fade_duration", "1000")
     slider_autoplay_interval_raw = _get_setting_val(db, "slider_autoplay_interval", "5500")
+    slider_overlay_opacity_raw = _get_setting_val(db, "slider_overlay_opacity", "55")
+    slider_overlay_color = _get_setting_val(db, "slider_overlay_color", "#000000")
     try:
         slider_fade_duration = int(slider_fade_duration_raw)
     except (ValueError, TypeError):
@@ -75,6 +77,10 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         slider_autoplay_interval = int(slider_autoplay_interval_raw)
     except (ValueError, TypeError):
         slider_autoplay_interval = 5500
+    try:
+        slider_overlay_opacity = int(slider_overlay_opacity_raw)
+    except (ValueError, TypeError):
+        slider_overlay_opacity = 55
 
     return SiteSettingsOut(
         support_phone=support_phone,
@@ -88,7 +94,9 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         booking_modal_animation=booking_modal_animation or "golden-glow",
         slider_transition_effect=slider_transition_effect or "fade",
         slider_fade_duration=slider_fade_duration,
-        slider_autoplay_interval=slider_autoplay_interval
+        slider_autoplay_interval=slider_autoplay_interval,
+        slider_overlay_opacity=slider_overlay_opacity,
+        slider_overlay_color=slider_overlay_color or "#000000"
     )
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
@@ -151,6 +159,14 @@ def update_admin_site_settings(
     if payload.slider_autoplay_interval is not None:
         bounded_interval = max(2000, min(15000, payload.slider_autoplay_interval))
         _set_setting_val(db, "slider_autoplay_interval", str(bounded_interval))
+
+    if payload.slider_overlay_opacity is not None:
+        bounded_opacity = max(0, min(100, payload.slider_overlay_opacity))
+        _set_setting_val(db, "slider_overlay_opacity", str(bounded_opacity))
+
+    if payload.slider_overlay_color is not None:
+        clean_color = payload.slider_overlay_color.strip() or "#000000"
+        _set_setting_val(db, "slider_overlay_color", clean_color)
 
     return get_public_site_settings(db)
 

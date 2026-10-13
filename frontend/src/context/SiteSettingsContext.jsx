@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   slider_transition_effect: "fade",
   slider_fade_duration: 1000,
   slider_autoplay_interval: 5500,
+  slider_overlay_opacity: 55,
+  slider_overlay_color: "#000000",
 };
 
 function getInitialSettings() {

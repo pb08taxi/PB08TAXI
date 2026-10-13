@@ -20,7 +20,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Save,
-  Check
+  Check,
+  Palette,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { 
   getAdminSliders, 
@@ -49,6 +52,10 @@ export default function AdminSliderPage() {
   const [transitionEffect, setTransitionEffect] = useState(settings?.slider_transition_effect || 'fade');
   const [fadeDuration, setFadeDuration] = useState(Number(settings?.slider_fade_duration) || 1000);
   const [autoplayInterval, setAutoplayInterval] = useState(Number(settings?.slider_autoplay_interval) || 5500);
+  const [overlayOpacity, setOverlayOpacity] = useState(
+    settings?.slider_overlay_opacity !== undefined ? Number(settings.slider_overlay_opacity) : 55
+  );
+  const [overlayColor, setOverlayColor] = useState(settings?.slider_overlay_color || '#000000');
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -58,6 +65,8 @@ export default function AdminSliderPage() {
       if (settings.slider_transition_effect) setTransitionEffect(settings.slider_transition_effect);
       if (settings.slider_fade_duration) setFadeDuration(Number(settings.slider_fade_duration));
       if (settings.slider_autoplay_interval) setAutoplayInterval(Number(settings.slider_autoplay_interval));
+      if (settings.slider_overlay_opacity !== undefined) setOverlayOpacity(Number(settings.slider_overlay_opacity));
+      if (settings.slider_overlay_color) setOverlayColor(settings.slider_overlay_color);
     }
   }, [settings]);
 
@@ -113,6 +122,8 @@ export default function AdminSliderPage() {
         slider_transition_effect: transitionEffect,
         slider_fade_duration: fadeDuration,
         slider_autoplay_interval: autoplayInterval,
+        slider_overlay_opacity: overlayOpacity,
+        slider_overlay_color: overlayColor,
       });
       if (refreshSettings) await refreshSettings();
       setSettingsSaved(true);
@@ -258,12 +269,16 @@ export default function AdminSliderPage() {
               Connected to <strong>Neon PostgreSQL</strong>. Active slides & transition settings are fetched dynamically on the homepage with zero downtime.
             </span>
           </div>
-          <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-taxi-yellow/10 text-taxi-yellow font-mono text-[11px] font-bold border border-taxi-yellow/20">
-            Current: {transitionEffect.toUpperCase()} ({fadeDuration}ms)
+          <span className="hidden sm:inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-taxi-yellow/10 text-taxi-yellow font-mono text-[11px] font-bold border border-taxi-yellow/20">
+            <span>{transitionEffect.toUpperCase()} ({fadeDuration}ms)</span>
+            <span>•</span>
+            <span>{overlayOpacity}% Dim</span>
+            <span>•</span>
+            <span className="w-2.5 h-2.5 rounded-full border border-white/40" style={{ backgroundColor: overlayColor }} />
           </span>
         </div>
 
-        {/* Transition & Fade Settings with Live Interactive Preview */}
+        {/* Transition, Darkness & Color Settings with Live Interactive Preview */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-zinc-850">
             <div className="flex items-start sm:items-center space-x-3">
@@ -272,13 +287,13 @@ export default function AdminSliderPage() {
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-white flex items-center space-x-2">
-                  <span>Slider Animation & Fade Transition Controls</span>
+                  <span>Slider Animation, Image Darkness & Overlay Color Controls</span>
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-taxi-yellow/20 text-taxi-yellow border border-taxi-yellow/30 font-bold">
                     Admin Setting
                   </span>
                 </h2>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Tune "fade in" / "fade out" transition speed, autoplay interval, and animation style with real-time live preview before saving.
+                  Tune "fade in / out" speed, slide display interval, image darkness (dimming level slider), and overlay tint color with real-time live preview before saving.
                 </p>
               </div>
             </div>
@@ -464,6 +479,171 @@ export default function AdminSliderPage() {
                 </div>
               </div>
 
+              {/* 4. Image Overlay Darkness / Dimming Slider */}
+              <div className="bg-zinc-900/70 border border-zinc-850 p-4 sm:p-5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-taxi-yellow flex-shrink-0 mt-0.5">
+                      <Moon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
+                        4. Image Darkness (Dimming Level Slider)
+                      </span>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Slide to increase or decrease darkness in front of the hero images.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-xl bg-taxi-yellow/15 border border-taxi-yellow/30 text-taxi-yellow font-mono text-xs font-black">
+                    {overlayOpacity}% Darkness
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="0"
+                  max="95"
+                  step="5"
+                  value={overlayOpacity}
+                  onChange={(e) => setOverlayOpacity(Number(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-taxi-yellow"
+                />
+
+                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                  <span>0% (Full Bright)</span>
+                  <span>30% (Light Tint)</span>
+                  <span>55% (Default)</span>
+                  <span>75% (Darker)</span>
+                  <span>95% (Max Dim)</span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {[
+                    { label: 'Bright (20%)', val: 20 },
+                    { label: 'Light (35%)', val: 35 },
+                    { label: 'Balanced (55% Default)', val: 55 },
+                    { label: 'Dark (75%)', val: 75 },
+                    { label: 'Ultra Dark (90%)', val: 90 },
+                  ].map((p) => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setOverlayOpacity(p.val)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                        overlayOpacity === p.val
+                          ? 'bg-taxi-yellow text-black font-extrabold'
+                          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Image Overlay Color Selector */}
+              <div className="bg-zinc-900/70 border border-zinc-850 p-4 sm:p-5 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-taxi-yellow flex-shrink-0 mt-0.5">
+                      <Palette className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
+                        5. Overlay Tint Color
+                      </span>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Select any color tint in front of the slides.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className="w-5 h-5 rounded-md border border-white/20 shadow-sm"
+                      style={{ backgroundColor: overlayColor }}
+                    />
+                    <span className="px-2.5 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 font-mono text-xs font-bold uppercase">
+                      {overlayColor}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Popular Curated Preset Color Chips */}
+                <div className="space-y-2">
+                  <div className="text-[11px] font-bold text-zinc-400">Curated Dark Luxury Themes:</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { name: 'Pure Black', hex: '#000000' },
+                      { name: 'Midnight Navy', hex: '#0a1128' },
+                      { name: 'Dark Slate', hex: '#0f172a' },
+                      { name: 'Deep Emerald', hex: '#062817' },
+                      { name: 'Royal Burgundy', hex: '#1e081c' },
+                      { name: 'Taxi Amber', hex: '#261602' },
+                      { name: 'Deep Charcoal', hex: '#18181b' },
+                      { name: 'Vibrant Yellow Tint', hex: '#eab308' },
+                    ].map((preset) => {
+                      const isSelected = overlayColor.toLowerCase() === preset.hex.toLowerCase();
+                      return (
+                        <button
+                          key={preset.hex}
+                          type="button"
+                          onClick={() => setOverlayColor(preset.hex)}
+                          className={`flex items-center space-x-2 p-2 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'bg-zinc-800 border-taxi-yellow text-white ring-1 ring-taxi-yellow/40'
+                              : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                          }`}
+                        >
+                          <span
+                            className="w-4 h-4 rounded-md border border-white/20 flex-shrink-0"
+                            style={{ backgroundColor: preset.hex }}
+                          />
+                          <span className="text-[11px] font-bold truncate">{preset.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Color Picker & Hex Input */}
+                <div className="pt-2 border-t border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-[11px] text-zinc-400">
+                    Or choose any custom color using the color picker:
+                  </div>
+
+                  <div className="flex items-center space-x-2.5">
+                    {/* Native Color Picker swatch wrapper */}
+                    <label className="relative cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 transition-colors">
+                      <span 
+                        className="w-4 h-4 rounded-full border border-white/40 shadow-sm inline-block"
+                        style={{ backgroundColor: overlayColor }}
+                      />
+                      <span className="text-xs font-bold text-zinc-200">Pick Custom Color</span>
+                      <input
+                        type="color"
+                        value={overlayColor.startsWith('#') && overlayColor.length === 7 ? overlayColor : '#000000'}
+                        onChange={(e) => setOverlayColor(e.target.value)}
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                      />
+                    </label>
+
+                    {/* Direct Hex code text box */}
+                    <input
+                      type="text"
+                      maxLength={7}
+                      value={overlayColor}
+                      onChange={(e) => setOverlayColor(e.target.value)}
+                      placeholder="#000000"
+                      className="w-24 bg-zinc-950 border border-zinc-800 focus:border-taxi-yellow text-center font-mono text-xs font-bold text-zinc-200 rounded-xl px-2 py-1.5 outline-none uppercase"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
             </div>
 
             {/* Right Column: Live Interactive Preview (5 cols) */}
@@ -519,21 +699,45 @@ export default function AdminSliderPage() {
                       <img
                         src={slide.image_url}
                         alt={slide.title}
-                        className={`w-full h-full object-cover filter brightness-75 transition-transform ${transformClass}`}
+                        className={`w-full h-full object-cover filter brightness-95 transition-transform ${transformClass}`}
                         style={{
                           transitionDuration: `${fadeDuration}ms`,
                           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                       />
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4">
+                      {/* Customizable Live Overlay Color & Darkness Layer */}
+                      <div
+                        className="absolute inset-0 transition-colors duration-300 pointer-events-none"
+                        style={{
+                          backgroundColor: overlayColor,
+                          opacity: overlayOpacity / 100,
+                        }}
+                      />
+                      {/* Directional Vignettes with Chosen Color for Contrast */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: `linear-gradient(to top, ${overlayColor} 0%, rgba(0,0,0,0.3) 60%, transparent 100%)`,
+                          opacity: Math.min(1, (overlayOpacity / 100) * 0.85 + 0.15),
+                        }}
+                      />
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: `linear-gradient(to right, ${overlayColor} 0%, rgba(0,0,0,0.4) 50%, transparent 100%)`,
+                          opacity: Math.min(1, (overlayOpacity / 100) * 0.75 + 0.2),
+                        }}
+                      />
+
+                      {/* Content Overlay */}
+                      <div className="absolute inset-0 flex flex-col justify-end p-4 z-10 pointer-events-none">
                         <span className="text-[10px] font-mono font-bold text-taxi-yellow tracking-widest uppercase">
                           Slide #{idx + 1} of {previewSlides.length} • {transitionEffect.toUpperCase()}
                         </span>
-                        <h4 className="text-sm font-bold text-white line-clamp-1 mt-0.5">
+                        <h4 className="text-sm font-bold text-white line-clamp-1 mt-0.5 drop-shadow-md">
                           {slide.title}
                         </h4>
-                        <p className="text-[11px] text-zinc-300 line-clamp-1 mt-0.5">
+                        <p className="text-[11px] text-zinc-300 line-clamp-1 mt-0.5 drop-shadow">
                           {slide.subtitle || 'PB08 Taxi Punjab Rides'}
                         </p>
                       </div>
@@ -577,10 +781,16 @@ export default function AdminSliderPage() {
               </div>
 
               {/* Status info below preview */}
-              <div className="bg-zinc-900/60 border border-zinc-850 p-3 rounded-xl flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+              <div className="bg-zinc-900/60 border border-zinc-850 p-3 rounded-xl flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400 font-mono">
                 <span>Effect: <strong className="text-zinc-200">{transitionEffect}</strong></span>
                 <span>Fade: <strong className="text-taxi-yellow">{fadeDuration}ms</strong></span>
                 <span>Interval: <strong className="text-zinc-200">{autoplayInterval}ms</strong></span>
+                <span>Darkness: <strong className="text-taxi-yellow">{overlayOpacity}%</strong></span>
+                <span className="flex items-center space-x-1.5">
+                  <span>Color:</span>
+                  <span className="w-3 h-3 rounded-full border border-white/30 inline-block" style={{ backgroundColor: overlayColor }} />
+                  <strong className="text-zinc-200">{overlayColor.toUpperCase()}</strong>
+                </span>
               </div>
             </div>
           </div>

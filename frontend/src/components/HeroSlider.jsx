@@ -49,6 +49,8 @@ export default function HeroSlider({ onOpenBooking }) {
   const transitionEffect = settings?.slider_transition_effect || 'fade';
   const fadeDuration = Number(settings?.slider_fade_duration) || 1000;
   const autoplayInterval = Number(settings?.slider_autoplay_interval) || 5500;
+  const overlayOpacity = settings?.slider_overlay_opacity !== undefined ? Number(settings.slider_overlay_opacity) : 55;
+  const overlayColor = settings?.slider_overlay_color || '#000000';
 
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
@@ -102,10 +104,31 @@ export default function HeroSlider({ onOpenBooking }) {
             <img
               src={slide.image_url}
               alt={slide.title}
-              className="w-full h-full object-cover object-center filter brightness-[0.45]"
+              className="w-full h-full object-cover object-center filter brightness-95"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            {/* Admin Customizable Color & Darkness Overlay Layer */}
+            <div 
+              className="absolute inset-0 transition-colors duration-500" 
+              style={{
+                backgroundColor: overlayColor,
+                opacity: overlayOpacity / 100,
+              }}
+            />
+            {/* Directional Vignettes with Chosen Overlay Color for Text Readability */}
+            <div 
+              className="absolute inset-0 pointer-events-none" 
+              style={{
+                background: `linear-gradient(to top, ${overlayColor} 0%, rgba(0,0,0,0.4) 60%, transparent 100%)`,
+                opacity: Math.min(1, (overlayOpacity / 100) * 0.85 + 0.15),
+              }}
+            />
+            <div 
+              className="absolute inset-0 pointer-events-none" 
+              style={{
+                background: `linear-gradient(to right, ${overlayColor} 0%, rgba(0,0,0,0.5) 45%, transparent 100%)`,
+                opacity: Math.min(1, (overlayOpacity / 100) * 0.75 + 0.2),
+              }}
+            />
           </div>
         );
       })}

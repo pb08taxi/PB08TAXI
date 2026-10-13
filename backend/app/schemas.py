@@ -314,6 +314,8 @@ class SiteSettingsOut(BaseModel):
     slider_transition_effect: str = "fade"
     slider_fade_duration: int = 1000
     slider_autoplay_interval: int = 5500
+    slider_overlay_opacity: int = 55
+    slider_overlay_color: str = "#000000"
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -328,6 +330,8 @@ class SiteSettingsUpdate(BaseModel):
     slider_transition_effect: Optional[str] = None
     slider_fade_duration: Optional[int] = None
     slider_autoplay_interval: Optional[int] = None
+    slider_overlay_opacity: Optional[int] = None
+    slider_overlay_color: Optional[str] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod
