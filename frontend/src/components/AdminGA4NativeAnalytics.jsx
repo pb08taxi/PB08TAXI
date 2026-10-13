@@ -429,8 +429,8 @@ export default function AdminGA4NativeAnalytics() {
                 <div className="pt-4 overflow-x-auto">
                   <div className="min-w-[450px] flex items-end justify-between gap-3 h-36 border-b border-zinc-800 pb-2">
                     {data?.trends?.map((t, idx) => {
-                      const uHeight = t.users > 0 ? Math.max(6, Math.round((t.users / maxTrend) * 110)) : 2;
-                      const sHeight = t.sessions > 0 ? Math.max(6, Math.round((t.sessions / maxTrend) * 110)) : 2;
+                      const uHeight = t.users > 0 ? Math.max(10, Math.round((t.users / maxTrend) * 100)) : 4;
+                      const sHeight = t.sessions > 0 ? Math.max(10, Math.round((t.sessions / maxTrend) * 100)) : 4;
 
                       return (
                         <div key={idx} className="flex-1 flex flex-col items-center justify-end group">
@@ -439,9 +439,24 @@ export default function AdminGA4NativeAnalytics() {
                             <p className="text-blue-400">Users: {t.users}</p>
                             <p className="text-taxi-yellow">Sessions: {t.sessions}</p>
                           </div>
+                          {t.users > 0 && (
+                            <span className="text-[10px] font-bold text-blue-400 mb-1 font-mono">
+                              {t.users}
+                            </span>
+                          )}
                           <div className="w-full flex items-end justify-center space-x-1">
-                            <div style={{ height: `${uHeight}px` }} className="w-3 rounded-t bg-blue-500 group-hover:brightness-125 transition-all" />
-                            <div style={{ height: `${sHeight}px` }} className="w-3 rounded-t bg-taxi-yellow group-hover:brightness-125 transition-all" />
+                            <div
+                              style={{ height: `${uHeight}px` }}
+                              className={`w-3.5 rounded-t transition-all ${
+                                t.users > 0 ? 'bg-blue-500 shadow-sm shadow-blue-500/50 group-hover:brightness-125' : 'bg-zinc-800/80'
+                              }`}
+                            />
+                            <div
+                              style={{ height: `${sHeight}px` }}
+                              className={`w-3.5 rounded-t transition-all ${
+                                t.sessions > 0 ? 'bg-taxi-yellow shadow-sm shadow-yellow-500/50 group-hover:brightness-125' : 'bg-zinc-800/50'
+                              }`}
+                            />
                           </div>
                           <span className="text-[10px] text-zinc-500 mt-2 font-mono">{t.date}</span>
                         </div>
