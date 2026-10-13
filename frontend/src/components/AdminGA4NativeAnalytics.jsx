@@ -18,7 +18,8 @@ import {
   Search,
   Check,
   ShieldCheck,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { getGA4Status, saveGA4Credentials, deleteGA4Credentials, getGA4DashboardData } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -250,6 +251,75 @@ export default function AdminGA4NativeAnalytics() {
         {status?.connected && (
           <div className="space-y-6">
             
+            {/* Warning: Missing GA4 Permission / 403 Error */}
+            {(data?.error || !data?.connected) && (
+              <div className="bg-amber-950/40 border border-amber-500/70 rounded-2xl p-5 space-y-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0 mt-0.5">
+                      <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-amber-300 flex items-center space-x-2">
+                        <span>Action Required: Add Service Account to Google Analytics</span>
+                        <span className="bg-amber-500/20 text-amber-300 text-[10px] font-mono px-2 py-0.5 rounded-full border border-amber-500/40">
+                          Error 403 (Permission Denied)
+                        </span>
+                      </h4>
+                      <p className="text-xs text-amber-200/90 mt-1 leading-relaxed">
+                        Aapka Google Cloud JSON bilkul valid hai! Lekin is Service Account email ko Google Analytics Property <strong>#{status?.property_id || '411659377'}</strong> me <strong>Viewer</strong> access dena baaki hai.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (status?.client_email) {
+                          navigator.clipboard.writeText(status.client_email);
+                          showSuccess('Service Account email copied to clipboard!');
+                        }
+                      }}
+                      className="px-3.5 py-2 bg-taxi-yellow hover:bg-taxi-yellowHover text-black text-xs font-black rounded-xl shadow-md transition-all flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Email</span>
+                    </button>
+                    <a
+                      href="https://analytics.google.com/analytics/web/#/admin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold rounded-xl border border-zinc-700 transition-all flex items-center space-x-1.5"
+                    >
+                      <span>Open GA4 Admin</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-black/50 border border-amber-900/50 rounded-xl p-4 text-xs text-zinc-300 space-y-2">
+                  <div className="font-bold text-amber-300 flex items-center space-x-1.5">
+                    <span>📌 Bas yeh 3 aasan steps follow karein:</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-zinc-300 leading-relaxed pl-1">
+                    <li>
+                      Apne <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-taxi-yellow underline font-bold">Google Analytics</a> me jayein ➔ Niche left corner me <strong>Admin (Gear icon)</strong> par click karein.
+                    </li>
+                    <li>
+                      Property column me <strong>Property Access Management</strong> par click karein ➔ Upar right me <strong>"+" button ➔ Add users</strong> dabayein.
+                    </li>
+                    <li>
+                      Yeh email paste karein: <strong className="text-white bg-zinc-800 px-2 py-0.5 rounded font-mono select-all text-xs border border-zinc-700">{status?.client_email || 'Service Account Email'}</strong> ➔ Role <strong>"Viewer"</strong> select karein aur <strong>Add</strong> dabayein.
+                    </li>
+                  </ol>
+                  <p className="text-[11px] text-zinc-400 pt-1">
+                    Add karte hi upar <strong>"Refresh"</strong> button dabayein, live visitors aur analytics data turant show hona shuru ho jayega!
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Realtime Live Counter Banner */}
             <div className="bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-emerald-950/40 border border-blue-900/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-4">
