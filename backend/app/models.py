@@ -125,3 +125,16 @@ class MessageTemplate(Base):
     content = Column(Text, nullable=False)
     variables_hint = Column(String(500), nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+class AnalyticsEvent(Base):
+    __tablename__ = "analytics_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    visitor_id = Column(String(64), index=True, nullable=False)
+    event_type = Column(String(50), index=True, nullable=False)  # pageview, click_book_ride, click_call, click_whatsapp, open_booking_modal, submit_booking, click_route
+    event_label = Column(String(255), nullable=True)
+    page_path = Column(String(255), default="/", nullable=False)
+    device_type = Column(String(30), default="Mobile", nullable=False)  # Mobile, Tablet, Desktop
+    browser = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
+

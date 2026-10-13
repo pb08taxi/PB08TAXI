@@ -31,6 +31,15 @@
   - Interactive on-page `FAQSection` with accordion UI for high CTR Google rich results snippet ranking.
   - Local Punjab Geo tags (`geo.region`, `geo.placename`, `geo.position`, `ICBM`).
   - OpenGraph & Twitter Card tags updated with custom domain preview assets.
+- [x] **In-House Real-Time Visitor & Click Analytics Tracker:**
+  - Zero external tracking cookies or third-party bloat; 100% private and hosted in Neon PostgreSQL.
+  - Public non-blocking tracking endpoint `/api/public/analytics/track` ingesting page views, CTA button clicks, phone calls, WhatsApp inquiries, and booking submissions.
+  - Interactive Admin Dashboard component (`AdminVisitorAnalytics.jsx`) displaying:
+    - 4 primary metric cards: Total Pageviews, Unique Visitors, High-Intent Conversions, Booking Funnel Rate.
+    - Daily trend bar chart with time period filter (7, 14, 30 days).
+    - User Action Breakdown (Call Helpline, WhatsApp Chat, Book Ride clicks, Route cards).
+    - Device and browser breakdown (Mobile vs. Desktop).
+    - Live real-time visitor event activity feed.
 
 ---
 

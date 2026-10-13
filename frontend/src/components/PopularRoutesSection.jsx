@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, ArrowLeftRight, Plane, Car, Clock, CheckCircle2, Sparkles } from 'lucide-react';
+import { trackRouteClick } from '../utils/analytics';
 
 const POPULAR_ROUTES = [
   {
@@ -161,7 +162,10 @@ export default function PopularRoutesSection({ onOpenBooking }) {
                 </div>
                 <button
                   type="button"
-                  onClick={onOpenBooking}
+                  onClick={() => {
+                    trackRouteClick(route.shortRoute);
+                    onOpenBooking(route.shortRoute);
+                  }}
                   className="bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5 flex-shrink-0"
                 >
                   <Car className="w-3.5 h-3.5" />
@@ -183,7 +187,10 @@ export default function PopularRoutesSection({ onOpenBooking }) {
               <button
                 key={idx}
                 type="button"
-                onClick={onOpenBooking}
+                onClick={() => {
+                  trackRouteClick(`Search Pill: ${tag}`);
+                  onOpenBooking(tag);
+                }}
                 className="text-xs font-semibold text-zinc-300 hover:text-black bg-zinc-950 hover:bg-taxi-yellow border border-zinc-800 hover:border-taxi-yellow px-3 py-1.5 rounded-lg transition-all"
               >
                 {tag}

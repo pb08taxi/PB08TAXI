@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getAdminStats, getBookings } from '../api/client';
 import { useAdminQuery } from '../utils/adminCache';
+import AdminVisitorAnalytics from '../components/AdminVisitorAnalytics';
 
 export default function AdminDashboardPage() {
   const fetchDashboardData = async () => {
@@ -182,6 +183,9 @@ export default function AdminDashboardPage() {
           </Link>
 
         </div>
+
+        {/* Real-time Website Visitor & Click Analytics */}
+        <AdminVisitorAnalytics />
 
         {/* Recent Bookings Quick Table */}
         <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-5">

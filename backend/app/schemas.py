@@ -378,4 +378,49 @@ class SEOSettingsUpdate(BaseModel):
     schema_taxi_price_range: Optional[str] = None
     custom_head_code: Optional[str] = None
 
+class AnalyticsEventCreate(BaseModel):
+    visitor_id: str = Field(..., max_length=64)
+    event_type: str = Field(..., max_length=50)  # pageview, click_book_ride, click_call, click_whatsapp, open_booking_modal, submit_booking, click_route
+    event_label: Optional[str] = Field(None, max_length=255)
+    page_path: str = Field("/", max_length=255)
+    device_type: str = Field("Mobile", max_length=30)
+    browser: Optional[str] = Field(None, max_length=50)
+
+class AnalyticsRecentEventOut(BaseModel):
+    id: int
+    visitor_id: str
+    event_type: str
+    event_label: Optional[str]
+    page_path: str
+    device_type: str
+    browser: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AnalyticsDailyPoint(BaseModel):
+    date: str
+    visitors: int
+    pageviews: int
+    clicks: int
+    bookings: int
+
+class AnalyticsStatsOut(BaseModel):
+    today_visitors: int
+    today_pageviews: int
+    today_calls: int
+    today_whatsapps: int
+    today_modal_opens: int
+    today_bookings: int
+    conversion_rate: float
+    total_visitors_period: int
+    total_pageviews_period: int
+    total_clicks_period: int
+    device_breakdown: dict
+    clicks_by_category: dict
+    daily_trends: List[AnalyticsDailyPoint]
+    recent_events: List[AnalyticsRecentEventOut]
+
+
 

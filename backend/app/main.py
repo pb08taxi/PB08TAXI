@@ -25,7 +25,8 @@ from app.routers import (
     admin_slider,
     admin_whatsapp,
     admin_settings,
-    admin_seo
+    admin_seo,
+    admin_analytics
 )
 
 settings = get_settings()
@@ -227,6 +228,7 @@ app.include_router(admin_slider.router, prefix="/api")
 app.include_router(admin_whatsapp.router, prefix="/api")
 app.include_router(admin_settings.router, prefix="/api")
 app.include_router(admin_seo.router, prefix="/api")
+app.include_router(admin_analytics.router, prefix="/api")
 
 @app.get("/")
 def root():

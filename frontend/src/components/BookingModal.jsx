@@ -19,6 +19,7 @@ import {
 import { createBooking, getPublicFleetCars } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { trackBookingSubmitted } from '../utils/analytics';
 
 export const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -201,6 +202,7 @@ export default function BookingModal({ isOpen, onClose }) {
         whatsapp_number: `${activeCode}${cleanDigits}`,
       };
       const res = await createBooking(payload);
+      trackBookingSubmitted(`${formData.pickup_location || 'Local'} ➔ ${formData.destination || 'Drop'}`);
       setSuccessResult(res);
       showSuccess(
         `Ride booking received successfully! Booking Ref: ${res.booking_reference}`,

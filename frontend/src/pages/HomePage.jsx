@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSlider from '../components/HeroSlider';
 import ServicesSection from '../components/ServicesSection';
@@ -10,11 +10,19 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import BookingModal from '../components/BookingModal';
 import SEOHead from '../components/SEOHead';
+import { trackPageView, trackModalOpen } from '../utils/analytics';
 
 export default function HomePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  const handleOpenBooking = () => setIsBookingOpen(true);
+  useEffect(() => {
+    trackPageView('/');
+  }, []);
+
+  const handleOpenBooking = (source = 'Homepage') => {
+    trackModalOpen(typeof source === 'string' ? source : 'Homepage Button');
+    setIsBookingOpen(true);
+  };
   const handleCloseBooking = () => setIsBookingOpen(false);
 
   return (

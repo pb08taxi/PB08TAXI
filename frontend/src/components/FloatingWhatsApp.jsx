@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { trackWhatsAppClick } from '../utils/analytics';
 
 export default function FloatingWhatsApp({ onOpenBooking }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const { settings } = useSiteSettings();
 
   const handleClick = () => {
+    trackWhatsAppClick('Floating WhatsApp Button');
     // Open official WhatsApp direct chat link with prefilled booking intent
     const rawNumber = settings?.whatsapp_number || '919876543210';
     const cleanNumber = rawNumber.replace(/[^0-9]/g, '');

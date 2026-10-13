@@ -157,5 +157,12 @@ export const uploadSEOBanner = (file) => {
   }).then(r => r.data);
 };
 
+// Analytics & Live Visitor Tracker
+export const trackVisitorEvent = (payload) => 
+  api.post('/api/public/analytics/track', payload).then(r => r.data).catch(() => {});
+export const getAdminAnalyticsStats = (days = 7) => 
+  api.get(`/api/admin/analytics/stats?days=${days}`).then(r => r.data);
+
 export default api;
+
 

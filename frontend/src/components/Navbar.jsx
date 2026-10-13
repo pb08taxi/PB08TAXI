@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import { Phone, Menu, X, Car, ShieldCheck } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { trackCallClick, trackBookRideClick } from '../utils/analytics';
 
 export default function Navbar({ onOpenBooking }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -90,6 +90,7 @@ export default function Navbar({ onOpenBooking }) {
           <div className="hidden lg:flex items-center space-x-4">
             <a
               href={telLink}
+              onClick={() => trackCallClick('Desktop Navbar Helpline')}
               className="flex items-center space-x-2 text-zinc-200 hover:text-taxi-yellow px-3 py-2 text-sm font-semibold transition-colors"
             >
               <Phone className="w-4 h-4 text-taxi-yellow" />
@@ -97,7 +98,10 @@ export default function Navbar({ onOpenBooking }) {
             </a>
 
             <button
-              onClick={onOpenBooking}
+              onClick={() => {
+                trackBookRideClick('Navbar Book Ride');
+                onOpenBooking();
+              }}
               className="bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-5 py-2.5 rounded-full text-sm shadow-md shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
             >
               <Car className="w-4 h-4" />
@@ -176,6 +180,7 @@ export default function Navbar({ onOpenBooking }) {
           <div className="pt-2 border-t border-zinc-800 flex flex-col space-y-3">
             <a
               href={telLink}
+              onClick={() => trackCallClick('Mobile Drawer Helpline')}
               className="flex items-center space-x-2 text-zinc-300 py-1 font-semibold"
             >
               <Phone className="w-4 h-4 text-taxi-yellow" />
@@ -184,6 +189,7 @@ export default function Navbar({ onOpenBooking }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
+                trackBookRideClick('Mobile Drawer Book Ride');
                 onOpenBooking();
               }}
               className="w-full bg-taxi-yellow text-black font-extrabold py-3 rounded-xl text-center shadow-md shadow-taxi-yellow/20"
