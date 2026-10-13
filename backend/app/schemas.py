@@ -462,5 +462,16 @@ class AnalyticsStatsOut(BaseModel):
     daily_trends: List[AnalyticsDailyPoint]
     recent_events: List[AnalyticsRecentEventOut]
 
+class GA4CredentialsUpdate(BaseModel):
+    service_account_json: str
+    property_id: Optional[str] = "411659377"
+
+class GA4StatusOut(BaseModel):
+    connected: bool
+    property_id: str
+    client_email: Optional[str] = None
+    measurement_id: str = "G-MD0W9GNM7V"
+    error: Optional[str] = None
+
 
 

@@ -40,11 +40,16 @@
     - User Action Breakdown (Call Helpline, WhatsApp Chat, Book Ride clicks, Route cards).
     - Device and browser breakdown (Mobile vs. Desktop).
     - Live real-time visitor event activity feed.
-- [x] **Google Looker Studio 360 Integration:**
-  - Dedicated Looker Studio embed viewer (`AdminLookerStudioViewer.jsx`) supporting interactive dashboards directly inside the admin panel.
-  - Tabbed switcher in `AdminVisitorAnalytics.jsx` between In-House Live Tracker and Google Looker Studio 360.
-  - Dedicated "Analytics 360" menu navigation (`/admin/analytics`) in `AdminLayout.jsx`.
-  - Backend configuration endpoints (`/api/admin/analytics/looker-studio` and `/api/admin/seo`) with automated iframe `src` sanitization.
+- [x] **Google Analytics 4 Native Data API (v1beta) Integration:**
+  - Removed Looker Studio iframe embed entirely based on user request.
+  - Native Google Analytics 4 Data API service (`backend/app/services/ga4_service.py`) querying `runRealtimeReport` and `runReport` directly via Google Cloud Service Account OAuth2 credentials.
+  - Custom dark-themed analytics dashboard (`AdminGA4NativeAnalytics.jsx`) matching PB08 TAXI brand identity.
+  - Real-time active users counter (last 30 minutes) with pulsing green indicator.
+  - 4 core KPI cards: Total Active Users, Total Sessions, Page Views, and Avg Engagement Time.
+  - Daily Traffic Trends chart with date-range filters (7, 14, 28, 90 days).
+  - Top 10 Visitor Cities ranking (Jalandhar, Amritsar, Ludhiana, Chandigarh, Delhi, etc.) and Traffic Acquisition Channels (Google Organic Search, Direct, WhatsApp, etc.).
+  - Secure Google Service Account JSON credentials modal with instant test connection validation.
+  - Full tab switcher between "In-House Live Tracker" and "Google Analytics 4 (API)".
 - [x] **Global Indian Standard Time (IST) & DD-MM-YYYY Date/Time Standardization:**
   - Created centralized date & time utility (`frontend/src/utils/dateTime.js`).
   - Standardized all dates to strict `DD-MM-YYYY` across logs, bookings, customers, drivers, and pickup schedules.

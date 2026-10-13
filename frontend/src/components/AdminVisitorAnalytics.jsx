@@ -19,7 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import { getAdminAnalyticsStats } from '../api/client';
-import AdminLookerStudioViewer from './AdminLookerStudioViewer';
+import AdminGA4NativeAnalytics from './AdminGA4NativeAnalytics';
 import { formatISTTime, formatISTDate, formatISTDateTime, formatISTTimeAgo } from '../utils/dateTime';
 
 export default function AdminVisitorAnalytics() {
@@ -115,25 +115,25 @@ export default function AdminVisitorAnalytics() {
           </button>
 
           <button
-            onClick={() => setActiveTab('looker')}
+            onClick={() => setActiveTab('ga4_api')}
             className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
-              activeTab === 'looker'
+              activeTab === 'ga4_api'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
                 : 'bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Google Looker Studio 360</span>
+            <span>Google Analytics 4 (API)</span>
           </button>
         </div>
 
         <span className="text-[11px] text-zinc-500 font-medium hidden sm:inline">
-          {activeTab === 'inhouse' ? '⚡ 100% Private In-House Engine' : '🌐 Official Google Analytics 4 Dashboard'}
+          {activeTab === 'inhouse' ? '⚡ 100% Private In-House Engine' : '🌐 Official Google Analytics 4 Data API'}
         </span>
       </div>
 
-      {activeTab === 'looker' ? (
-        <AdminLookerStudioViewer />
+      {activeTab === 'ga4_api' ? (
+        <AdminGA4NativeAnalytics />
       ) : (
         <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-7 relative overflow-hidden">
           {/* Background radial gradient accent */}

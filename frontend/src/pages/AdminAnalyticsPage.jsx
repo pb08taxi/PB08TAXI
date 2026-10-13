@@ -10,11 +10,11 @@ export default function AdminAnalyticsPage() {
         <div>
           <div className="flex items-center space-x-2 text-taxi-yellow text-xs font-black uppercase tracking-widest mb-1">
             <BarChart3 className="w-4 h-4" />
-            <span>360° Omnichannel Traffic &amp; Performance</span>
+            <span>Omnichannel Traffic &amp; Performance</span>
           </div>
-          <h1 className="text-3xl font-black text-white">Analytics Hub &amp; Google Looker Studio</h1>
+          <h1 className="text-3xl font-black text-white">Analytics Hub &amp; Google Analytics 4 (API)</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-            Dual analytics engine: Real-time in-house visitor activity + Official Google Analytics 4 Looker Studio reports.
+            Dual analytics engine: Real-time in-house visitor activity + Official Google Analytics 4 Data API.
           </p>
         </div>
 

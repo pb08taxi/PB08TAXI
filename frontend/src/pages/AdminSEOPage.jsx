@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Globe, 
   Search, 
   Share2, 
+  BarChart3,
   MapPin, 
   Code, 
   CheckCircle2, 
@@ -899,32 +901,26 @@ export default function AdminSEOPage() {
                 </p>
               </div>
 
-              {/* Google Looker Studio Embed URL */}
-              <div className="md:col-span-2">
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300">
-                    Google Looker Studio Embed URL
-                  </label>
-                  <a
-                    href="https://lookerstudio.google.com/reporting/create?c.datasource=GA4"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-taxi-yellow hover:underline font-bold inline-flex items-center space-x-1"
-                  >
-                    <span>Create Looker Report</span>
-                    <Share2 className="w-3 h-3" />
-                  </a>
+              {/* Google Analytics 4 API Hub Link */}
+              <div className="md:col-span-2 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Google Analytics 4 Data API (Native)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Live Real-Time users, traffic acquisition sources, and city metrics are loaded natively via GA4 Data API.
+                  </p>
                 </div>
-                <input
-                  type="text"
-                  value={lookerStudioUrl}
-                  onChange={(e) => setLookerStudioUrl(e.target.value)}
-                  placeholder="https://lookerstudio.google.com/embed/reporting/..."
-                  className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 px-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
-                />
-                <p className="text-[10px] text-zinc-500 mt-1">
-                  Embeds your complete Google Analytics 4 report directly inside the Admin Panel and Analytics 360 page.
-                </p>
+                <Link
+                  to="/admin/analytics"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex-shrink-0"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span>Open GA4 Dashboard</span>
+                </Link>
               </div>
 
             </div>

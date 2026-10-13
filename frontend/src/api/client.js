@@ -167,6 +167,16 @@ export const getLookerStudioConfig = () =>
 export const saveLookerStudioConfig = (embedUrl) => 
   api.post('/api/admin/analytics/looker-studio', { embed_url: embedUrl }).then(r => r.data);
 
+// Google Analytics 4 Data API (Native)
+export const getGA4Status = () => 
+  api.get('/api/admin/analytics/ga4/status').then(r => r.data);
+export const saveGA4Credentials = (serviceAccountJson, propertyId = '411659377') => 
+  api.post('/api/admin/analytics/ga4/credentials', { service_account_json: serviceAccountJson, property_id: propertyId }).then(r => r.data);
+export const deleteGA4Credentials = () => 
+  api.delete('/api/admin/analytics/ga4/credentials').then(r => r.data);
+export const getGA4DashboardData = (days = 7) => 
+  api.get(`/api/admin/analytics/ga4/data?days=${days}`).then(r => r.data);
+
 export default api;
 
 
