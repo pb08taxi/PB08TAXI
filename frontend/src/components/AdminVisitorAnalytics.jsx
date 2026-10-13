@@ -132,9 +132,11 @@ export default function AdminVisitorAnalytics() {
         </span>
       </div>
 
-      {activeTab === 'ga4_api' ? (
+      <div className={activeTab === 'ga4_api' ? 'block' : 'hidden'}>
         <AdminGA4NativeAnalytics />
-      ) : (
+      </div>
+
+      <div className={activeTab === 'inhouse' ? 'block' : 'hidden'}>
         <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-7 relative overflow-hidden">
           {/* Background radial gradient accent */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-taxi-yellow/5 rounded-full blur-3xl pointer-events-none" />
@@ -465,7 +467,7 @@ export default function AdminVisitorAnalytics() {
 
       </div>
     </div>
-    )}
+    </div>
   </div>
 );
 }

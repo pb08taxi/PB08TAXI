@@ -28,9 +28,29 @@ export default function AdminGA4NativeAnalytics() {
   const { showSuccess, showError } = useToast();
 
   const [days, setDays] = useState(7);
-  const [status, setStatus] = useState(null);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pb08_ga4_status');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { connected: true, property_id: '558570751', measurement_id: 'G-MD0W9GNM7V' };
+  });
+
+  const [data, setData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('pb08_ga4_cached_data');
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return null;
+  });
+
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pb08_ga4_cached_data');
+    } catch (e) {
+      return true;
+    }
+  });
   const [refreshing, setRefreshing] = useState(false);
 
   // Modal for API Credentials
@@ -44,6 +64,10 @@ export default function AdminGA4NativeAnalytics() {
     try {
       const statusRes = await getGA4Status();
       setStatus(statusRes);
+      try {
+        localStorage.setItem('pb08_ga4_status', JSON.stringify(statusRes));
+      } catch (e) {}
+
       if (statusRes?.property_id) {
         setPropertyIdInput(statusRes.property_id);
       }
@@ -51,8 +75,14 @@ export default function AdminGA4NativeAnalytics() {
       if (statusRes.connected) {
         const dataRes = await getGA4DashboardData(days);
         setData(dataRes);
+        try {
+          localStorage.setItem('pb08_ga4_cached_data', JSON.stringify(dataRes));
+        } catch (e) {}
       } else {
         setData(null);
+        try {
+          localStorage.removeItem('pb08_ga4_cached_data');
+        } catch (e) {}
       }
     } catch (err) {
       console.error('Failed to load GA4 API data:', err);
@@ -78,6 +108,9 @@ export default function AdminGA4NativeAnalytics() {
       if (res.connected) {
         showSuccess('Google Analytics 4 API successfully connected!');
         setStatus(res);
+        try {
+          localStorage.setItem('pb08_ga4_status', JSON.stringify(res));
+        } catch (e) {}
         setShowConfigModal(false);
         setJsonInput('');
         fetchStatusAndData(true);
@@ -96,8 +129,13 @@ export default function AdminGA4NativeAnalytics() {
     try {
       await deleteGA4Credentials();
       showSuccess('GA4 API credentials removed.');
-      setStatus({ connected: false, property_id: '558570751', measurement_id: 'G-MD0W9GNM7V' });
+      const dis = { connected: false, property_id: '558570751', measurement_id: 'G-MD0W9GNM7V' };
+      setStatus(dis);
       setData(null);
+      try {
+        localStorage.setItem('pb08_ga4_status', JSON.stringify(dis));
+        localStorage.removeItem('pb08_ga4_cached_data');
+      } catch (e) {}
     } catch (err) {
       showError('Failed to remove credentials.');
     }
@@ -187,8 +225,8 @@ export default function AdminGA4NativeAnalytics() {
           </div>
         </div>
 
-        {/* State A: When GA4 API is NOT connected yet */}
-        {!status?.connected && (
+        {/* State A: ONLY when GA4 API is genuinely NOT connected and NOT loading */}
+        {!loading && status && status.connected === false && (
           <div className="bg-gradient-to-br from-zinc-900/80 via-zinc-900/40 to-blue-950/20 border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -250,12 +288,12 @@ export default function AdminGA4NativeAnalytics() {
           </div>
         )}
 
-        {/* State B: When GA4 API IS CONNECTED */}
-        {status?.connected && (
+        {/* State B: When GA4 API IS CONNECTED or Loading */}
+        {(status?.connected || loading) && (
           <div className="space-y-6">
             
-            {/* Warning: Missing GA4 Permission / 403 Error */}
-            {!loading && data && (data?.error || data?.connected === false) && (
+            {/* Warning: ONLY when genuine GA4 Permission / 403 Error occurs */}
+            {!loading && data && data.connected === false && Boolean(data.error) && (
               <div className="bg-amber-950/40 border border-amber-500/70 rounded-2xl p-5 space-y-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3.5">
@@ -323,8 +361,29 @@ export default function AdminGA4NativeAnalytics() {
               </div>
             )}
 
-            {/* Realtime Live Counter Banner */}
-            <div className="bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-emerald-950/40 border border-blue-900/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Skeleton while first time loading without cache */}
+            {loading && !data && (
+              <div className="space-y-6 animate-pulse">
+                <div className="h-24 bg-zinc-900/60 rounded-2xl border border-zinc-800/80 flex items-center px-6">
+                  <div className="flex items-center space-x-3 text-sm text-zinc-400">
+                    <RefreshCw className="w-4 h-4 animate-spin text-taxi-yellow" />
+                    <span>Loading Google Analytics 4 live data...</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((n) => (
+                    <div key={n} className="h-28 bg-zinc-900/50 rounded-2xl border border-zinc-800/80" />
+                  ))}
+                </div>
+                <div className="h-44 bg-zinc-900/40 rounded-2xl border border-zinc-800/80" />
+              </div>
+            )}
+
+            {/* Dashboard Content (Rendered when data is available) */}
+            {data && (
+              <>
+                {/* Realtime Live Counter Banner */}
+                <div className="bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-emerald-950/40 border border-blue-900/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
                   <ActivityPulse className="w-6 h-6 text-emerald-400" />
@@ -518,6 +577,8 @@ export default function AdminGA4NativeAnalytics() {
               </div>
 
             </div>
+              </>
+            )}
 
           </div>
         )}
