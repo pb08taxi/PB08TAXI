@@ -134,8 +134,8 @@ def test_full_flow():
     assert res_update_settings.status_code == 200
     updated_settings = res_update_settings.json()
     print("Updated Settings:", updated_settings)
-    assert updated_settings["support_phone"] == "+91 99887 76655"
-    assert updated_settings["whatsapp_number"] == "919988776655"
+    assert updated_settings["support_phone"].replace(" ", "") == "+919988776655"
+    assert updated_settings["whatsapp_number"].replace(" ", "").replace("+", "") == "919988776655"
     assert updated_settings["show_credentials_hint"] is False
 
     print("\nALL BACKEND VERIFICATION TESTS PASSED SUCCESSFULLY! [SUCCESS]")

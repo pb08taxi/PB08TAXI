@@ -352,6 +352,7 @@ class SEOSettingsOut(BaseModel):
     meta_pixel_id: Optional[str] = None
     schema_taxi_price_range: str = "₹₹"
     custom_head_code: Optional[str] = None
+    looker_studio_embed_url: Optional[str] = None
 
 class SEOSettingsUpdate(BaseModel):
     meta_title: Optional[str] = None
@@ -377,6 +378,15 @@ class SEOSettingsUpdate(BaseModel):
     meta_pixel_id: Optional[str] = None
     schema_taxi_price_range: Optional[str] = None
     custom_head_code: Optional[str] = None
+    looker_studio_embed_url: Optional[str] = None
+
+class LookerStudioUrlUpdate(BaseModel):
+    embed_url: str = Field(..., max_length=1000)
+
+class LookerStudioUrlOut(BaseModel):
+    embed_url: Optional[str] = None
+    google_analytics_id: Optional[str] = None
+    ga4_property_id: Optional[str] = "411659377"
 
 class AnalyticsEventCreate(BaseModel):
     visitor_id: str = Field(..., max_length=64)

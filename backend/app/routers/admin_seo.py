@@ -1,4 +1,5 @@
 import os
+import re
 import base64
 import httpx
 from typing import Dict, Any, Optional
@@ -41,7 +42,8 @@ SEO_DEFAULTS = {
     "seo_google_analytics_id": "",
     "seo_meta_pixel_id": "",
     "seo_schema_price_range": "₹₹",
-    "seo_custom_head_code": ""
+    "seo_custom_head_code": "",
+    "seo_looker_studio_embed_url": ""
 }
 
 def _get_val(db: Session, key: str, default: str) -> str:
@@ -85,7 +87,8 @@ def build_seo_response(db: Session) -> SEOSettingsOut:
         google_analytics_id=_get_val(db, "seo_google_analytics_id", "") or None,
         meta_pixel_id=_get_val(db, "seo_meta_pixel_id", "") or None,
         schema_taxi_price_range=_get_val(db, "seo_schema_price_range", SEO_DEFAULTS["seo_schema_price_range"]),
-        custom_head_code=_get_val(db, "seo_custom_head_code", "") or None
+        custom_head_code=_get_val(db, "seo_custom_head_code", "") or None,
+        looker_studio_embed_url=_get_val(db, "seo_looker_studio_embed_url", "") or None
     )
 
 @router.get("/seo", response_model=SEOSettingsOut)
@@ -151,6 +154,11 @@ def update_admin_seo_settings(
         _set_val(db, "seo_schema_price_range", payload.schema_taxi_price_range)
     if payload.custom_head_code is not None:
         _set_val(db, "seo_custom_head_code", payload.custom_head_code)
+    if payload.looker_studio_embed_url is not None:
+        raw_looker = payload.looker_studio_embed_url.strip()
+        match = re.search(r'src=["\'](https?://[^"\']+)["\']', raw_looker, re.IGNORECASE)
+        clean_looker = match.group(1).strip() if match else raw_looker
+        _set_val(db, "seo_looker_studio_embed_url", clean_looker)
         
     return build_seo_response(db)
 

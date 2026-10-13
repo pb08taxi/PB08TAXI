@@ -40,6 +40,12 @@
     - User Action Breakdown (Call Helpline, WhatsApp Chat, Book Ride clicks, Route cards).
     - Device and browser breakdown (Mobile vs. Desktop).
     - Live real-time visitor event activity feed.
+- [x] **Google Looker Studio 360 Integration:**
+  - Dedicated Looker Studio embed viewer (`AdminLookerStudioViewer.jsx`) supporting interactive dashboards directly inside the admin panel.
+  - Tabbed switcher in `AdminVisitorAnalytics.jsx` between In-House Live Tracker and Google Looker Studio 360.
+  - Dedicated "Analytics 360" menu navigation (`/admin/analytics`) in `AdminLayout.jsx`.
+  - Backend configuration endpoints (`/api/admin/analytics/looker-studio` and `/api/admin/seo`) with automated iframe `src` sanitization.
+  - Quick setup guide with pre-configured links to Google Analytics 4 Property ID `411659377` and Measurement ID `G-MD0W9GNM7V`.
 
 ---
 

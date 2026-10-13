@@ -83,6 +83,7 @@ export default function AdminSEOPage() {
   const [metaPixelId, setMetaPixelId] = useState('');
   const [schemaPriceRange, setSchemaPriceRange] = useState('₹₹');
   const [customHeadCode, setCustomHeadCode] = useState('');
+  const [lookerStudioUrl, setLookerStudioUrl] = useState('');
 
   // Populate state when data loads
   useEffect(() => {
@@ -115,6 +116,7 @@ export default function AdminSEOPage() {
       setMetaPixelId(data.meta_pixel_id || '');
       setSchemaPriceRange(data.schema_taxi_price_range || '₹₹');
       setCustomHeadCode(data.custom_head_code || '');
+      setLookerStudioUrl(data.looker_studio_embed_url || '');
     }
   }, [data]);
 
@@ -179,6 +181,7 @@ export default function AdminSEOPage() {
         meta_pixel_id: metaPixelId.trim() || null,
         schema_taxi_price_range: schemaPriceRange.trim() || '₹₹',
         custom_head_code: customHeadCode.trim() || null,
+        looker_studio_embed_url: lookerStudioUrl.trim() || null,
       };
 
       const res = await updateAdminSEOSettings(payload);
@@ -893,6 +896,34 @@ export default function AdminSEOPage() {
                 />
                 <p className="text-[10px] text-zinc-500 mt-1">
                   Tracks ad conversions from Instagram and Facebook local campaigns.
+                </p>
+              </div>
+
+              {/* Google Looker Studio Embed URL */}
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300">
+                    Google Looker Studio Embed URL
+                  </label>
+                  <a
+                    href="https://lookerstudio.google.com/reporting/create?c.datasource=GA4"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-taxi-yellow hover:underline font-bold inline-flex items-center space-x-1"
+                  >
+                    <span>Create Looker Report</span>
+                    <Share2 className="w-3 h-3" />
+                  </a>
+                </div>
+                <input
+                  type="text"
+                  value={lookerStudioUrl}
+                  onChange={(e) => setLookerStudioUrl(e.target.value)}
+                  placeholder="https://lookerstudio.google.com/embed/reporting/..."
+                  className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 px-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                />
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  Embeds your complete Google Analytics 4 report directly inside the Admin Panel and Analytics 360 page.
                 </p>
               </div>
 

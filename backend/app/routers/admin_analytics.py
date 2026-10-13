@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, date, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request
@@ -5,8 +6,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct
 
 from app.database import get_db
-from app.models import AdminUser, AnalyticsEvent, Booking
-from app.schemas import AnalyticsEventCreate, AnalyticsStatsOut, AnalyticsDailyPoint, AnalyticsRecentEventOut
+from app.models import AdminUser, AnalyticsEvent, Booking, SystemSetting
+from app.schemas import (
+    AnalyticsEventCreate, 
+    AnalyticsStatsOut, 
+    AnalyticsDailyPoint, 
+    AnalyticsRecentEventOut,
+    LookerStudioUrlOut,
+    LookerStudioUrlUpdate
+)
 from app.security import get_current_admin
 
 router = APIRouter(tags=["Analytics & Tracker"])
@@ -232,4 +240,61 @@ def get_analytics_stats(
         clicks_by_category=clicks_by_category,
         daily_trends=daily_trends,
         recent_events=recent_events
+    )
+
+@router.get("/admin/analytics/looker-studio", response_model=LookerStudioUrlOut)
+def get_looker_studio_config(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns the configured Google Looker Studio embed URL and linked GA4 property details.
+    """
+    row = db.query(SystemSetting).filter(SystemSetting.key == "seo_looker_studio_embed_url").first()
+    ga_row = db.query(SystemSetting).filter(SystemSetting.key == "seo_google_analytics_id").first()
+    
+    embed_url = row.value if row and row.value else None
+    ga_id = ga_row.value if ga_row and ga_row.value else "G-MD0W9GNM7V"
+    
+    return LookerStudioUrlOut(
+        embed_url=embed_url,
+        google_analytics_id=ga_id,
+        ga4_property_id="411659377"
+    )
+
+@router.post("/admin/analytics/looker-studio", response_model=LookerStudioUrlOut)
+def save_looker_studio_config(
+    payload: LookerStudioUrlUpdate,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Saves or updates the Google Looker Studio embed URL in system settings.
+    """
+    raw_url = payload.embed_url.strip() if payload.embed_url else ""
+    # Extract src="..." if admin pastes full iframe embed code
+    iframe_match = re.search(r'src=["\'](https?://[^"\']+)["\']', raw_url, re.IGNORECASE)
+    clean_url = iframe_match.group(1).strip() if iframe_match else raw_url
+    
+    row = db.query(SystemSetting).filter(SystemSetting.key == "seo_looker_studio_embed_url").first()
+    if not row:
+        row = SystemSetting(
+            key="seo_looker_studio_embed_url",
+            value=clean_url,
+            updated_at=datetime.utcnow()
+        )
+        db.add(row)
+    else:
+        row.value = clean_url
+        row.updated_at = datetime.utcnow()
+    
+    db.commit()
+    
+    ga_row = db.query(SystemSetting).filter(SystemSetting.key == "seo_google_analytics_id").first()
+    ga_id = ga_row.value if ga_row and ga_row.value else "G-MD0W9GNM7V"
+    
+    return LookerStudioUrlOut(
+        embed_url=clean_url,
+        google_analytics_id=ga_id,
+        ga4_property_id="411659377"
     )

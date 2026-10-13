@@ -13,6 +13,7 @@ import AdminOffersPage from './pages/AdminOffersPage';
 import AdminLogsPage from './pages/AdminLogsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminSEOPage from './pages/AdminSEOPage';
+import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 
@@ -50,6 +51,7 @@ export default function App() {
         }
       >
         <Route index element={<AdminDashboardPage />} />
+        <Route path="analytics" element={<AdminAnalyticsPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />
         <Route path="bookings" element={<AdminBookingsPage />} />
         <Route path="drivers" element={<AdminDriversPage />} />

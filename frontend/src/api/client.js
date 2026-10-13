@@ -162,6 +162,10 @@ export const trackVisitorEvent = (payload) =>
   api.post('/api/public/analytics/track', payload).then(r => r.data).catch(() => {});
 export const getAdminAnalyticsStats = (days = 7) => 
   api.get(`/api/admin/analytics/stats?days=${days}`).then(r => r.data);
+export const getLookerStudioConfig = () => 
+  api.get('/api/admin/analytics/looker-studio').then(r => r.data);
+export const saveLookerStudioConfig = (embedUrl) => 
+  api.post('/api/admin/analytics/looker-studio', { embed_url: embedUrl }).then(r => r.data);
 
 export default api;
 

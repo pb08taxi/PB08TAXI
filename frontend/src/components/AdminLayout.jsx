@@ -15,7 +15,8 @@ import {
   ExternalLink, 
   Radio, 
   Settings,
-  Globe
+  Globe,
+  BarChart3
 } from 'lucide-react';
 import { getWhatsAppStatus } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
@@ -24,6 +25,7 @@ import OpenWAChatModal from './OpenWAChatModal';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+  { label: 'Analytics 360', path: '/admin/analytics', icon: BarChart3 },
   { label: 'Customers', path: '/admin/customers', icon: Users },
   { label: 'Bookings', path: '/admin/bookings', icon: CalendarCheck },
   { label: 'Drivers', path: '/admin/drivers', icon: Car },
