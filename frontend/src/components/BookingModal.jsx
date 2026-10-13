@@ -514,13 +514,15 @@ export default function BookingModal({ isOpen, onClose }) {
         {!successResult ? (
           <div>
             {/* Header */}
-            <div className="flex items-center space-x-3 mb-5">
-              <div className="w-11 h-11 rounded-2xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20">
-                <Car className="w-6 h-6 stroke-[2.5]" />
+            <div className="flex items-center space-x-2.5 sm:space-x-3 mb-4 sm:mb-5 pr-8">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20 flex-shrink-0">
+                <Car className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
               </div>
-              <div>
-                <h2 className="text-2xl font-black text-white">One Click Book Your Ride</h2>
-                <p className="text-xs text-zinc-400 font-medium">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[17px] xs:text-lg sm:text-2xl font-black text-white whitespace-nowrap tracking-tight">
+                  One Click Book Your Ride
+                </h2>
+                <p className="text-[11px] sm:text-xs text-zinc-400 font-medium truncate sm:whitespace-normal">
                   Instant cab reservation with live WhatsApp confirmation
                 </p>
               </div>

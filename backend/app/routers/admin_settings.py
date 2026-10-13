@@ -64,6 +64,17 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     show_hint_str = _get_setting_val(db, "show_credentials_hint", "false").lower()
     show_credentials_hint = show_hint_str in ("true", "1", "yes")
     booking_modal_animation = _get_setting_val(db, "booking_modal_animation", "golden-glow")
+    slider_transition_effect = _get_setting_val(db, "slider_transition_effect", "fade")
+    slider_fade_duration_raw = _get_setting_val(db, "slider_fade_duration", "1000")
+    slider_autoplay_interval_raw = _get_setting_val(db, "slider_autoplay_interval", "5500")
+    try:
+        slider_fade_duration = int(slider_fade_duration_raw)
+    except (ValueError, TypeError):
+        slider_fade_duration = 1000
+    try:
+        slider_autoplay_interval = int(slider_autoplay_interval_raw)
+    except (ValueError, TypeError):
+        slider_autoplay_interval = 5500
 
     return SiteSettingsOut(
         support_phone=support_phone,
@@ -74,7 +85,10 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         brand_title=brand_title or "PB08 TAXI",
         brand_tagline=brand_tagline or "Fast • Safe • Reliable",
         show_credentials_hint=show_credentials_hint,
-        booking_modal_animation=booking_modal_animation or "golden-glow"
+        booking_modal_animation=booking_modal_animation or "golden-glow",
+        slider_transition_effect=slider_transition_effect or "fade",
+        slider_fade_duration=slider_fade_duration,
+        slider_autoplay_interval=slider_autoplay_interval
     )
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
@@ -96,7 +110,7 @@ def update_admin_site_settings(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Admin endpoint to update phone numbers, logo/favicon URLs, brand texts, login hint display, and booking modal animation."""
+    """Admin endpoint to update phone numbers, logo/favicon URLs, brand texts, login hint display, booking modal animation, and slider transitions."""
     if payload.support_phone is not None:
         _set_setting_val(db, "support_phone", payload.support_phone.strip())
     
@@ -126,6 +140,17 @@ def update_admin_site_settings(
 
     if payload.booking_modal_animation is not None:
         _set_setting_val(db, "booking_modal_animation", payload.booking_modal_animation.strip() or "golden-glow")
+
+    if payload.slider_transition_effect is not None:
+        _set_setting_val(db, "slider_transition_effect", payload.slider_transition_effect.strip() or "fade")
+
+    if payload.slider_fade_duration is not None:
+        bounded_fade = max(200, min(5000, payload.slider_fade_duration))
+        _set_setting_val(db, "slider_fade_duration", str(bounded_fade))
+
+    if payload.slider_autoplay_interval is not None:
+        bounded_interval = max(2000, min(15000, payload.slider_autoplay_interval))
+        _set_setting_val(db, "slider_autoplay_interval", str(bounded_interval))
 
     return get_public_site_settings(db)
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sliders, 
   Plus, 
@@ -12,18 +12,29 @@ import {
   Image as ImageIcon,
   ArrowUpDown,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles,
+  Zap,
+  Play,
+  Pause,
+  ChevronLeft,
+  ChevronRight,
+  Save,
+  Check
 } from 'lucide-react';
 import { 
   getAdminSliders, 
   createSlider, 
   updateSlider, 
   deleteSlider, 
-  uploadSliderImage 
+  uploadSliderImage,
+  updateAdminSettings
 } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export default function AdminSliderPage() {
+  const { settings, refreshSettings } = useSiteSettings();
   const { data, loading, isRevalidating, refresh, mutate } = useAdminQuery(
     'admin_sliders',
     getAdminSliders,
@@ -33,6 +44,85 @@ export default function AdminSliderPage() {
   const slides = data || [];
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
+
+  // Transition & Fade in / Fade out states
+  const [transitionEffect, setTransitionEffect] = useState(settings?.slider_transition_effect || 'fade');
+  const [fadeDuration, setFadeDuration] = useState(Number(settings?.slider_fade_duration) || 1000);
+  const [autoplayInterval, setAutoplayInterval] = useState(Number(settings?.slider_autoplay_interval) || 5500);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  // Sync when settings context updates
+  useEffect(() => {
+    if (settings) {
+      if (settings.slider_transition_effect) setTransitionEffect(settings.slider_transition_effect);
+      if (settings.slider_fade_duration) setFadeDuration(Number(settings.slider_fade_duration));
+      if (settings.slider_autoplay_interval) setAutoplayInterval(Number(settings.slider_autoplay_interval));
+    }
+  }, [settings]);
+
+  // Live Interactive Preview State
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [previewPlaying, setPreviewPlaying] = useState(true);
+  const previewTimerRef = useRef(null);
+
+  const activeSlides = slides.filter((s) => s.is_active);
+  const previewSlides = activeSlides.length > 0 ? activeSlides : (slides.length > 0 ? slides : [
+    {
+      id: 'p1',
+      title: "PB08 TAXI — 24/7 Premium Cabs in Punjab",
+      subtitle: "Reliable, Safe & Air-Conditioned Rides at Affordable Fixed Rates",
+      image_url: "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      id: 'p2',
+      title: "Airport Pickups & Outstation Journeys",
+      subtitle: "Direct transfers to Amritsar, Chandigarh & Delhi Airports with On-Time Guarantee",
+      image_url: "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      id: 'p3',
+      title: "Verified Drivers & Sanitized Fleet",
+      subtitle: "Instant WhatsApp Confirmation & Dedicated Customer Support",
+      image_url: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1200&q=80"
+    }
+  ]);
+
+  useEffect(() => {
+    if (!previewPlaying || previewSlides.length <= 1) return;
+    previewTimerRef.current = setInterval(() => {
+      setPreviewIndex((prev) => (prev + 1) % previewSlides.length);
+    }, autoplayInterval);
+
+    return () => clearInterval(previewTimerRef.current);
+  }, [previewPlaying, previewSlides.length, autoplayInterval]);
+
+  const handleNextPreview = () => {
+    setPreviewIndex((prev) => (prev + 1) % previewSlides.length);
+  };
+
+  const handlePrevPreview = () => {
+    setPreviewIndex((prev) => (prev - 1 + previewSlides.length) % previewSlides.length);
+  };
+
+  const handleSaveSliderSettings = async () => {
+    setSavingSettings(true);
+    setSettingsSaved(false);
+    try {
+      await updateAdminSettings({
+        slider_transition_effect: transitionEffect,
+        slider_fade_duration: fadeDuration,
+        slider_autoplay_interval: autoplayInterval,
+      });
+      if (refreshSettings) await refreshSettings();
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 3500);
+    } catch (err) {
+      alert("Failed to save slider transition settings. Please try again.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   // Form states
   const [formTitle, setFormTitle] = useState('');
@@ -161,11 +251,339 @@ export default function AdminSliderPage() {
         </div>
 
         {/* Live Notification Banner */}
-        <div className="bg-zinc-950 border border-zinc-850 p-4 rounded-2xl flex items-center space-x-3 text-xs text-zinc-300">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-          <span>
-            Connected to <strong>Neon PostgreSQL</strong>. Active slides are fetched dynamically on the homepage with zero downtime.
+        <div className="bg-zinc-950 border border-zinc-850 p-4 rounded-2xl flex items-center justify-between text-xs text-zinc-300">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            <span>
+              Connected to <strong>Neon PostgreSQL</strong>. Active slides & transition settings are fetched dynamically on the homepage with zero downtime.
+            </span>
+          </div>
+          <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-taxi-yellow/10 text-taxi-yellow font-mono text-[11px] font-bold border border-taxi-yellow/20">
+            Current: {transitionEffect.toUpperCase()} ({fadeDuration}ms)
           </span>
+        </div>
+
+        {/* Transition & Fade Settings with Live Interactive Preview */}
+        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-zinc-850">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-taxi-yellow/10 border border-taxi-yellow/20 flex items-center justify-center text-taxi-yellow flex-shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-white flex items-center space-x-2">
+                  <span>Slider Animation & Fade Transition Controls</span>
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-taxi-yellow/20 text-taxi-yellow border border-taxi-yellow/30 font-bold">
+                    Admin Setting
+                  </span>
+                </h2>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Tune "fade in" / "fade out" transition speed, autoplay interval, and animation style with real-time live preview before saving.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSaveSliderSettings}
+              disabled={savingSettings}
+              className={`inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md self-start sm:self-auto ${
+                settingsSaved
+                  ? 'bg-emerald-500 text-black shadow-emerald-500/20'
+                  : 'bg-taxi-yellow hover:bg-taxi-yellowHover text-black shadow-taxi-yellow/20 hover:scale-105 active:scale-95'
+              }`}
+            >
+              {savingSettings ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : settingsSaved ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Saved to Neon DB!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save Transition Settings</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+            {/* Left Column: Controls (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Transition Effect Selector */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center justify-between">
+                  <span>1. Transition Style</span>
+                  <span className="text-zinc-500 font-normal lowercase">Select animation type</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'fade', name: 'Fade In / Out', desc: 'Smooth crossfade opacity transition' },
+                    { id: 'zoom-fade', name: 'Zoom & Fade', desc: 'Cinematic subtle scale with smooth fade' },
+                    { id: 'slide', name: 'Horizontal Slide', desc: 'Dynamic transform slider motion' },
+                  ].map((eff) => (
+                    <button
+                      key={eff.id}
+                      type="button"
+                      onClick={() => setTransitionEffect(eff.id)}
+                      className={`text-left p-3.5 rounded-2xl border transition-all ${
+                        transitionEffect === eff.id
+                          ? 'bg-taxi-yellow/10 border-taxi-yellow text-white shadow-md shadow-taxi-yellow/10 ring-1 ring-taxi-yellow/40'
+                          : 'bg-zinc-900/70 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black">{eff.name}</span>
+                        {transitionEffect === eff.id && (
+                          <div className="w-2 h-2 rounded-full bg-taxi-yellow" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-1 leading-snug">{eff.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fade Duration Slider */}
+              <div className="bg-zinc-900/70 border border-zinc-850 p-4 sm:p-5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
+                      2. Fade In / Out Duration (Speed)
+                    </span>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      Controls how smoothly the previous slide fades out while the next slide fades in.
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-xl bg-taxi-yellow/15 border border-taxi-yellow/30 text-taxi-yellow font-mono text-xs font-black">
+                    {(fadeDuration / 1000).toFixed(1)}s ({fadeDuration}ms)
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="300"
+                  max="3000"
+                  step="100"
+                  value={fadeDuration}
+                  onChange={(e) => setFadeDuration(Number(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-taxi-yellow"
+                />
+
+                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                  <span>0.3s (Super Fast)</span>
+                  <span>1.0s (Smooth Default)</span>
+                  <span>2.0s (Slow Fade)</span>
+                  <span>3.0s (Ultra Slow)</span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {[
+                    { label: 'Fast (500ms)', val: 500 },
+                    { label: 'Default (1000ms)', val: 1000 },
+                    { label: 'Smooth (1400ms)', val: 1400 },
+                    { label: 'Cinematic (2000ms)', val: 2000 },
+                  ].map((p) => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setFadeDuration(p.val)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                        fadeDuration === p.val
+                          ? 'bg-taxi-yellow text-black font-extrabold'
+                          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Autoplay Interval Slider */}
+              <div className="bg-zinc-900/70 border border-zinc-850 p-4 sm:p-5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
+                      3. Slide Auto-Change Interval (Display Time)
+                    </span>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      How long each slide remains in view before the transition begins.
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-xl bg-taxi-yellow/15 border border-taxi-yellow/30 text-taxi-yellow font-mono text-xs font-black">
+                    {(autoplayInterval / 1000).toFixed(1)}s ({autoplayInterval}ms)
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="2000"
+                  max="12000"
+                  step="500"
+                  value={autoplayInterval}
+                  onChange={(e) => setAutoplayInterval(Number(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-taxi-yellow"
+                />
+
+                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                  <span>2.0s (Rapid)</span>
+                  <span>5.5s (Recommended)</span>
+                  <span>8.0s (Relaxed)</span>
+                  <span>12.0s (Long)</span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {[
+                    { label: '3.0s', val: 3000 },
+                    { label: '4.5s', val: 4500 },
+                    { label: '5.5s (Default)', val: 5500 },
+                    { label: '7.0s', val: 7000 },
+                    { label: '10.0s', val: 10000 },
+                  ].map((p) => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setAutoplayInterval(p.val)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                        autoplayInterval === p.val
+                          ? 'bg-taxi-yellow text-black font-extrabold'
+                          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Column: Live Interactive Preview (5 cols) */}
+            <div className="lg:col-span-5 flex flex-col space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-taxi-yellow animate-ping inline-block mr-1" />
+                  <span>Real-Time Live Preview</span>
+                </span>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPlaying(!previewPlaying)}
+                    title={previewPlaying ? 'Pause Auto-cycle' : 'Resume Auto-cycle'}
+                    className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors"
+                  >
+                    {previewPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextPreview}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-taxi-yellow hover:text-taxi-yellowHover border border-zinc-800 text-[11px] font-bold transition-colors"
+                  >
+                    <Zap className="w-3 h-3" />
+                    <span>Test Fade</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview Box */}
+              <div className="relative h-60 sm:h-72 w-full rounded-2xl overflow-hidden border border-zinc-800 bg-black shadow-2xl group select-none">
+                {previewSlides.map((slide, idx) => {
+                  const isActive = idx === previewIndex;
+                  let transformClass = 'scale-100 translate-x-0';
+                  if (transitionEffect === 'zoom-fade') {
+                    transformClass = isActive ? 'scale-100' : 'scale-110';
+                  } else if (transitionEffect === 'slide') {
+                    transformClass = isActive ? 'translate-x-0' : (idx > previewIndex ? 'translate-x-full' : '-translate-x-full');
+                  }
+
+                  return (
+                    <div
+                      key={slide.id || idx}
+                      className={`absolute inset-0 transition-opacity will-change-transform ${
+                        isActive ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                      }`}
+                      style={{
+                        transitionDuration: `${fadeDuration}ms`,
+                        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      <img
+                        src={slide.image_url}
+                        alt={slide.title}
+                        className={`w-full h-full object-cover filter brightness-75 transition-transform ${transformClass}`}
+                        style={{
+                          transitionDuration: `${fadeDuration}ms`,
+                          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-4">
+                        <span className="text-[10px] font-mono font-bold text-taxi-yellow tracking-widest uppercase">
+                          Slide #{idx + 1} of {previewSlides.length} • {transitionEffect.toUpperCase()}
+                        </span>
+                        <h4 className="text-sm font-bold text-white line-clamp-1 mt-0.5">
+                          {slide.title}
+                        </h4>
+                        <p className="text-[11px] text-zinc-300 line-clamp-1 mt-0.5">
+                          {slide.subtitle || 'PB08 Taxi Punjab Rides'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Left / Right Nav Arrows inside Preview */}
+                <button
+                  type="button"
+                  onClick={handlePrevPreview}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/10 backdrop-blur-sm transition-transform active:scale-90"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextPreview}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/10 backdrop-blur-sm transition-transform active:scale-90"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                {/* Dots indicator */}
+                <div className="absolute top-3 left-3 z-20 flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+                  {previewSlides.map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={() => setPreviewIndex(dotIdx)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        dotIdx === previewIndex ? 'w-4 bg-taxi-yellow' : 'w-1.5 bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="absolute top-3 right-3 z-20 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[10px] font-mono text-zinc-300">
+                  {previewPlaying ? 'Auto-cycling' : 'Paused'}
+                </div>
+              </div>
+
+              {/* Status info below preview */}
+              <div className="bg-zinc-900/60 border border-zinc-850 p-3 rounded-xl flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+                <span>Effect: <strong className="text-zinc-200">{transitionEffect}</strong></span>
+                <span>Fade: <strong className="text-taxi-yellow">{fadeDuration}ms</strong></span>
+                <span>Interval: <strong className="text-zinc-200">{autoplayInterval}ms</strong></span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Slides List */}

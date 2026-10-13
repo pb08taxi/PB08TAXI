@@ -46,14 +46,18 @@ export default function HeroSlider({ onOpenBooking }) {
       });
   }, []);
 
+  const transitionEffect = settings?.slider_transition_effect || 'fade';
+  const fadeDuration = Number(settings?.slider_fade_duration) || 1000;
+  const autoplayInterval = Number(settings?.slider_autoplay_interval) || 5500;
+
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
     timerRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 5500);
+    }, autoplayInterval);
 
     return () => clearInterval(timerRef.current);
-  }, [slides.length, isPaused]);
+  }, [slides.length, isPaused, autoplayInterval]);
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
@@ -72,23 +76,39 @@ export default function HeroSlider({ onOpenBooking }) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background Images with crossfade */}
-      {slides.map((slide, idx) => (
-        <div
-          key={slide.id || idx}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            idx === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
-          } transform transition-transform duration-1000`}
-        >
-          <img
-            src={slide.image_url}
-            alt={slide.title}
-            className="w-full h-full object-cover object-center filter brightness-[0.45]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-        </div>
-      ))}
+      {/* Background Images with customizable fade in / fade out */}
+      {slides.map((slide, idx) => {
+        const isCurrent = idx === currentIndex;
+        let transformClass = 'scale-100';
+        if (transitionEffect === 'zoom-fade') {
+          transformClass = isCurrent ? 'scale-100' : 'scale-110 pointer-events-none';
+        } else if (transitionEffect === 'slide') {
+          transformClass = isCurrent ? 'translate-x-0' : idx < currentIndex ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none';
+        } else {
+          transformClass = isCurrent ? 'scale-100' : 'scale-100 pointer-events-none';
+        }
+
+        return (
+          <div
+            key={slide.id || idx}
+            style={{ 
+              transitionDuration: `${fadeDuration}ms`,
+              transitionProperty: 'opacity, transform'
+            }}
+            className={`absolute inset-0 ease-in-out ${
+              isCurrent ? 'opacity-100 z-0' : 'opacity-0 -z-10'
+            } ${transformClass}`}
+          >
+            <img
+              src={slide.image_url}
+              alt={slide.title}
+              className="w-full h-full object-cover object-center filter brightness-[0.45]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+          </div>
+        );
+      })}
 
       {/* Taxi checkered yellow top & bottom stripe accents */}
       <div className="absolute top-0 left-0 right-0 h-2 taxi-checker opacity-90 z-10" />

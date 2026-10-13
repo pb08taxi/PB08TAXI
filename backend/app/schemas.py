@@ -311,6 +311,9 @@ class SiteSettingsOut(BaseModel):
     brand_tagline: str = "Fast • Safe • Reliable"
     show_credentials_hint: bool = True
     booking_modal_animation: str = "golden-glow"
+    slider_transition_effect: str = "fade"
+    slider_fade_duration: int = 1000
+    slider_autoplay_interval: int = 5500
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -322,6 +325,9 @@ class SiteSettingsUpdate(BaseModel):
     brand_tagline: Optional[str] = None
     show_credentials_hint: Optional[bool] = None
     booking_modal_animation: Optional[str] = None
+    slider_transition_effect: Optional[str] = None
+    slider_fade_duration: Optional[int] = None
+    slider_autoplay_interval: Optional[int] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod

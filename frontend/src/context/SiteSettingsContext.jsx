@@ -13,6 +13,9 @@ const DEFAULT_SETTINGS = {
   brand_tagline: "Fast • Safe • Reliable",
   show_credentials_hint: false,
   booking_modal_animation: "golden-glow",
+  slider_transition_effect: "fade",
+  slider_fade_duration: 1000,
+  slider_autoplay_interval: 5500,
 };
 
 function getInitialSettings() {
