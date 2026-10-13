@@ -20,7 +20,7 @@ import { createBooking, getPublicFleetCars } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackBookingSubmitted } from '../utils/analytics';
-import { formatISTDate, formatISTTime } from '../utils/dateTime';
+import { formatISTDate, formatISTTime, formatDateSlash } from '../utils/dateTime';
 
 export const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -479,8 +479,22 @@ export default function BookingModal({ isOpen, onClose }) {
                   <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
                     Pickup Date <span className="text-taxi-yellow">*</span>
                   </label>
-                  <div className="relative flex items-center">
-                    <Calendar className="w-4 h-4 text-taxi-yellow absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div className="relative flex items-center group">
+                    {/* Visual Custom Display Container (Guaranteed DD/MM/YYYY Format) */}
+                    <div className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 group-focus-within:border-taxi-yellow group-focus-within:ring-1 group-focus-within:ring-taxi-yellow rounded-xl px-3 sm:px-3.5 flex items-center justify-between text-base sm:text-sm text-white transition-colors pointer-events-none">
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        <Calendar className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                        <span className="font-mono font-bold text-white tracking-wide truncate">
+                          {formatDateSlash(formData.pickup_date)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1.5 flex-shrink-0 pl-1">
+                        <span className="text-[10px] font-mono text-zinc-500 uppercase hidden xs:inline">IST</span>
+                        <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+                      </div>
+                    </div>
+
+                    {/* Invisible Native Input (Captures clicks, triggers native OS/browser date picker) */}
                     <input
                       type="date"
                       name="pickup_date"
@@ -488,7 +502,8 @@ export default function BookingModal({ isOpen, onClose }) {
                       min={getTodayDateString()}
                       value={formData.pickup_date}
                       onChange={handleChange}
-                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-base sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      title="Select Pickup Date (DD/MM/YYYY)"
                     />
                   </div>
                 </div>

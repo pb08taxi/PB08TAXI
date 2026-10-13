@@ -71,6 +71,46 @@ export function formatISTDate(dateInput) {
 }
 
 /**
+ * Formats a date into DD/MM/YYYY with slashes in Indian Standard Time (IST).
+ * Example: "13/10/2026"
+ */
+export function formatDateSlash(dateInput) {
+  if (!dateInput) return 'DD/MM/YYYY';
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(dateInput).trim())) {
+    return String(dateInput).trim();
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(dateInput).trim())) {
+    const [y, m, d] = String(dateInput).trim().split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  const d = parseServerDate(dateInput);
+  if (isNaN(d.getTime())) return String(dateInput);
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).formatToParts(d);
+
+    const day = parts.find(p => p.type === 'day')?.value || '01';
+    const month = parts.find(p => p.type === 'month')?.value || '01';
+    const year = parts.find(p => p.type === 'year')?.value || '2026';
+    return `${day}/${month}/${year}`;
+  } catch (e) {
+    const istTime = new Date(d.getTime() + (5.5 * 60 + d.getTimezoneOffset()) * 60000);
+    const day = String(istTime.getDate()).padStart(2, '0');
+    const month = String(istTime.getMonth() + 1).padStart(2, '0');
+    const year = istTime.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+}
+
+/**
  * Formats time with 12-hour AM/PM in Indian Standard Time (IST).
  * Example: "07:14 PM" or "07:14:34 PM"
  */
