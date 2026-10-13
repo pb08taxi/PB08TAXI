@@ -31,8 +31,8 @@ class Settings(BaseSettings):
     OPENWA_SIMULATOR_MODE: bool = os.getenv("OPENWA_SIMULATOR_MODE", "false").lower() in ("true", "1", "yes")
     
     # Contact & Brand
-    SUPPORT_PHONE: str = os.getenv("SUPPORT_PHONE", "+919876543210")
-    SUPPORT_WHATSAPP: str = os.getenv("SUPPORT_WHATSAPP", "+919876543210")
+    SUPPORT_PHONE: str = os.getenv("SUPPORT_PHONE", "+919888079736")
+    SUPPORT_WHATSAPP: str = os.getenv("SUPPORT_WHATSAPP", "+919888079736")
     BUSINESS_NAME: str = os.getenv("BUSINESS_NAME", "PB08 TAXI")
 
     # GitHub Brand Asset Storage (uploads to /Logo folder in repo)

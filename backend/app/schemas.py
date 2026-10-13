@@ -278,8 +278,8 @@ class DashboardStats(BaseModel):
     eligible_offers_count: int
 
 class SiteSettingsOut(BaseModel):
-    support_phone: str = "+919876543210"
-    whatsapp_number: str = "+919876543210"
+    support_phone: str = "+919888079736"
+    whatsapp_number: str = "+919888079736"
     site_logo_url: Optional[str] = None
     site_favicon_url: Optional[str] = None
     site_logo_size: int = 48

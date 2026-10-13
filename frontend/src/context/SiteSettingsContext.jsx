@@ -4,8 +4,8 @@ import { getPublicSiteSettings } from '../api/client';
 export const SETTINGS_STORAGE_KEY = 'pb08_site_settings_cache';
 
 const DEFAULT_SETTINGS = {
-  support_phone: "+919876543210",
-  whatsapp_number: "+919876543210",
+  support_phone: "+919888079736",
+  whatsapp_number: "+919888079736",
   site_logo_url: null,
   site_favicon_url: null,
   site_logo_size: 48,

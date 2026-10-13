@@ -27,8 +27,8 @@ services:
       - key: ADMIN_EMAIL
         value: admin@pb08taxi.com
       - key: SUPPORT_PHONE
-        value: "+919876543210"
+        value: "+919888079736"
       - key: SUPPORT_WHATSAPP
-        value: "+919876543210"
+        value: "+919888079736"
       - key: BUSINESS_NAME
         value: "PB08 TAXI"
