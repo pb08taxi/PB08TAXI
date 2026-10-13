@@ -25,21 +25,21 @@ import { trackBookingSubmitted } from '../utils/analytics';
 import { formatISTDate, formatISTTime, formatDateSlash } from '../utils/dateTime';
 
 export const POPULAR_COUNTRY_CODES = [
-  { code: '+91', flag: '🇮🇳', label: 'IN +91' },
-  { code: '+1', flag: '🇨🇦', label: 'CA +1' },
-  { code: '+1', flag: '🇺🇸', label: 'US +1' },
-  { code: '+44', flag: '🇬🇧', label: 'UK +44' },
-  { code: '+971', flag: '🇦🇪', label: 'AE +971' },
-  { code: '+61', flag: '🇦🇺', label: 'AU +61' },
-  { code: '+64', flag: '🇳🇿', label: 'NZ +64' },
-  { code: '+49', flag: '🇩🇪', label: 'DE +49' },
-  { code: '+39', flag: '🇮🇹', label: 'IT +39' },
-  { code: '+65', flag: '🇸🇬', label: 'SG +65' },
-  { code: '+60', flag: '🇲🇾', label: 'MY +60' },
-  { code: '+974', flag: '🇶🇦', label: 'QA +974' },
-  { code: '+966', flag: '🇸🇦', label: 'SA +966' },
-  { code: '+965', flag: '🇰🇼', label: 'KW +965' },
-  { code: 'OTHER', flag: '🌐', label: 'Other (+...)' },
+  { code: '+91', flag: '🇮🇳', label: '+91', fullLabel: 'India (+91)' },
+  { code: '+1', flag: '🇨🇦', label: '+1', fullLabel: 'Canada (+1)' },
+  { code: '+1', flag: '🇺🇸', label: '+1', fullLabel: 'USA (+1)' },
+  { code: '+44', flag: '🇬🇧', label: '+44', fullLabel: 'UK (+44)' },
+  { code: '+971', flag: '🇦🇪', label: '+971', fullLabel: 'UAE (+971)' },
+  { code: '+61', flag: '🇦🇺', label: '+61', fullLabel: 'Australia (+61)' },
+  { code: '+64', flag: '🇳🇿', label: '+64', fullLabel: 'New Zealand (+64)' },
+  { code: '+49', flag: '🇩🇪', label: '+49', fullLabel: 'Germany (+49)' },
+  { code: '+39', flag: '🇮🇹', label: '+39', fullLabel: 'Italy (+39)' },
+  { code: '+65', flag: '🇸🇬', label: '+65', fullLabel: 'Singapore (+65)' },
+  { code: '+60', flag: '🇲🇾', label: '+60', fullLabel: 'Malaysia (+60)' },
+  { code: '+974', flag: '🇶🇦', label: '+974', fullLabel: 'Qatar (+974)' },
+  { code: '+966', flag: '🇸🇦', label: '+966', fullLabel: 'Saudi Arabia (+966)' },
+  { code: '+965', flag: '🇰🇼', label: '+965', fullLabel: 'Kuwait (+965)' },
+  { code: 'OTHER', flag: '🌐', label: 'Other', fullLabel: 'Other (+...)' },
 ];
 
 export const DEFAULT_PRESET_CARS = [
@@ -369,7 +369,7 @@ export default function BookingModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
@@ -416,7 +416,7 @@ export default function BookingModal({ isOpen, onClose }) {
         )}
 
         {/* Modal Dialog Card (100% Solid & Stable — No scaling, jitter, or pulse!) */}
-        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-5 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
+        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-4 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
         
         {/* Top Checker Pattern Accent */}
         <div className="absolute top-0 left-6 right-6 sm:left-8 sm:right-8 h-1.5 taxi-checker rounded-t-full" />
@@ -486,7 +486,15 @@ export default function BookingModal({ isOpen, onClose }) {
                 <div className="flex h-11 sm:h-12 rounded-xl overflow-hidden border border-zinc-800 focus-within:border-taxi-yellow focus-within:ring-1 focus-within:ring-taxi-yellow transition-all bg-zinc-900">
                   {/* Selectable / Changeable Country Code Badge */}
                   {!isCustomCountry ? (
-                    <div className="relative bg-zinc-800/90 hover:bg-zinc-750 border-r border-zinc-700/80 flex items-center transition-colors flex-shrink-0">
+                    <div className="relative bg-zinc-800/90 hover:bg-zinc-750 border-r border-zinc-700/80 flex items-center transition-colors flex-shrink-0 px-2 sm:px-2.5">
+                      {/* Visual Display: Compact flag + code + chevron */}
+                      <div className="flex items-center space-x-1 pointer-events-none text-xs sm:text-sm font-bold text-taxi-yellow font-mono whitespace-nowrap">
+                        <span>{POPULAR_COUNTRY_CODES.find((c) => c.code === countryCode)?.flag || '🌐'}</span>
+                        <span>{countryCode}</span>
+                        <ChevronDown className="w-3 h-3 text-taxi-yellow flex-shrink-0" />
+                      </div>
+
+                      {/* Native HTML Select overlay (invisible, handles click and native dropdown) */}
                       <select
                         value={countryCode}
                         onChange={(e) => {
@@ -499,19 +507,18 @@ export default function BookingModal({ isOpen, onClose }) {
                           }
                           setError('');
                         }}
-                        className="bg-transparent text-base sm:text-sm font-bold text-taxi-yellow pl-3 pr-7 h-full font-mono cursor-pointer outline-none appearance-none select-none"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         title="Click to change country code"
                       >
                         {POPULAR_COUNTRY_CODES.map((c) => (
-                          <option key={c.label} value={c.code} className="bg-zinc-900 text-white font-sans py-1">
-                            {c.flag} {c.label}
+                          <option key={c.code + c.flag} value={c.code} className="bg-zinc-900 text-white font-sans py-1">
+                            {c.flag} {c.fullLabel || `${c.label} (${c.code})`}
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="w-3.5 h-3.5 text-taxi-yellow absolute right-2 pointer-events-none" />
                     </div>
                   ) : (
-                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700/80 px-2 h-full flex-shrink-0">
+                    <div className="flex items-center bg-zinc-800/90 border-r border-zinc-700/80 px-1.5 sm:px-2 h-full flex-shrink-0">
                       <input
                         type="text"
                         value={customCountryCode}
@@ -523,7 +530,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           setError('');
                         }}
                         placeholder="+code"
-                        className="w-16 bg-zinc-900 text-taxi-yellow text-base sm:text-sm font-mono font-black py-1 px-1.5 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
+                        className="w-14 bg-zinc-900 text-taxi-yellow text-xs sm:text-sm font-mono font-black py-1 px-1 rounded border border-zinc-700 outline-none text-center focus:border-taxi-yellow"
                         autoFocus
                       />
                       <button
@@ -532,7 +539,7 @@ export default function BookingModal({ isOpen, onClose }) {
                           setIsCustomCountry(false);
                           setCountryCode('+91');
                         }}
-                        className="text-[10px] text-zinc-400 hover:text-white ml-1.5 p-1 rounded hover:bg-zinc-800"
+                        className="text-[10px] text-zinc-400 hover:text-white ml-1 p-1 rounded hover:bg-zinc-800"
                         title="Reset to default (+91)"
                       >
                         ✕
@@ -568,11 +575,11 @@ export default function BookingModal({ isOpen, onClose }) {
                       setError('');
                     }}
                     placeholder={isIndia ? '98765 43210' : 'Mobile number'}
-                    className="w-full h-full bg-transparent px-3.5 text-base sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
+                    className="w-full h-full bg-transparent px-2.5 sm:px-3.5 text-sm sm:text-base text-white placeholder-zinc-500 font-mono tracking-normal sm:tracking-wide outline-none min-w-0"
                   />
 
                   {isPhoneValid && (
-                    <div className="pr-3 flex items-center text-emerald-400 flex-shrink-0" title="Valid phone number">
+                    <div className="pr-2 sm:pr-3 flex items-center text-emerald-400 flex-shrink-0" title="Valid phone number">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   )}
@@ -593,7 +600,7 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
 
               {/* Pickup Date & Time Row - Perfectly balanced side-by-side on mobile & desktop */}
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 {/* Pickup Date */}
                 <div className="relative" ref={calendarRef}>
                   <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
@@ -604,21 +611,20 @@ export default function BookingModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                    className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-3 sm:px-3.5 flex items-center justify-between text-base sm:text-sm text-white transition-all cursor-pointer ${
+                    className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-2 sm:px-3 flex items-center justify-between text-white transition-all cursor-pointer ${
                       isCalendarOpen 
                         ? 'border-taxi-yellow ring-1 ring-taxi-yellow shadow-lg shadow-taxi-yellow/10' 
                         : 'border-zinc-800 hover:border-zinc-700'
                     }`}
                     title="Click to select pickup date"
                   >
-                    <div className="flex items-center space-x-2.5 min-w-0">
-                      <Calendar className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
-                      <span className="font-mono font-bold text-white tracking-wide truncate">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-taxi-yellow flex-shrink-0" />
+                      <span className="font-mono font-bold text-white text-xs sm:text-sm tracking-tight sm:tracking-normal whitespace-nowrap">
                         {formatDateSlash(formData.pickup_date)}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-1.5 flex-shrink-0 pl-1">
-                      <span className="text-[10px] font-mono text-zinc-500 uppercase hidden xs:inline">IST</span>
+                    <div className="flex items-center flex-shrink-0 pl-1">
                       <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isCalendarOpen ? 'rotate-180 text-taxi-yellow' : ''}`} />
                     </div>
                   </button>
@@ -759,14 +765,21 @@ export default function BookingModal({ isOpen, onClose }) {
                     Pickup Time <span className="text-taxi-yellow">*</span>
                   </label>
                   <div className="relative flex items-center">
-                    <Clock className="w-4 h-4 text-taxi-yellow absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-taxi-yellow absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="time"
                       name="pickup_time"
                       required
                       value={formData.pickup_time}
                       onChange={handleChange}
-                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-9 sm:pl-10 pr-2 sm:pr-3 text-base sm:text-sm text-white outline-none transition-colors [color-scheme:dark]"
+                      onClick={(e) => {
+                        try {
+                          if (e.target.showPicker) e.target.showPicker();
+                        } catch (err) {
+                          // Browser fallback
+                        }
+                      }}
+                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-8 sm:pl-9 pr-2 text-xs sm:text-sm text-white font-mono outline-none transition-colors cursor-pointer [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden"
                     />
                   </div>
                 </div>
@@ -833,12 +846,12 @@ export default function BookingModal({ isOpen, onClose }) {
                   onClick={() => setIsCarPickerOpen(!isCarPickerOpen)}
                   className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl px-3.5 text-base sm:text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center space-x-2.5 truncate">
+                  <div className="flex items-center space-x-2.5 truncate min-w-0">
                     <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
                     {formData.car_name ? (
-                      <span className="font-bold text-white truncate">{formData.car_name}</span>
+                      <span className="font-bold text-white truncate text-xs sm:text-sm">{formData.car_name}</span>
                     ) : (
-                      <span className="text-zinc-500">Any Available Cab (Or search & pick preferred car)</span>
+                      <span className="text-zinc-400 text-xs sm:text-sm truncate">Any Available Cab (Optional)</span>
                     )}
                   </div>
                   <div className="flex items-center space-x-1.5 flex-shrink-0">
