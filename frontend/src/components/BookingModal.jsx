@@ -83,6 +83,28 @@ export const MONTH_NAMES = [
 
 export const WEEK_DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
+export const HOURS_LIST = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+export const MINUTES_LIST = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+export const getTimeParts = (timeStr) => {
+  if (!timeStr) return { hour12: '10', minute: '00', period: 'AM' };
+  const parts = String(timeStr).split(':');
+  let h = parseInt(parts[0], 10);
+  if (isNaN(h)) h = 10;
+  const m = parts[1] ? String(parts[1]).slice(0, 2).padStart(2, '0') : '00';
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const hour12Str = String(h12).padStart(2, '0');
+  return { hour12: hour12Str, minute: m, period };
+};
+
+export const build24HourTime = (h12Str, mStr, period) => {
+  let h = parseInt(h12Str, 10);
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+  return `${String(h).padStart(2, '0')}:${String(mStr).padStart(2, '0')}`;
+};
+
 export default function BookingModal({ isOpen, onClose }) {
   const { showSuccess, showError } = useToast();
   const { settings } = useSiteSettings();
@@ -135,14 +157,36 @@ export default function BookingModal({ isOpen, onClose }) {
     }
   }, [formData.pickup_date]);
 
-  // Click outside to close custom calendar
+  // Custom Interactive Time Picker States
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const timePickerRef = useRef(null);
+  const selectedHourRef = useRef(null);
+  const selectedMinuteRef = useRef(null);
+
+  const timeParts = useMemo(() => getTimeParts(formData.pickup_time), [formData.pickup_time]);
+
+  // Auto-scroll selected hour & minute to center when time picker opens
+  useEffect(() => {
+    if (isTimePickerOpen) {
+      const timer = setTimeout(() => {
+        selectedHourRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        selectedMinuteRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [isTimePickerOpen]);
+
+  // Click outside to close custom calendar & time picker
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (calendarRef.current && !calendarRef.current.contains(e.target)) {
         setIsCalendarOpen(false);
       }
+      if (timePickerRef.current && !timePickerRef.current.contains(e.target)) {
+        setIsTimePickerOpen(false);
+      }
     };
-    if (isCalendarOpen) {
+    if (isCalendarOpen || isTimePickerOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
     }
@@ -150,7 +194,42 @@ export default function BookingModal({ isOpen, onClose }) {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isCalendarOpen]);
+  }, [isCalendarOpen, isTimePickerOpen]);
+
+  const handleSelectHour = (h) => {
+    const { minute, period } = getTimeParts(formData.pickup_time);
+    const newTime24 = build24HourTime(h, minute, period);
+    setFormData((prev) => ({ ...prev, pickup_time: newTime24 }));
+  };
+
+  const handleSelectMinute = (m) => {
+    const { hour12, period } = getTimeParts(formData.pickup_time);
+    const newTime24 = build24HourTime(hour12, m, period);
+    setFormData((prev) => ({ ...prev, pickup_time: newTime24 }));
+  };
+
+  const handleSelectPeriod = (p) => {
+    const { hour12, minute } = getTimeParts(formData.pickup_time);
+    const newTime24 = build24HourTime(hour12, minute, p);
+    setFormData((prev) => ({ ...prev, pickup_time: newTime24 }));
+  };
+
+  const handleSetNow = () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    setFormData((prev) => ({ ...prev, pickup_time: `${hh}:${mm}` }));
+  };
+
+  const handleAddHours = (hoursToAdd) => {
+    const { hour12, minute, period } = getTimeParts(formData.pickup_time);
+    let h = parseInt(hour12, 10);
+    if (period === 'PM' && h < 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    const newH = (h + hoursToAdd) % 24;
+    const newTime24 = `${String(newH).padStart(2, '0')}:${minute}`;
+    setFormData((prev) => ({ ...prev, pickup_time: newTime24 }));
+  };
 
   // Fetch Fleet Cars
   useEffect(() => {
@@ -364,6 +443,8 @@ export default function BookingModal({ isOpen, onClose }) {
     });
     setCarSearchQuery('');
     setIsCarPickerOpen(false);
+    setIsCalendarOpen(false);
+    setIsTimePickerOpen(false);
     setError('');
     onClose();
   };
@@ -610,7 +691,10 @@ export default function BookingModal({ isOpen, onClose }) {
                   {/* Clickable Pickup Date Trigger Box */}
                   <button
                     type="button"
-                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                    onClick={() => {
+                      setIsCalendarOpen(!isCalendarOpen);
+                      setIsTimePickerOpen(false);
+                    }}
                     className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-2 sm:px-3 flex items-center justify-between text-white transition-all cursor-pointer ${
                       isCalendarOpen 
                         ? 'border-taxi-yellow ring-1 ring-taxi-yellow shadow-lg shadow-taxi-yellow/10' 
@@ -760,28 +844,188 @@ export default function BookingModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Pickup Time */}
-                <div>
+                <div className="relative" ref={timePickerRef}>
                   <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 truncate">
                     Pickup Time <span className="text-taxi-yellow">*</span>
                   </label>
-                  <div className="relative flex items-center">
-                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-taxi-yellow absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="time"
-                      name="pickup_time"
-                      required
-                      value={formData.pickup_time}
-                      onChange={handleChange}
-                      onClick={(e) => {
-                        try {
-                          if (e.target.showPicker) e.target.showPicker();
-                        } catch (err) {
-                          // Browser fallback
-                        }
-                      }}
-                      className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-8 sm:pl-9 pr-2 text-xs sm:text-sm text-white font-mono outline-none transition-colors cursor-pointer [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden"
-                    />
-                  </div>
+                  
+                  {/* Clickable Pickup Time Trigger Box */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsTimePickerOpen(!isTimePickerOpen);
+                      setIsCalendarOpen(false);
+                    }}
+                    className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-2 sm:px-3 flex items-center justify-between text-white transition-all cursor-pointer ${
+                      isTimePickerOpen 
+                        ? 'border-taxi-yellow ring-1 ring-taxi-yellow shadow-lg shadow-taxi-yellow/10' 
+                        : 'border-zinc-800 hover:border-zinc-700'
+                    }`}
+                    title="Click to select pickup time"
+                  >
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-taxi-yellow flex-shrink-0" />
+                      <span className="font-mono font-bold text-white text-xs sm:text-sm tracking-tight sm:tracking-normal whitespace-nowrap">
+                        {formatISTTime(formData.pickup_time)}
+                      </span>
+                    </div>
+                    <div className="flex items-center flex-shrink-0 pl-1">
+                      <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isTimePickerOpen ? 'rotate-180 text-taxi-yellow' : ''}`} />
+                    </div>
+                  </button>
+
+                  {/* Hidden form input for standard form submission */}
+                  <input
+                    type="hidden"
+                    name="pickup_time"
+                    value={formData.pickup_time}
+                  />
+
+                  {/* Custom Interactive Dark Theme Time Picker Popover */}
+                  {isTimePickerOpen && (
+                    <div 
+                      className="absolute top-full right-0 mt-2 w-[280px] xs:w-[295px] sm:w-[310px] bg-[#141416] border border-zinc-700/90 rounded-2xl p-3.5 shadow-2xl shadow-black/95 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+                      style={{ filter: 'drop-shadow(0 20px 25px rgba(0,0,0,0.9))' }}
+                    >
+                      {/* Top Header: Quick Chips */}
+                      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-zinc-800/80">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                          Select Time
+                        </span>
+                        <div className="flex items-center space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={handleSetNow}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          >
+                            Now
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddHours(1)}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          >
+                            +1 Hr
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddHours(2)}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          >
+                            +2 Hr
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Live Selected Time Banner */}
+                      <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl px-3 py-2 mb-3 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-taxi-yellow" />
+                          <span className="text-base font-black font-mono text-white tracking-wider">
+                            {timeParts.hour12}:{timeParts.minute}
+                          </span>
+                        </div>
+                        <span className="text-xs font-black px-2 py-0.5 rounded bg-taxi-yellow text-black font-mono">
+                          {timeParts.period} IST
+                        </span>
+                      </div>
+
+                      {/* 3 Columns: Hour | Minute | Period */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Hour Column */}
+                        <div className="flex flex-col">
+                          <div className="text-[10px] font-bold uppercase text-zinc-400 text-center pb-1">
+                            Hour
+                          </div>
+                          <div className="h-40 overflow-y-auto rounded-xl bg-zinc-900/80 border border-zinc-800/80 p-1 space-y-1">
+                            {HOURS_LIST.map((h) => {
+                              const isSelected = h === timeParts.hour12;
+                              return (
+                                <button
+                                  key={h}
+                                  ref={isSelected ? selectedHourRef : null}
+                                  type="button"
+                                  onClick={() => handleSelectHour(h)}
+                                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-all text-center cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-taxi-yellow text-black font-black shadow-md shadow-taxi-yellow/30 scale-105'
+                                      : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                                  }`}
+                                >
+                                  {h}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Minute Column */}
+                        <div className="flex flex-col">
+                          <div className="text-[10px] font-bold uppercase text-zinc-400 text-center pb-1">
+                            Minute
+                          </div>
+                          <div className="h-40 overflow-y-auto rounded-xl bg-zinc-900/80 border border-zinc-800/80 p-1 space-y-1">
+                            {MINUTES_LIST.map((m) => {
+                              const isSelected = m === timeParts.minute;
+                              return (
+                                <button
+                                  key={m}
+                                  ref={isSelected ? selectedMinuteRef : null}
+                                  type="button"
+                                  onClick={() => handleSelectMinute(m)}
+                                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-all text-center cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-taxi-yellow text-black font-black shadow-md shadow-taxi-yellow/30 scale-105'
+                                      : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                                  }`}
+                                >
+                                  {m}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Period Column (AM / PM) */}
+                        <div className="flex flex-col">
+                          <div className="text-[10px] font-bold uppercase text-zinc-400 text-center pb-1">
+                            AM / PM
+                          </div>
+                          <div className="h-40 rounded-xl bg-zinc-900/80 border border-zinc-800/80 p-1 flex flex-col justify-center space-y-2">
+                            {['AM', 'PM'].map((p) => {
+                              const isSelected = p === timeParts.period;
+                              return (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => handleSelectPeriod(p)}
+                                  className={`w-full py-3 rounded-lg text-xs font-mono font-bold transition-all text-center cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-taxi-yellow text-black font-black shadow-md shadow-taxi-yellow/30 scale-105'
+                                      : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer: Format info & Done button */}
+                      <div className="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between">
+                        <span className="text-[11px] text-zinc-500 font-mono">Format: 12-Hour (IST)</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsTimePickerOpen(false)}
+                          className="px-3.5 py-1 bg-taxi-yellow hover:bg-yellow-400 text-black font-extrabold text-xs rounded-lg shadow-sm transition-all cursor-pointer"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
