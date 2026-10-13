@@ -1,7 +1,7 @@
 import asyncio
 import re
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -199,7 +199,7 @@ async def send_direct_chat_message(
         "success": True,
         "message": f"Message dispatched successfully to {payload.phone} via OpenWA",
         "phone": payload.phone,
-        "sent_at": datetime.utcnow().isoformat()
+        "sent_at": datetime.now(timezone.utc).isoformat()
     }
 
 @router.get("/chat/history", response_model=List[WhatsAppMessageOut])

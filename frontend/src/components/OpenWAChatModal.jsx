@@ -17,6 +17,7 @@ import {
 import { useOpenWAChat } from '../context/ChatContext';
 import { sendDirectChatMessage, getDirectChatHistory, getWhatsAppStatus } from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { formatISTDateTime } from '../utils/dateTime';
 
 export default function OpenWAChatModal() {
   const { isOpen, chatTarget, closeChat } = useOpenWAChat();
@@ -342,7 +343,7 @@ export default function OpenWAChatModal() {
               const isSending = msg.status === 'SENDING';
               const isFailed = msg.status === 'FAILED';
               const timeStr = msg.sent_at 
-                ? new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                ? formatISTDateTime(msg.sent_at)
                 : '';
 
               return (

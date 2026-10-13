@@ -15,10 +15,10 @@ def format_friendly_date(date_str: Optional[str]) -> str:
     if not date_str:
         return ""
     try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d-%b-%Y")
+        dt = datetime.strptime(date_str.strip(), "%Y-%m-%d")
+        return dt.strftime("%d-%m-%Y")
     except Exception:
-        return date_str
+        return date_str.strip()
 
 def format_friendly_time(time_str: Optional[str]) -> str:
     if not time_str:

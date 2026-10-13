@@ -31,6 +31,7 @@ import {
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 import { useOpenWAChat } from '../context/ChatContext';
+import { formatISTDate } from '../utils/dateTime';
 
 const DEFAULT_PRESET_CARS = [
   { id: 'c1', name: 'Swift Dzire', category: 'Sedan', seating_capacity: '4+1 Seater', is_active: true },
@@ -511,7 +512,7 @@ export default function AdminDriversPage() {
                         <div>
                           <div className="text-white font-extrabold">{driver.name}</div>
                           <div className="text-[10px] text-zinc-500 font-normal">
-                            Added: {new Date(driver.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            Added: {formatISTDate(driver.created_at)}
                           </div>
                         </div>
                       </div>

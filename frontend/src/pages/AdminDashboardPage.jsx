@@ -16,6 +16,7 @@ import {
 import { getAdminStats, getBookings } from '../api/client';
 import { useAdminQuery } from '../utils/adminCache';
 import AdminVisitorAnalytics from '../components/AdminVisitorAnalytics';
+import { formatISTDateTime } from '../utils/dateTime';
 
 export default function AdminDashboardPage() {
   const fetchDashboardData = async () => {
@@ -252,8 +253,8 @@ export default function AdminDashboardPage() {
                           {b.status}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right text-zinc-500 font-mono">
-                        {new Date(b.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <td className="py-3.5 px-4 text-right text-zinc-400 font-mono text-xs">
+                        {formatISTDateTime(b.created_at)}
                       </td>
                     </tr>
                   ))

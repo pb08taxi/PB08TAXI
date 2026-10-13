@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { getAdminAnalyticsStats } from '../api/client';
 import AdminLookerStudioViewer from './AdminLookerStudioViewer';
+import { formatISTTime, formatISTDate, formatISTDateTime, formatISTTimeAgo } from '../utils/dateTime';
 
 export default function AdminVisitorAnalytics() {
   const [activeTab, setActiveTab] = useState('inhouse');
@@ -62,23 +63,12 @@ export default function AdminVisitorAnalytics() {
 
   // Format accurate relative time (Just now, 2m ago, etc.)
   const formatTimeAgo = (dateStr) => {
-    if (!dateStr) return '';
-    const now = new Date();
-    const d = parseUtcDate(dateStr);
-    const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
-
-    // Negative or under 45 seconds due to slight clock drift
-    if (diffSec < 45) return 'Just now';
-    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-    return `${Math.floor(diffSec / 86400)}d ago`;
+    return formatISTTimeAgo(dateStr);
   };
 
-  // Format exact local time (e.g. 05:08 PM)
+  // Format exact local time with AM/PM (e.g. 07:14:34 PM)
   const formatExactTime = (dateStr) => {
-    if (!dateStr) return '';
-    const d = parseUtcDate(dateStr);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    return formatISTTime(dateStr, true);
   };
 
   // Get readable icon and color for event types

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, RefreshCw, CheckCircle2, AlertCircle, Clock, Filter } from 'lucide-react';
 import { getWhatsAppLogs } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
+import { formatISTDateTime } from '../utils/dateTime';
 
 export default function AdminLogsPage() {
   const [typeFilter, setTypeFilter] = useState('');
@@ -67,7 +68,7 @@ export default function AdminLogsPage() {
             <table className="w-full text-left text-xs">
               <thead className="text-[11px] uppercase tracking-wider text-zinc-500 bg-zinc-900/40 border-b border-zinc-850">
                 <tr>
-                  <th className="py-3.5 px-6">Timestamp</th>
+                  <th className="py-3.5 px-6">Timestamp (IST)</th>
                   <th className="py-3.5 px-6">Recipient Phone</th>
                   <th className="py-3.5 px-6">Type</th>
                   <th className="py-3.5 px-6">Message Content</th>
@@ -90,14 +91,8 @@ export default function AdminLogsPage() {
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} className="hover:bg-zinc-900/40 transition-colors">
-                      <td className="py-4 px-6 text-zinc-400 font-mono whitespace-nowrap">
-                        {new Date(log.sent_at).toLocaleString([], {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit'
-                        })}
+                      <td className="py-4 px-6 text-zinc-300 font-mono whitespace-nowrap font-medium">
+                        {formatISTDateTime(log.sent_at, true)}
                       </td>
                       <td className="py-4 px-6 font-mono font-bold text-white">
                         {log.phone}

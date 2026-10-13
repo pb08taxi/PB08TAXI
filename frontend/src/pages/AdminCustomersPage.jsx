@@ -26,6 +26,7 @@ import {
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 import { useOpenWAChat } from '../context/ChatContext';
+import { formatISTDate } from '../utils/dateTime';
 
 const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -357,12 +358,8 @@ export default function AdminCustomersPage() {
                     </td>
 
                     {/* Date Added */}
-                    <td className="py-4 px-6 text-zinc-400">
-                      {new Date(c.created_at).toLocaleDateString([], {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                    <td className="py-4 px-6 text-zinc-400 font-mono text-xs">
+                      {formatISTDate(c.created_at)}
                     </td>
 
                     {/* Total Bookings */}

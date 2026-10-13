@@ -23,6 +23,7 @@ import { getBookings, updateBookingStatus, getDrivers } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 import { useOpenWAChat } from '../context/ChatContext';
+import { formatISTDateTime, formatISTDate, formatISTTime } from '../utils/dateTime';
 
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
@@ -274,7 +275,7 @@ export default function AdminBookingsPage() {
                     <td className="py-4 px-6 font-mono font-bold text-taxi-yellow">
                       <div>#{b.booking_reference}</div>
                       <div className="text-[10px] text-zinc-500 font-normal">
-                        {new Date(b.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {formatISTDateTime(b.created_at)}
                       </div>
                     </td>
 
@@ -293,10 +294,10 @@ export default function AdminBookingsPage() {
                         <div className="space-y-0.5">
                           <p className="font-bold text-white flex items-center space-x-1">
                             <CalendarCheck className="w-3.5 h-3.5 text-taxi-yellow inline mr-1 flex-shrink-0" />
-                            <span>{b.pickup_date || 'Today'}</span>
+                            <span>{formatISTDate(b.pickup_date)}</span>
                           </p>
                           <p className="text-[11px] text-taxi-yellow/90 font-mono">
-                            {b.pickup_time || 'Immediate'}
+                            {formatISTTime(b.pickup_time)}
                           </p>
                         </div>
                       ) : (
@@ -453,7 +454,7 @@ export default function AdminBookingsPage() {
               <div className="flex justify-between">
                 <span className="text-zinc-500">Pickup Date & Time:</span>
                 <span className="font-bold text-taxi-yellow">
-                  {selectedBooking.pickup_date || 'Today'} at {selectedBooking.pickup_time || 'Immediate'}
+                  {formatISTDate(selectedBooking.pickup_date) || 'Today'} at {formatISTTime(selectedBooking.pickup_time) || 'Immediate'}
                 </span>
               </div>
               <div className="flex justify-between">

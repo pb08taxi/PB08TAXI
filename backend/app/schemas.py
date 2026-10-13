@@ -61,6 +61,12 @@ class CustomerOut(CustomerBase):
     updated_at: datetime
     total_bookings: int = 0
 
+    @field_serializer("created_at", "updated_at")
+    def serialize_dates(self, dt: datetime, _info):
+        if dt and dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat() if dt else None
+
     class Config:
         from_attributes = True
 
@@ -138,6 +144,12 @@ class DriverOut(DriverBase):
     updated_at: datetime
     total_rides: int = 0
 
+    @field_serializer("created_at", "updated_at")
+    def serialize_dates(self, dt: datetime, _info):
+        if dt and dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat() if dt else None
+
     class Config:
         from_attributes = True
 
@@ -166,6 +178,12 @@ class BookingOut(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     whatsapp_status: Optional[str] = None
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime, _info):
+        if dt and dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat() if dt else None
 
     class Config:
         from_attributes = True
@@ -238,6 +256,12 @@ class WhatsAppMessageOut(BaseModel):
     status: str
     error_detail: Optional[str] = None
     sent_at: datetime
+
+    @field_serializer("sent_at")
+    def serialize_sent_at(self, dt: datetime, _info):
+        if dt and dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat() if dt else None
 
     class Config:
         from_attributes = True

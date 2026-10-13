@@ -45,7 +45,11 @@
   - Tabbed switcher in `AdminVisitorAnalytics.jsx` between In-House Live Tracker and Google Looker Studio 360.
   - Dedicated "Analytics 360" menu navigation (`/admin/analytics`) in `AdminLayout.jsx`.
   - Backend configuration endpoints (`/api/admin/analytics/looker-studio` and `/api/admin/seo`) with automated iframe `src` sanitization.
-  - Quick setup guide with pre-configured links to Google Analytics 4 Property ID `411659377` and Measurement ID `G-MD0W9GNM7V`.
+- [x] **Global Indian Standard Time (IST) & DD-MM-YYYY Date/Time Standardization:**
+  - Created centralized date & time utility (`frontend/src/utils/dateTime.js`).
+  - Standardized all dates to strict `DD-MM-YYYY` across logs, bookings, customers, drivers, and pickup schedules.
+  - Standardized all times to Indian Standard Time (IST / Asia/Kolkata) with 12-hour AM/PM format.
+  - Added UTC field serializers in backend Pydantic schemas (`WhatsAppMessageOut`, `BookingOut`, `CustomerOut`, `DriverOut`) with explicit `+00:00` timezone offset.
 
 ---
 

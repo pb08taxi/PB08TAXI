@@ -20,6 +20,7 @@ import { createBooking, getPublicFleetCars } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackBookingSubmitted } from '../utils/analytics';
+import { formatISTDate, formatISTTime } from '../utils/dateTime';
 
 export const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: 'IN +91' },
@@ -764,7 +765,7 @@ export default function BookingModal({ isOpen, onClose }) {
                   <p>
                     <span className="text-zinc-500 font-medium">Pickup Schedule:</span>{' '}
                     <span className="text-taxi-yellow font-bold">
-                      {successResult.pickup_date || 'Today'} {successResult.pickup_time ? `at ${successResult.pickup_time}` : ''}
+                      {formatISTDate(successResult.pickup_date) || 'Today'} {successResult.pickup_time ? `at ${formatISTTime(successResult.pickup_time)}` : ''}
                     </span>
                   </p>
                 )}

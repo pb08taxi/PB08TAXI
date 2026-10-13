@@ -14,12 +14,12 @@ from app.services.whatsapp_service import whatsapp_service, send_background_mess
 router = APIRouter(tags=["Public"])
 
 def format_friendly_date(date_str: Optional[str]) -> str:
-    """Format YYYY-MM-DD to friendly '12-Oct-2026'."""
+    """Format YYYY-MM-DD to standard DD-MM-YYYY (e.g. '13-10-2026')."""
     if not date_str:
         return "Immediate / Today"
     try:
         dt = datetime.strptime(date_str.strip(), "%Y-%m-%d")
-        return dt.strftime("%d-%b-%Y")
+        return dt.strftime("%d-%m-%Y")
     except Exception:
         return date_str.strip()
 
