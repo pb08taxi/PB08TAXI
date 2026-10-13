@@ -79,7 +79,7 @@ def get_analytics_stats(
 
     today_pageviews = db.query(AnalyticsEvent).filter(
         AnalyticsEvent.created_at >= today_start,
-        AnalyticsEvent.event_type == "pageview"
+        AnalyticsEvent.event_type.in_(["pageview", "page_view"])
     ).count()
 
     today_calls = db.query(AnalyticsEvent).filter(
@@ -112,12 +112,12 @@ def get_analytics_stats(
 
     total_pageviews_period = db.query(AnalyticsEvent).filter(
         AnalyticsEvent.created_at >= period_start,
-        AnalyticsEvent.event_type == "pageview"
+        AnalyticsEvent.event_type.in_(["pageview", "page_view"])
     ).count()
 
     total_clicks_period = db.query(AnalyticsEvent).filter(
         AnalyticsEvent.created_at >= period_start,
-        AnalyticsEvent.event_type != "pageview"
+        ~AnalyticsEvent.event_type.in_(["pageview", "page_view"])
     ).count()
 
     # 3. Device Breakdown in Period
@@ -175,13 +175,13 @@ def get_analytics_stats(
         d_pageviews = db.query(AnalyticsEvent).filter(
             AnalyticsEvent.created_at >= d_start,
             AnalyticsEvent.created_at <= d_end,
-            AnalyticsEvent.event_type == "pageview"
+            AnalyticsEvent.event_type.in_(["pageview", "page_view"])
         ).count()
 
         d_clicks = db.query(AnalyticsEvent).filter(
             AnalyticsEvent.created_at >= d_start,
             AnalyticsEvent.created_at <= d_end,
-            AnalyticsEvent.event_type != "pageview"
+            ~AnalyticsEvent.event_type.in_(["pageview", "page_view"])
         ).count()
 
         d_bookings = db.query(Booking).filter(

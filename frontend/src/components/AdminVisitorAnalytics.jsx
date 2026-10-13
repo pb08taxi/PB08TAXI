@@ -237,8 +237,8 @@ export default function AdminVisitorAnalytics() {
         <div className="pt-4 overflow-x-auto">
           <div className="min-w-[500px] flex items-end justify-between gap-3 h-40 border-b border-zinc-800 pb-2">
             {data?.daily_trends?.map((point, idx) => {
-              const vHeight = Math.max(8, Math.round((point.visitors / maxTrend) * 120));
-              const pHeight = Math.max(8, Math.round((point.pageviews / maxTrend) * 120));
+              const vHeight = point.visitors > 0 ? Math.max(8, Math.round((point.visitors / maxTrend) * 120)) : 2;
+              const pHeight = point.pageviews > 0 ? Math.max(8, Math.round((point.pageviews / maxTrend) * 120)) : 2;
 
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center justify-end group">
