@@ -210,11 +210,11 @@ export default function Footer({ onOpenBooking }) {
               <Link to="/editorial-policy" className="hover:text-taxi-yellow transition-colors">Editorial Policy.</Link>
             </div>
           </div>
-          <p className="flex items-center space-x-1">
-            <span>Built for Punjab with</span>
-            <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" />
-            <span>• Fast &amp; Lightweight.</span>
-          </p>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-2 gap-y-1 text-zinc-400 text-xs">
+            <span>Owner: <strong className="text-zinc-200">Pawan Kumar</strong></span>
+            <span className="text-zinc-600">•</span>
+            <span>Developed by <strong className="text-taxi-yellow font-semibold">Deepak</strong></span>
+          </div>
         </div>
       </div>
     </footer>

@@ -32,7 +32,8 @@ export default function SEOHead() {
       setMeta('name', 'description', finalDesc);
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
-      setMeta('name', 'author', 'Harmanpreet Singh, PB08 TAXI Operations');
+      setMeta('name', 'author', 'Pawan Kumar, Owner & Founder — PB08 TAXI');
+      setMeta('name', 'developer', 'Deepak');
       setMeta('property', 'article:published_time', '2024-01-01T00:00:00+05:30');
       setMeta('property', 'article:modified_time', '2026-10-15T15:00:00+05:30');
       setMeta('property', 'og:updated_time', '2026-10-15T15:00:00+05:30');
@@ -157,9 +158,9 @@ export default function SEOHead() {
           author: {
             '@type': 'Person',
             '@id': `${canonicalUrl}/#founder`,
-            name: 'Harmanpreet Singh',
-            jobTitle: 'Fleet Operations Lead & Senior Transport Specialist',
-            description: 'Certified fleet operations manager with 12+ years of professional Punjab passenger transport experience, road safety verification, and round-the-clock highway dispatch expertise.',
+            name: 'Pawan Kumar',
+            jobTitle: 'Owner, Founder & Fleet Operations Director',
+            description: 'Owner and founder of PB08 TAXI with 12+ years of professional Punjab passenger transport experience, road safety verification, and round-the-clock highway dispatch leadership.',
             knowsAbout: [
               'Punjab Highway Logistics',
               'Passenger Transport Safety',

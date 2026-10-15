@@ -6,6 +6,8 @@
 PB08 TAXI is a premier taxi and car rental service operating across Punjab, Haryana, Himachal Pradesh, Jammu & Kashmir, and Delhi NCR. We specialize in 24/7 airport transfers, one-way outstation drops, intercity corporate travel, and family pilgrimage packages.
 
 ## Primary Hub & Physical Address
+- **Owner & Founder:** Pawan Kumar
+- **Platform Developer:** Deepak
 - **Central Office:** Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India
 - **Phone / 24/7 Helpline:** +91 98880 79736
 - **WhatsApp Reservation:** https://wa.me/919888079736

@@ -239,8 +239,8 @@ export default function WhyChooseUs({ onOpenBooking }) {
                     PB
                   </div>
                   <div>
-                    <p className="text-zinc-100 font-bold" itemProp="name">Harmanpreet Singh</p>
-                    <p className="text-[11px] text-taxi-yellow font-semibold" itemProp="jobTitle">Fleet Operations Lead &amp; Senior Transport Specialist</p>
+                    <p className="text-zinc-100 font-bold" itemProp="name">Pawan Kumar</p>
+                    <p className="text-[11px] text-taxi-yellow font-semibold" itemProp="jobTitle">Owner, Founder &amp; Fleet Operations Director</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3 text-zinc-500 font-mono text-[11px]">
@@ -250,7 +250,7 @@ export default function WhyChooseUs({ onOpenBooking }) {
                 </div>
               </div>
               <p className="text-xs text-zinc-400 leading-relaxed" itemProp="description">
-                <strong>Author Bio &amp; Credentials:</strong> Certified fleet manager with 12+ years of professional Punjab highway logistics experience, driver route safety verification, and round-the-clock passenger dispatch leadership.
+                <strong>Founder &amp; Author Bio:</strong> Pawan Kumar, Owner and Founder of PB08 TAXI with 12+ years of professional Punjab highway logistics experience, driver route safety verification, and round-the-clock passenger dispatch leadership.
               </p>
               <div className="flex flex-wrap gap-2 text-[11px] text-zinc-400">
                 <span className="bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-zinc-300" itemProp="knowsAbout">Punjab Highway Logistics.</span>

@@ -5,6 +5,8 @@ PB08 TAXI (https://www.pb08taxi.com) is a 24/7 on-demand chauffeur and taxi book
 ## Agent System Information
 - **Domain:** https://www.pb08taxi.com
 - **API Origin:** https://pb08-taxi-api.onrender.com
+- **Owner & Founder:** Pawan Kumar
+- **Platform Developer:** Deepak
 - **Physical Hub:** Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India
 - **Helpline / WhatsApp:** +91 98880 79736
 - **Contact Email:** pb08taxi@gmail.com
