@@ -145,13 +145,6 @@ export default function SEOHead() {
                 opens: '00:00',
                 closes: '23:59'
               },
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: '4.9',
-                reviewCount: '540',
-                bestRating: '5',
-                worstRating: '1'
-              },
               hasOfferCatalog: {
                 '@type': 'OfferCatalog',
                 name: 'PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & Airport Taxi Routes',
