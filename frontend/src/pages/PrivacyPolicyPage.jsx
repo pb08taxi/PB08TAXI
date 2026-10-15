@@ -231,7 +231,7 @@ export default function PrivacyPolicyPage() {
                   <CheckCircle2 className="w-4 h-4 text-taxi-yellow mt-0.5 flex-shrink-0" />
                   <div>
                     <strong className="text-white block text-xs">Real-Time GPS Location (Optional "Use Current Location"):</strong>
-                    <span className="text-xs text-zinc-400">When you voluntarily click "Use Current Location", your browser captures exact latitude and longitude coordinates (e.g. 31.3174, 75.6209). This is embedded into a direct Google Maps navigation link shared strictly with your assigned chauffeur to facilitate zero-confusion doorstep pickup.</span>
+                    <span className="text-xs text-zinc-400">When you voluntarily click "Use Current Location", your browser captures exact latitude and longitude coordinates (e.g. 28.6139, 77.2090). This is embedded into a direct Google Maps navigation link shared strictly with your assigned chauffeur to facilitate zero-confusion doorstep pickup.</span>
                   </div>
                 </li>
                 <li className="flex items-start space-x-3 bg-zinc-900/40 p-3 rounded-xl border border-zinc-850">

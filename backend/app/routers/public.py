@@ -34,7 +34,7 @@ def format_friendly_time(time_str: Optional[str]) -> str:
         return time_str.strip()
 
 def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]]:
-    """Extract latitude and longitude from location text like 'GPS Location (31.3174, 75.6209)'."""
+    """Extract latitude and longitude from location text like 'GPS Location (28.6139, 77.2090)'."""
     if not text:
         return None
     match = re.search(r"(-?\d+\.\d{3,}),\s*(-?\d+\.\d{3,})", text)
