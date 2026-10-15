@@ -16,6 +16,7 @@ import {
   Mountain,
   FileCheck,
   Award,
+  Plane,
   ChevronRight
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -107,6 +108,28 @@ export default function SafeTravelGuidelinesPage() {
         "Polite, non-intrusive chauffeurs trained in professional guest hospitality and luggage loading assistance.",
         "Immediate Lost & Found assistance: if you leave a bag or phone behind, call our 24/7 hotline for immediate driver dispatch retrieval.",
         "Zero smoking, zero alcohol, and mandatory seatbelts for all passengers in compliance with the Motor Vehicles Act."
+      ]
+    },
+    {
+      icon: MapPin,
+      title: "7. Doorstep Live GPS Pickup & Exact Navigation",
+      color: "text-cyan-400",
+      bg: "bg-cyan-500/10",
+      points: [
+        "One-tap 'Use Current Location' captures precise GPS coordinates (latitude, longitude), generating a live Google Maps pin for your chauffeur.",
+        "Eliminates frustrating landmark confusion and unnecessary phone calls in dense residential colonies, mohallas, and market areas.",
+        "Live driver arrival tracking: your assigned chauffeur reaches right where you stand with zero delay."
+      ]
+    },
+    {
+      icon: Plane,
+      title: "8. Airport Flight Tracking & Meet-and-Greet",
+      color: "text-sky-400",
+      bg: "bg-sky-500/10",
+      points: [
+        "Real-time flight arrival tracking at Amritsar (ATQ), Delhi IGI (DEL T1/T2/T3), and Chandigarh (IXC) airports.",
+        "Zero extra waiting surcharges for verified flight delays — your cab is guaranteed to wait until you exit the terminal.",
+        "Designated terminal arrivals coordination with luggage assistance and direct driver contact via WhatsApp."
       ]
     }
   ];

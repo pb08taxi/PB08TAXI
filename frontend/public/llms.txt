@@ -12,7 +12,7 @@ PB08 TAXI is a premier taxi and car rental service operating across Punjab, Hary
 - **Website:** https://www.pb08taxi.com
 
 ## Key Service Routes
-- **Jalandhar to Delhi IGI Airport (DEL) & Delhi NCR:** Direct one-way drops and round-trip transfers via NH44.
+- **Jalandhar to Delhi IGI Airport (DEL Terminals 1, 2, 3) & Delhi NCR:** Direct one-way drops and round-trip transfers via NH44.
 - **Jalandhar to Amritsar (ATQ Airport & Golden Temple):** Express highway transfers with zero wait times.
 - **Jalandhar to Chandigarh (Shaheed Bhagat Singh Airport IXC & City):** Fast intercity travel.
 - **Jalandhar to Ludhiana:** 45-minute intercity express transit.
@@ -28,8 +28,10 @@ PB08 TAXI is a premier taxi and car rental service operating across Punjab, Hary
 ## Guarantees & Features
 - **Fixed Upfront Pricing:** Zero surge charges and zero return fees on one-way drop bookings.
 - **100% Verified Drivers:** Police-verified chauffeurs trained for safe late-night and highway driving.
-- **Instant WhatsApp Confirmation:** Direct one-click booking with real-time driver allocation.
+- **Instant WhatsApp Confirmation:** Direct one-click booking with real-time driver allocation and Google Maps pickup pin.
+- **Doorstep GPS Navigation:** One-tap "Use Current Location" links real-time coordinates directly to chauffeur navigation.
 - **Clean & AC Cabs:** Rigorously sanitized vehicles with dual air conditioning.
+- **DPDP Act (2023) Compliant:** Customer privacy protected, opt-in promotional messages, and right to data erasure.
 - **Service Hours:** 24 Hours a day, 7 Days a week, 365 Days a year.
 
 ## Core Landing Pages & URLs
@@ -38,4 +40,3 @@ PB08 TAXI is a premier taxi and car rental service operating across Punjab, Hary
 - **Safe Travel Guidelines:** https://www.pb08taxi.com/safe-travel-guidelines
 - **Privacy Policy:** https://www.pb08taxi.com/privacy-policy
 - **Terms of Service:** https://www.pb08taxi.com/terms-of-service
-

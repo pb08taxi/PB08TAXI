@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
             {/* Quick Badge Card */}
             <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-2xl flex-shrink-0 text-xs space-y-1.5 shadow-xl">
               <div className="text-zinc-400 font-medium">
-                Effective Date: <strong className="text-white">January 2026</strong>
+                Effective Date: <strong className="text-white">October 2026</strong>
               </div>
               <div className="text-zinc-400 font-medium">
                 Compliance: <strong className="text-taxi-yellow">DPDP Act (2023) & IT Act (2000)</strong>
@@ -223,8 +223,15 @@ export default function PrivacyPolicyPage() {
                 <li className="flex items-start space-x-3 bg-zinc-900/40 p-3 rounded-xl border border-zinc-850">
                   <CheckCircle2 className="w-4 h-4 text-taxi-yellow mt-0.5 flex-shrink-0" />
                   <div>
-                    <strong className="text-white block text-xs">Trip & Route Details:</strong>
+                    <strong className="text-white block text-xs">Trip &amp; Route Details:</strong>
                     <span className="text-xs text-zinc-400">Pickup address or landmark, destination, scheduled pickup date, departure time, and preferred vehicle model (e.g. Maruti Dzire, Toyota Innova, Ertiga).</span>
+                  </div>
+                </li>
+                <li className="flex items-start space-x-3 bg-zinc-900/40 p-3 rounded-xl border border-zinc-850">
+                  <CheckCircle2 className="w-4 h-4 text-taxi-yellow mt-0.5 flex-shrink-0" />
+                  <div>
+                    <strong className="text-white block text-xs">Real-Time GPS Location (Optional "Use Current Location"):</strong>
+                    <span className="text-xs text-zinc-400">When you voluntarily click "Use Current Location", your browser captures exact latitude and longitude coordinates (e.g. 31.3174, 75.6209). This is embedded into a direct Google Maps navigation link shared strictly with your assigned chauffeur to facilitate zero-confusion doorstep pickup.</span>
                   </div>
                 </li>
                 <li className="flex items-start space-x-3 bg-zinc-900/40 p-3 rounded-xl border border-zinc-850">
@@ -248,19 +255,19 @@ export default function PrivacyPolicyPage() {
               <p>Your collected information is used solely for the following legitimate business purposes:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1">
-                  <span className="font-bold text-white block">Ride Scheduling & Dispatch</span>
-                  <span className="text-zinc-400">Allocating an available commercial taxi and transmitting pickup coordinates to the assigned driver.</span>
+                  <span className="font-bold text-white block">Ride Scheduling &amp; Dispatch</span>
+                  <span className="text-zinc-400">Allocating an available commercial taxi and transmitting pickup coordinates/Google Maps link to the assigned driver.</span>
                 </div>
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1">
                   <span className="font-bold text-white block">Instant WhatsApp Confirmations</span>
-                  <span className="text-zinc-400">Sending your unique booking reference (#PB08-XXXX) and driver contact card.</span>
+                  <span className="text-zinc-400">Sending your unique booking reference (#PB08-XXXX), driver duty card, and pickup location pin.</span>
                 </div>
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1">
-                  <span className="font-bold text-white block">Passenger Safety & Assistance</span>
+                  <span className="font-bold text-white block">Passenger Safety &amp; Assistance</span>
                   <span className="text-zinc-400">Providing 24/7 telephone helpline support during transit and handling queries on lost property.</span>
                 </div>
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1">
-                  <span className="font-bold text-white block">Fraud & Abuse Prevention</span>
+                  <span className="font-bold text-white block">Fraud &amp; Abuse Prevention</span>
                   <span className="text-zinc-400">Protecting our fleet drivers against bogus automated booking attempts and phantom call-outs.</span>
                 </div>
               </div>
@@ -272,15 +279,16 @@ export default function PrivacyPolicyPage() {
                 <div className="w-8 h-8 rounded-xl bg-[#25D366] text-black flex items-center justify-center font-black text-xs">
                   04
                 </div>
-                <h2 className="text-lg font-black text-white">4. WhatsApp Notifications & Dispatch Alerts</h2>
+                <h2 className="text-lg font-black text-white">4. WhatsApp Notifications &amp; Dispatch Alerts</h2>
               </div>
               <p>
                 Because <strong className="text-white">{brandTitle}</strong> operates on real-time driver dispatch, WhatsApp is our primary communication channel. By requesting a ride, you agree to receive automated notifications regarding:
               </p>
               <ul className="list-disc list-inside space-y-1.5 text-xs text-zinc-300 pl-2">
-                <li>Immediate booking receipt acknowledgment with your reference number.</li>
+                <li>Immediate booking receipt acknowledgment with your reference number and Google Maps pickup pin.</li>
                 <li>Driver duty assignment alerts containing driver name, contact phone number, taxi registration number, and car model.</li>
                 <li>Trip completion confirmation and customer care feedback.</li>
+                <li>Promotional festive discounts or special route offers (sent exclusively to users who voluntarily opt-in via the booking consent checkbox).</li>
               </ul>
               <div className="bg-[#25D366]/10 border border-[#25D366]/30 p-4 rounded-2xl flex items-start space-x-3 text-xs text-zinc-300">
                 <MessageSquare className="w-4 h-4 text-[#25D366] mt-0.5 flex-shrink-0" />
@@ -359,27 +367,27 @@ export default function PrivacyPolicyPage() {
                 <div className="w-8 h-8 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-black text-xs">
                   08
                 </div>
-                <h2 className="text-lg font-black text-white">8. Your Rights & Data Erasure (DPDP Act, 2023)</h2>
+                <h2 className="text-lg font-black text-white">8. Your Rights &amp; Data Erasure (DPDP Act, 2023)</h2>
               </div>
               <p>
                 Under the Digital Personal Data Protection Act, 2023 (India), you have the right to:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
-                  <strong className="text-white block mb-0.5">Right of Access & Review</strong>
-                  <span className="text-zinc-400">Request a summary of your historical rides and contact details saved on our server.</span>
+                  <strong className="text-white block mb-0.5">Right of Access &amp; Review</strong>
+                  <span className="text-zinc-400">Request a summary of your historical rides, locations, and contact details saved on our server.</span>
                 </div>
                 <div className="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
                   <strong className="text-white block mb-0.5">Right to Rectification</strong>
-                  <span className="text-zinc-400">Request correction of outdated contact numbers or customer information.</span>
+                  <span className="text-zinc-400">Request correction of outdated contact numbers, preferred routes, or customer information.</span>
                 </div>
                 <div className="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
-                  <strong className="text-white block mb-0.5">Right to Erasure / Deletion</strong>
-                  <span className="text-zinc-400">Request permanent deletion of your phone number and customer profile from our system.</span>
+                  <strong className="text-white block mb-0.5">Right to Erasure / Deletion (Right to be Forgotten)</strong>
+                  <span className="text-zinc-400">Request granular or complete deletion of your phone number, trip history, GPS pins, and marketing opt-ins from our database.</span>
                 </div>
                 <div className="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
-                  <strong className="text-white block mb-0.5">Grievance Redressal</strong>
-                  <span className="text-zinc-400">Lodge a complaint directly with our Grievance Officer regarding any data concern.</span>
+                  <strong className="text-white block mb-0.5">Right to Withdraw Consent</strong>
+                  <span className="text-zinc-400">Revoke your WhatsApp marketing consent anytime with zero effect on your ability to book future rides.</span>
                 </div>
               </div>
             </section>

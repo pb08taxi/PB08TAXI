@@ -5,13 +5,13 @@
   <!-- Primary Homepage -->
   <url>
     <loc>https://www.pb08taxi.com/</loc>
-    <lastmod>2026-10-13</lastmod>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png</image:loc>
-      <image:title>PB08 TAXI — 24/7 Cab Service in Punjab</image:title>
-      <image:caption>One-click instant taxi booking service in Jalandhar, Punjab and airport transfers</image:caption>
+      <image:loc>https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.webp</image:loc>
+      <image:title>PB08 TAXI — 24/7 Cab Service in Punjab &amp; Airport Cabs</image:title>
+      <image:caption>One-click instant taxi booking service in Jalandhar, Punjab, airport transfers, and outstation cabs across India</image:caption>
     </image:image>
   </url>
 
@@ -27,24 +27,24 @@
   <url>
     <loc>https://www.pb08taxi.com/safe-travel-guidelines</loc>
     <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Privacy Policy Legal Page -->
+  <!-- Privacy Policy Legal Page (DPDP Act 2023 Compliant) -->
   <url>
     <loc>https://www.pb08taxi.com/privacy-policy</loc>
     <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
   </url>
 
   <!-- Terms of Service Legal Page -->
   <url>
     <loc>https://www.pb08taxi.com/terms-of-service</loc>
     <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
   </url>
 
 </urlset>

@@ -95,7 +95,7 @@ export default function TermsOfServicePage() {
             {/* Quick Badge Card */}
             <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-2xl flex-shrink-0 text-xs space-y-1.5 shadow-xl">
               <div className="text-zinc-400 font-medium">
-                Last Updated: <strong className="text-white">January 2026</strong>
+                Last Updated: <strong className="text-white">October 2026</strong>
               </div>
               <div className="text-zinc-400 font-medium">
                 Jurisdiction: <strong className="text-taxi-yellow">Jalandhar, Punjab, India</strong>
@@ -211,15 +211,15 @@ export default function TermsOfServicePage() {
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
                 <li className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 flex items-start space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-taxi-yellow mt-0.5 flex-shrink-0" />
-                  <span><strong>Airport Transfers:</strong> Dedicated pickups & drops to Amritsar (ATQ), Chandigarh (IXC), and Delhi IGI Airport (DEL).</span>
+                  <span><strong>Airport Transfers:</strong> Dedicated pickups &amp; drops to Amritsar (ATQ), Chandigarh (IXC), and Delhi IGI Airport (DEL Terminal 1, 2, 3).</span>
                 </li>
                 <li className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 flex items-start space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-taxi-yellow mt-0.5 flex-shrink-0" />
-                  <span><strong>Intercity Outstation Cabs:</strong> One-way and round-trip transfers across Punjab, Haryana, Delhi NCR, and Himachal Pradesh.</span>
+                  <span><strong>All-India Popular Routes:</strong> Guaranteed one-way and round-trip transfers across 35+ routes covering Punjab, Haryana, Rajasthan, Delhi NCR, and Himachal Pradesh.</span>
                 </li>
                 <li className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 flex items-start space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-taxi-yellow mt-0.5 flex-shrink-0" />
-                  <span><strong>Local City Cabs:</strong> Hourly rental, local shopping, and station drop services in Jalandhar and adjoining districts.</span>
+                  <span><strong>Hill Station &amp; Pilgrimage Charters:</strong> Specialized mountain chauffeurs for Shimla, Manali, Dharamshala, Dalhousie, and Katra (Mata Vaishno Devi).</span>
                 </li>
                 <li className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 flex items-start space-x-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-taxi-yellow mt-0.5 flex-shrink-0" />
@@ -234,7 +234,7 @@ export default function TermsOfServicePage() {
                 <div className="w-8 h-8 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-black text-xs">
                   03
                 </div>
-                <h2 className="text-lg font-black text-white">3. Booking & Confirmation Protocol</h2>
+                <h2 className="text-lg font-black text-white">3. Booking &amp; Confirmation Protocol</h2>
               </div>
               <p>
                 Submitting a ride reservation request through our website generates a priority booking ticket:
@@ -242,7 +242,8 @@ export default function TermsOfServicePage() {
               <ul className="list-disc list-inside space-y-1.5 text-xs text-zinc-300 pl-2">
                 <li><strong>Booking Reference:</strong> Every reservation receives a unique system ID (e.g. #PB08-1024) sent via instant WhatsApp message.</li>
                 <li><strong>Driver Assignment:</strong> A commercial taxi and driver are assigned in advance of your scheduled pickup date and time. Details including Driver Name, Contact Number, Taxi Registration Number, and Car Model are shared with the passenger.</li>
-                <li><strong>Information Accuracy:</strong> The passenger is responsible for providing an accurate pickup address, reachable WhatsApp/mobile number, and scheduled timing (including flight flight numbers for airport pickups).</li>
+                <li><strong>Live GPS Location Pickup:</strong> If the passenger selects "Use Current Location", precise GPS coordinates are linked to the reservation. The assigned chauffeur will navigate directly to this Google Maps pin. The passenger agrees to remain reachable by phone or WhatsApp at the scheduled departure time.</li>
+                <li><strong>Flight Coordination:</strong> For airport pickups, passengers are requested to provide valid flight numbers to allow automatic flight tracking for delayed arrivals.</li>
               </ul>
             </section>
 
@@ -252,7 +253,7 @@ export default function TermsOfServicePage() {
                 <div className="w-8 h-8 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-black text-xs">
                   04
                 </div>
-                <h2 className="text-lg font-black text-white">4. Fares, Tolls, Taxes & Payment Methods</h2>
+                <h2 className="text-lg font-black text-white">4. Fares, Tolls, Taxes &amp; Payment Methods</h2>
               </div>
               <p>
                 We believe in total transparency without hidden post-ride charges:
@@ -260,11 +261,11 @@ export default function TermsOfServicePage() {
               <div className="space-y-2 text-xs bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800">
                 <div className="flex items-start space-x-2">
                   <span className="text-taxi-yellow font-bold">•</span>
-                  <span><strong>Base Tariff:</strong> Quoted either as an all-inclusive flat airport package or based on actual route distance (minimum per-day km limit applies for outstation round trips).</span>
+                  <span><strong>Base Tariff:</strong> Quoted either as an all-inclusive flat airport package or based on actual route distance (zero return dead-mileage charges for one-way drops).</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="text-taxi-yellow font-bold">•</span>
-                  <span><strong>Tolls, Border Taxes & Parking:</strong> State border entry permits, highway FASTag toll plaza charges, and airport parking fees are payable as actuals unless explicitly bundled in an all-inclusive quote.</span>
+                  <span><strong>Tolls, Border Taxes &amp; Parking:</strong> State commercial border entry taxes (e.g. Himachal Pradesh green tax, Delhi entry MCD toll), highway FASTag toll plazas, and airport parking fees are charged strictly as actuals with receipts unless bundled into a fixed package quote.</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="text-taxi-yellow font-bold">•</span>
