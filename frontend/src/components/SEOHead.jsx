@@ -32,7 +32,7 @@ export default function SEOHead() {
       setMeta('name', 'description', finalDesc);
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
-      setMeta('name', 'author', 'Pawan Kumar, Owner & Founder — PB08 TAXI');
+      setMeta('name', 'author', 'Pawan Kumar, Owner & Founder - PB08 TAXI');
       setMeta('name', 'developer', 'Deepak');
       setMeta('property', 'article:published_time', '2024-01-01T00:00:00+05:30');
       setMeta('property', 'article:modified_time', '2026-10-15T15:00:00+05:30');
