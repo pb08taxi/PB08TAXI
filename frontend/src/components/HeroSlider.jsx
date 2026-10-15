@@ -35,6 +35,12 @@ const getInitialSlides = () => {
   return DEFAULT_SLIDES;
 };
 
+const getResponsiveSrcSet = (url) => {
+  if (!url || typeof url !== 'string' || !url.includes('images.unsplash.com')) return undefined;
+  const baseUrl = url.split('?')[0];
+  return `${baseUrl}?auto=format&fit=crop&w=640&q=75 640w, ${baseUrl}?auto=format&fit=crop&w=1080&q=75 1080w, ${baseUrl}?auto=format&fit=crop&w=1600&q=80 1600w`;
+};
+
 export default function HeroSlider({ onOpenBooking }) {
   const { settings } = useSiteSettings();
   const [slides, setSlides] = useState(getInitialSlides);
@@ -122,11 +128,13 @@ export default function HeroSlider({ onOpenBooking }) {
           >
             <img
               src={slide.image_url}
+              srcSet={getResponsiveSrcSet(slide.image_url)}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1600px"
               alt={slide.title}
               width="1600"
               height="900"
               fetchpriority={idx === 0 ? "high" : "low"}
-              loading="eager"
+              loading={idx === 0 ? "eager" : "lazy"}
               decoding="async"
               className="w-full h-full object-cover object-center filter brightness-95 text-transparent text-[0px]"
             />

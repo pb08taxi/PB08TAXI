@@ -20,9 +20,10 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
-import BookingModal from '../components/BookingModal';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackRouteClick } from '../utils/analytics';
+
+const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
 export const ALL_INDIA_ROUTES = [
   // --- Punjab Intercity Express & Airports ---
@@ -892,7 +893,11 @@ export default function PopularRoutesPage() {
       <FloatingWhatsApp onOpenBooking={handleOpenBooking} />
 
       {/* One Click Book Your Ride Modal */}
-      <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
+      {isBookingOpen && (
+        <React.Suspense fallback={null}>
+          <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
+        </React.Suspense>
+      )}
     </div>
   );
 }

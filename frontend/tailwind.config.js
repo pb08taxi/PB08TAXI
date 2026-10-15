@@ -36,8 +36,8 @@ export default {
           '50%': { transform: 'translateY(-6px)' },
         },
         glowPulse: {
-          '0%': { boxShadow: '0 0 15px rgba(250, 204, 21, 0.4)' },
-          '100%': { boxShadow: '0 0 35px rgba(250, 204, 21, 0.85)' },
+          '0%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 8px rgba(250, 204, 21, 0.4))' },
+          '100%': { transform: 'scale(1.02)', filter: 'drop-shadow(0 0 18px rgba(250, 204, 21, 0.8))' },
         }
       }
     },
