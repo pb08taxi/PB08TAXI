@@ -8,7 +8,7 @@ const DEFAULT_SLIDES = [
     id: 1,
     title: "PB08 TAXI — 24/7 Premium Cabs in Punjab",
     subtitle: "Reliable, Safe & Air-Conditioned Rides at Affordable Fixed Rates",
-    image_url: "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1600&q=80"
+    image_url: "/Logo/pb08taxi-banner-default.webp"
   },
   {
     id: 2,

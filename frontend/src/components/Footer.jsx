@@ -27,7 +27,7 @@ export default function Footer({ onOpenBooking }) {
                   src={settings.site_logo_url}
                   alt={brandTitle}
                   width={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
-                  srcSet={`${logoSrc} 1x, ${logoSrc} 2x`}
+                  srcSet={`${settings.site_logo_url} 1x, ${settings.site_logo_url} 2x`}
                   height={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
                   style={{
                     height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
