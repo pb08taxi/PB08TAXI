@@ -374,6 +374,14 @@ class MessageTemplateUpdate(BaseModel):
 
 class FactoryResetRequest(BaseModel):
     secret_pin: str = Field(..., min_length=1, max_length=50)
+    clear_bookings: bool = False
+    clear_customers: bool = False
+    clear_drivers: bool = False
+    clear_whatsapp_logs: bool = False
+    clear_marketing_consents: bool = False
+    reset_slider_images: bool = False
+    reset_message_templates: bool = False
+    reset_site_settings: bool = False
 
 class SEOSettingsOut(BaseModel):
     meta_title: str = "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab"

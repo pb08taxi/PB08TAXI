@@ -21,8 +21,9 @@ import {
   X,
   Car,
   Type,
-  Sparkles,
   Check,
+  CheckSquare,
+  Square,
   Sliders,
   Share2,
   Globe
@@ -130,6 +131,107 @@ export default function AdminSettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState('');
   const [resetError, setResetError] = useState('');
+  const [resetOptions, setResetOptions] = useState({
+    clear_bookings: true,
+    clear_customers: true,
+    clear_drivers: true,
+    clear_whatsapp_logs: true,
+    clear_marketing_consents: true,
+    reset_slider_images: false,
+    reset_message_templates: false,
+    reset_site_settings: false,
+  });
+
+  const RESET_ITEMS = [
+    {
+      key: 'clear_bookings',
+      label: 'Customer Bookings & Ride History',
+      desc: 'All ride reservations, booking references, dates, times, and routes',
+      icon: '🚖',
+      danger: true,
+    },
+    {
+      key: 'clear_customers',
+      label: 'Customer Directory & Profiles',
+      desc: 'Customer names, phone numbers, and customer database records',
+      icon: '👥',
+      danger: true,
+    },
+    {
+      key: 'clear_drivers',
+      label: 'Driver Profiles & Taxi Registrations',
+      desc: 'All added drivers, car assignments, and contact details',
+      icon: '🚗',
+      danger: true,
+    },
+    {
+      key: 'clear_whatsapp_logs',
+      label: 'WhatsApp Message Logs & Audit History',
+      desc: 'All automated booking confirmation and duty assignment logs',
+      icon: '💬',
+      danger: false,
+    },
+    {
+      key: 'clear_marketing_consents',
+      label: 'Marketing & Promotional Consents',
+      desc: 'Customer WhatsApp promotional consent opt-in records',
+      icon: '📋',
+      danger: false,
+    },
+    {
+      key: 'reset_slider_images',
+      label: 'Hero Slider Images',
+      desc: 'Restore homepage hero banner slides back to 3 default sample slides',
+      icon: '🖼️',
+      danger: false,
+    },
+    {
+      key: 'reset_message_templates',
+      label: 'WhatsApp Message Templates',
+      desc: 'Reset customized WhatsApp templates back to PB08 default templates',
+      icon: '📝',
+      danger: false,
+    },
+    {
+      key: 'reset_site_settings',
+      label: 'Site Settings & Branding Links',
+      desc: 'Reset support numbers, logo pointers, and social links to clean defaults',
+      icon: '⚙️',
+      danger: false,
+    },
+  ];
+
+  const handleSelectAllReset = () => {
+    setResetOptions({
+      clear_bookings: true,
+      clear_customers: true,
+      clear_drivers: true,
+      clear_whatsapp_logs: true,
+      clear_marketing_consents: true,
+      reset_slider_images: true,
+      reset_message_templates: true,
+      reset_site_settings: true,
+    });
+  };
+
+  const handleDeselectAllReset = () => {
+    setResetOptions({
+      clear_bookings: false,
+      clear_customers: false,
+      clear_drivers: false,
+      clear_whatsapp_logs: false,
+      clear_marketing_consents: false,
+      reset_slider_images: false,
+      reset_message_templates: false,
+      reset_site_settings: false,
+    });
+  };
+
+  const toggleResetOption = (key) => {
+    setResetOptions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectedResetCount = Object.values(resetOptions).filter(Boolean).length;
 
   // Sync settings when data changes
   useEffect(() => {
@@ -285,6 +387,11 @@ export default function AdminSettingsPage() {
   // Handle Factory Reset (Secret PIN: 333725)
   const handleFactoryReset = async (e) => {
     if (e) e.preventDefault();
+    if (selectedResetCount === 0) {
+      setResetError("Please select at least one item to erase or reset.");
+      showError("Please select at least one item to erase or reset.", "No Selection");
+      return;
+    }
     if (resetPin.trim() !== "333725") {
       setResetError("Incorrect Secret PIN! Please enter 333725 to confirm.");
       showError("Incorrect Secret PIN! Please enter 333725 to confirm.", "PIN Verification Failed");
@@ -294,9 +401,9 @@ export default function AdminSettingsPage() {
     setResetError("");
     setResetSuccess("");
     try {
-      const res = await factoryResetSystem(resetPin.trim());
-      setResetSuccess(res.message || "Website Factory Reset Completed Successfully!");
-      showSuccess(res.message || "Website Factory Reset Completed Successfully!", "Factory Reset Done");
+      const res = await factoryResetSystem(resetPin.trim(), resetOptions);
+      setResetSuccess(res.message || "Factory Reset Completed Successfully!");
+      showSuccess(res.message || "Factory Reset Completed Successfully!", "Reset Done");
       adminCache.invalidate();
       if (refreshGlobalSettings) refreshGlobalSettings();
       setTimeout(async () => {
@@ -1242,30 +1349,28 @@ export default function AdminSettingsPage() {
           </form>
         </div>
 
-        {/* Section 5: Danger Zone - Factory Reset */}
+        {/* Section 5: Danger Zone - Granular Selective Factory Reset */}
         <div className="bg-red-950/20 border border-red-900/40 rounded-3xl p-6 sm:p-8 space-y-6">
           <div className="flex items-center space-x-3 pb-4 border-b border-red-900/30">
             <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-lg shadow-red-900/40">
               <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-red-300">Danger Zone — Factory Reset Website</h2>
+              <h2 className="text-lg font-bold text-red-300">Danger Zone — Selective Factory Reset</h2>
               <p className="text-xs text-red-200/60">
-                Permanently clear all bookings, customers, drivers, message logs, and restore settings to a fresh clean state.
+                Choose exactly which records to wipe or restore. Tick or untick individual categories with complete admin control.
               </p>
             </div>
           </div>
 
           <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-zinc-300 space-y-2">
             <p className="font-bold text-red-400 flex items-center space-x-1.5">
-              <span>⚠️ What happens during Factory Reset:</span>
+              <span>⚠️ Granular Control &amp; Data Safety:</span>
             </p>
             <ul className="list-disc list-inside space-y-1 text-zinc-400 pl-1">
-              <li>All customer booking records and ride history will be deleted.</li>
-              <li>All customer profiles and drivers will be completely wiped.</li>
-              <li>All WhatsApp message delivery logs and marketing consents will be cleared.</li>
-              <li>Homepage slider images and message templates will be restored to fresh defaults.</li>
-              <li><strong className="text-emerald-400">Safe:</strong> Admin credentials and active WhatsApp pairing session are safely preserved.</li>
+              <li>Individual tick/untick controls for Bookings, Customers, Drivers, WhatsApp logs, Marketing consents, Slider images, Templates, and Site settings.</li>
+              <li>"Select All" and "Deselect All" one-click toggles available in the reset console.</li>
+              <li><strong className="text-emerald-400">Guaranteed Safe:</strong> Admin login credentials and active WhatsApp pairing session are ALWAYS preserved.</li>
             </ul>
           </div>
 
@@ -1284,59 +1389,171 @@ export default function AdminSettingsPage() {
               className="bg-red-600 hover:bg-red-500 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg shadow-red-950/60 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
               <Trash2 className="w-4 h-4" />
-              <span>Factory Reset Website</span>
+              <span>Configure &amp; Factory Reset</span>
             </button>
           </div>
         </div>
 
       </div>
 
-      {/* Factory Reset Modal Confirmation Popup */}
+      {/* Factory Reset Modal Confirmation Popup with Tick/Untick Checkboxes */}
       {showResetModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-red-800/80 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in-95">
-            {/* Close button */}
-            <button
-              type="button"
-              disabled={resetting}
-              onClick={() => setShowResetModal(false)}
-              className="absolute top-5 right-5 text-zinc-400 hover:text-white p-1 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Warning Icon & Heading */}
-            <div className="text-center space-y-3 pt-2">
-              <div className="w-16 h-16 rounded-2xl bg-red-950/80 border border-red-800 text-red-400 mx-auto flex items-center justify-center shadow-lg shadow-red-950/50">
-                <AlertTriangle className="w-8 h-8 stroke-[2.5]" />
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-zinc-950 border border-red-800/80 rounded-3xl max-w-2xl w-full p-5 sm:p-7 space-y-5 shadow-2xl relative animate-in fade-in zoom-in-95 max-h-[92vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-zinc-800/80 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-950/90 border border-red-800 text-red-400 flex items-center justify-center shadow-lg shadow-red-950/50 flex-shrink-0">
+                  <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-white">Selective Factory Reset</h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Tick items to erase. Unticked items will stay <strong className="text-emerald-400">100% untouched</strong>.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-black text-white">Confirm Factory Reset</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                This action is <span className="text-red-400 font-bold">irreversible</span>. All bookings, customers, drivers, and message dispatches will be permanently wiped clean.
-              </p>
+              <button
+                type="button"
+                disabled={resetting}
+                onClick={() => setShowResetModal(false)}
+                className="text-zinc-400 hover:text-white p-1.5 rounded-xl hover:bg-zinc-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Selection Toolbar (Select All / Deselect All + Live Counter) */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 bg-zinc-900/60 p-3 rounded-2xl border border-zinc-800/80">
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={handleSelectAllReset}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-colors flex items-center space-x-1.5"
+                >
+                  <CheckSquare className="w-3.5 h-3.5 text-taxi-yellow" />
+                  <span>Select All (8)</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={handleDeselectAllReset}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition-colors flex items-center space-x-1.5"
+                >
+                  <Square className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Deselect All</span>
+                </button>
+              </div>
+
+              <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                selectedResetCount > 0 
+                  ? 'bg-red-950/60 text-red-300 border-red-800/70' 
+                  : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+              }`}>
+                {selectedResetCount} of {RESET_ITEMS.length} selected
+              </span>
+            </div>
+
+            {/* Scrollable Checklist of Items */}
+            <div className="overflow-y-auto space-y-2 pr-1 max-h-[36vh] sm:max-h-[40vh] custom-scrollbar">
+              {RESET_ITEMS.map((item) => {
+                const isChecked = !!resetOptions[item.key];
+                return (
+                  <div
+                    key={item.key}
+                    onClick={() => {
+                      if (!resetting) toggleResetOption(item.key);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!resetting) toggleResetOption(item.key);
+                      }
+                    }}
+                    className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      isChecked
+                        ? 'bg-red-950/35 border-red-700/80 shadow-md shadow-red-950/30'
+                        : 'bg-zinc-900/40 border-zinc-850 hover:border-zinc-750 opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="flex-shrink-0">
+                        {isChecked ? (
+                          <CheckSquare className="w-5 h-5 text-red-400" />
+                        ) : (
+                          <Square className="w-5 h-5 text-zinc-500" />
+                        )}
+                      </div>
+                      <span className="text-xl flex-shrink-0 select-none">{item.icon}</span>
+                      <div className="min-w-0">
+                        <p className={`text-xs sm:text-sm font-bold truncate ${
+                          isChecked ? 'text-red-200' : 'text-zinc-300'
+                        }`}>
+                          {item.label}
+                        </p>
+                        <p className="text-[11px] text-zinc-400 leading-tight mt-0.5 line-clamp-1">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      {item.danger ? (
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+                          isChecked
+                            ? 'bg-red-950 text-red-300 border-red-800'
+                            : 'bg-zinc-850 text-zinc-500 border-zinc-800'
+                        }`}>
+                          Wipe Data
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+                          isChecked
+                            ? 'bg-amber-950/60 text-amber-300 border-amber-800'
+                            : 'bg-zinc-850 text-zinc-500 border-zinc-800'
+                        }`}>
+                          Reset Default
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Permanent Safety Banner */}
+            <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-2xl text-xs text-emerald-300 flex items-center space-x-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>
+                <strong>Protected &amp; Safe:</strong> Admin login credentials and active WhatsApp pairing session are <span className="underline">never</span> erased.
+              </span>
             </div>
 
             {/* Alerts */}
             {resetSuccess && (
-              <div className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5">
+              <div className="p-3.5 bg-emerald-950/70 border border-emerald-800 rounded-2xl text-emerald-200 text-xs flex items-center space-x-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                 <span className="font-bold">{resetSuccess}</span>
               </div>
             )}
             {resetError && (
-              <div className="p-4 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
+              <div className="p-3.5 bg-red-950/70 border border-red-800 rounded-2xl text-red-200 text-xs flex items-center space-x-2.5">
                 <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <span>{resetError}</span>
               </div>
             )}
 
-            {/* PIN Input Form */}
-            <form onSubmit={handleFactoryReset} className="space-y-4">
+            {/* PIN Input & Submit Form */}
+            <form onSubmit={handleFactoryReset} className="space-y-4 pt-1">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-2 text-center">
-                  Enter Secret PIN to Authorize:
+                  Enter Secret PIN to Authorize ({selectedResetCount} selected):
                 </label>
-                <div className="relative">
+                <div className="relative max-w-xs mx-auto">
                   <KeyRound className="w-5 h-5 text-zinc-500 absolute left-4 top-3.5" />
                   <input
                     type="password"
@@ -1367,16 +1584,20 @@ export default function AdminSettingsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={resetting || !resetPin || !!resetSuccess}
-                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-black text-xs py-3.5 rounded-xl shadow-lg shadow-red-900/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  disabled={resetting || !resetPin || selectedResetCount === 0 || !!resetSuccess}
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:hover:scale-100 text-white font-black text-xs py-3.5 rounded-xl shadow-lg shadow-red-900/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   {resetting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Resetting...</span>
+                      <span>Erasing Selected Data...</span>
                     </>
                   ) : (
-                    <span>Confirm Reset</span>
+                    <span>
+                      {selectedResetCount === 0
+                        ? 'Select Items to Reset'
+                        : `Confirm Reset (${selectedResetCount} items)`}
+                    </span>
                   )}
                 </button>
               </div>

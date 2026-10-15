@@ -381,8 +381,8 @@ def factory_reset_system(
     db: Session = Depends(get_db)
 ):
     """
-    Factory Reset: Wipes all operational transactional data (bookings, customers, drivers, message logs, marketing consents)
-    and restores slider images, message templates, and site settings to a clean default state.
+    Selective or Full Factory Reset:
+    Admin has 100% granular control with checkboxes to pick and choose exactly what to erase.
     Strictly protected with Secret PIN 333725.
     Admin user account and active WhatsApp connection session are safely preserved.
     """
@@ -392,69 +392,103 @@ def factory_reset_system(
             detail="Invalid Secret PIN. Factory Reset aborted."
         )
 
+    all_flags = [
+        payload.clear_bookings,
+        payload.clear_customers,
+        payload.clear_drivers,
+        payload.clear_whatsapp_logs,
+        payload.clear_marketing_consents,
+        payload.reset_slider_images,
+        payload.reset_message_templates,
+        payload.reset_site_settings,
+    ]
+    # If no specific flags passed, wipe all for backward compatibility
+    wipe_all = not any(all_flags)
+
+    cleared_items = []
+
     try:
-        # 1. Clear Bookings
-        db.query(Booking).delete(synchronize_session=False)
+        # 1. Clear Bookings (also auto-triggered if clearing customers due to FK cascade)
+        if payload.clear_bookings or wipe_all or payload.clear_customers:
+            b_count = db.query(Booking).delete(synchronize_session=False)
+            cleared_items.append(f"{b_count} Bookings")
 
         # 2. Clear WhatsApp message logs
-        db.query(WhatsAppMessage).delete(synchronize_session=False)
+        if payload.clear_whatsapp_logs or wipe_all:
+            w_count = db.query(WhatsAppMessage).delete(synchronize_session=False)
+            cleared_items.append(f"{w_count} WhatsApp Logs")
 
         # 3. Clear Marketing Consents
-        db.query(MarketingConsent).delete(synchronize_session=False)
+        if payload.clear_marketing_consents or wipe_all:
+            m_count = db.query(MarketingConsent).delete(synchronize_session=False)
+            cleared_items.append(f"{m_count} Marketing Consents")
 
         # 4. Clear Customers
-        db.query(Customer).delete(synchronize_session=False)
+        if payload.clear_customers or wipe_all:
+            c_count = db.query(Customer).delete(synchronize_session=False)
+            cleared_items.append(f"{c_count} Customers")
 
         # 5. Clear Drivers
-        db.query(Driver).delete(synchronize_session=False)
+        if payload.clear_drivers or wipe_all:
+            d_count = db.query(Driver).delete(synchronize_session=False)
+            cleared_items.append(f"{d_count} Drivers")
 
         # 6. Reset Slider Images to fresh initial defaults
-        db.query(SliderImage).delete(synchronize_session=False)
-        for s in DEFAULT_SAMPLE_SLIDES:
-            db.add(SliderImage(
-                title=s["title"],
-                subtitle=s["subtitle"],
-                image_url=s["image_url"],
-                sort_order=s["sort_order"],
-                is_active=s["is_active"]
-            ))
+        if payload.reset_slider_images or wipe_all:
+            db.query(SliderImage).delete(synchronize_session=False)
+            for s in DEFAULT_SAMPLE_SLIDES:
+                db.add(SliderImage(
+                    title=s["title"],
+                    subtitle=s["subtitle"],
+                    image_url=s["image_url"],
+                    sort_order=s["sort_order"],
+                    is_active=s["is_active"]
+                ))
+            cleared_items.append("Slider Images restored to defaults")
 
         # 7. Reset Message Templates to fresh defaults
-        db.query(MessageTemplate).delete(synchronize_session=False)
-        from app.routers.admin_whatsapp import DEFAULT_TEMPLATES
-        for t in DEFAULT_TEMPLATES:
-            db.add(MessageTemplate(
-                template_key=t["template_key"],
-                title=t["title"],
-                content=t["content"],
-                variables_hint=t.get("variables_hint"),
-                updated_at=datetime.utcnow()
-            ))
+        if payload.reset_message_templates or wipe_all:
+            db.query(MessageTemplate).delete(synchronize_session=False)
+            from app.routers.admin_whatsapp import DEFAULT_TEMPLATES
+            for t in DEFAULT_TEMPLATES:
+                db.add(MessageTemplate(
+                    template_key=t["template_key"],
+                    title=t["title"],
+                    content=t["content"],
+                    variables_hint=t.get("variables_hint"),
+                    updated_at=datetime.utcnow()
+                ))
+            cleared_items.append("WhatsApp Templates restored to defaults")
 
         # 8. Reset Site Settings (preserve openwa_session_id so connection is not lost)
-        openwa_sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
-        saved_session_id = openwa_sess_item.value if openwa_sess_item else None
+        if payload.reset_site_settings or wipe_all:
+            openwa_sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
+            saved_session_id = openwa_sess_item.value if openwa_sess_item else None
 
-        db.query(SystemSetting).delete(synchronize_session=False)
+            db.query(SystemSetting).delete(synchronize_session=False)
 
-        # Restore defaults
-        db.add(SystemSetting(key="support_phone", value="+919876543210", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="whatsapp_number", value="+919876543210", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="site_logo_url", value="", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="site_favicon_url", value="", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="show_credentials_hint", value="false", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="admin_alert_whatsapp_enabled", value="true", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="admin_alert_whatsapp_number", value="", updated_at=datetime.utcnow()))
-        db.add(SystemSetting(key="booking_modal_animation", value="golden-glow", updated_at=datetime.utcnow()))
+            # Restore defaults
+            db.add(SystemSetting(key="support_phone", value="+919876543210", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="whatsapp_number", value="+919876543210", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="site_logo_url", value="", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="site_favicon_url", value="", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="show_credentials_hint", value="false", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="admin_alert_whatsapp_enabled", value="true", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="admin_alert_whatsapp_number", value="", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="booking_modal_animation", value="golden-glow", updated_at=datetime.utcnow()))
 
-        if saved_session_id:
-            db.add(SystemSetting(key="openwa_session_id", value=saved_session_id, updated_at=datetime.utcnow()))
+            if saved_session_id:
+                db.add(SystemSetting(key="openwa_session_id", value=saved_session_id, updated_at=datetime.utcnow()))
+
+            cleared_items.append("Site Settings restored to defaults")
 
         db.commit()
 
+        summary_text = ", ".join(cleared_items) if cleared_items else "No items selected."
         return {
             "success": True,
-            "message": "Website factory reset successfully! All operational records have been wiped and settings restored to clean default state."
+            "message": f"Factory reset completed successfully! ({summary_text})",
+            "cleared_items": cleared_items
         }
     except Exception as e:
         db.rollback()
