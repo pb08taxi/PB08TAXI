@@ -23,6 +23,7 @@ import { useToast } from '../context/ToastContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackBookingSubmitted } from '../utils/analytics';
 import { formatISTDate, formatISTTime, formatDateSlash } from '../utils/dateTime';
+import LocationAutocompleteInput from './LocationAutocompleteInput';
 
 export const POPULAR_COUNTRY_CODES = [
   { code: '+91', flag: '🇮🇳', label: '+91', fullLabel: 'India (+91)' },
@@ -1031,41 +1032,33 @@ export default function BookingModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Pickup Location (Optional) */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                  Pickup Location <span className="text-zinc-500 text-[10px] font-normal">(Optional)</span>
-                </label>
-                <div className="relative flex items-center">
-                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    name="pickup_location"
-                    value={formData.pickup_location}
-                    onChange={handleChange}
-                    placeholder="e.g. Model Town, Jalandhar / Home"
-                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-base sm:text-sm text-white placeholder-zinc-500 outline-none transition-colors"
-                  />
-                </div>
-              </div>
+              {/* Pickup Location with All-India Autocomplete & One-Click GPS */}
+              <LocationAutocompleteInput
+                label="Pickup Location"
+                name="pickup_location"
+                value={formData.pickup_location}
+                onChange={(val) => {
+                  setFormData((prev) => ({ ...prev, pickup_location: val }));
+                  setError('');
+                }}
+                placeholder="Type city, airport or area (e.g. Jal, Model Town, Delhi)..."
+                isDestination={false}
+                allowGPS={true}
+              />
 
-              {/* Destination (Optional) */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
-                  Destination <span className="text-zinc-500 text-[10px] font-normal">(Optional)</span>
-                </label>
-                <div className="relative flex items-center">
-                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    name="destination"
-                    value={formData.destination}
-                    onChange={handleChange}
-                    placeholder="e.g. Amritsar Airport, Chandigarh, Delhi NCR"
-                    className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow rounded-xl pl-10 pr-4 text-base sm:text-sm text-white placeholder-zinc-500 outline-none transition-colors"
-                  />
-                </div>
-              </div>
+              {/* Destination with All-India Autocomplete */}
+              <LocationAutocompleteInput
+                label="Destination"
+                name="destination"
+                value={formData.destination}
+                onChange={(val) => {
+                  setFormData((prev) => ({ ...prev, destination: val }));
+                  setError('');
+                }}
+                placeholder="Type drop city or airport (e.g. Del, Amritsar Airport, Shimla)..."
+                isDestination={true}
+                allowGPS={false}
+              />
 
               {/* Select Car (Preferred Vehicle Model - Searchable by Car Name) */}
               <div className="relative">
