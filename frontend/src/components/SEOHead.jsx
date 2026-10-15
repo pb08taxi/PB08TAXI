@@ -27,7 +27,7 @@ export default function SEOHead() {
       };
 
       // 2. Standard Meta Tags
-      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
+      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
       setMeta('name', 'author', 'Harmanpreet Singh, PB08 TAXI Operations');
@@ -47,7 +47,7 @@ export default function SEOHead() {
       // 4. OpenGraph Tags (Facebook, WhatsApp, Instagram, LinkedIn)
       setMeta('property', 'og:site_name', seo.business_name || 'PB08 TAXI');
       setMeta('property', 'og:title', seo.og_title || seo.meta_title);
-      setMeta('property', 'og:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
+      setMeta('property', 'og:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
       if (seo.og_image) {
         setMeta('property', 'og:image', seo.og_image);
         setMeta('property', 'og:image:width', '1200');
@@ -67,7 +67,7 @@ export default function SEOHead() {
       // 5. Twitter Card Tags
       setMeta('name', 'twitter:card', seo.twitter_card || 'summary_large_image');
       setMeta('name', 'twitter:title', seo.og_title || seo.meta_title);
-      setMeta('name', 'twitter:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
+      setMeta('name', 'twitter:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
       if (seo.og_image) {
         setMeta('name', 'twitter:image', seo.og_image);
         setMeta('name', 'twitter:image:width', '1200');
