@@ -11,6 +11,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import BookingModal from '../components/BookingModal';
 import SEOHead from '../components/SEOHead';
+import CookieConsent from '../components/CookieConsent';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
 
 export default function HomePage() {
@@ -80,6 +81,9 @@ export default function HomePage() {
 
       {/* Floating WhatsApp Action Button */}
       <FloatingWhatsApp onOpenBooking={handleOpenBooking} />
+
+      {/* Cookie Consent Banner (GDPR / DPDP Compliance) */}
+      <CookieConsent />
 
       {/* One Click Book Your Ride Modal */}
       <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />

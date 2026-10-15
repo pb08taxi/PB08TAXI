@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/agent-card.json",
+  "name": "PB08 TAXI",
+  "description": "24/7 Jalandhar Taxi, Airport Cabs & Punjab Outstation Transfers",
+  "url": "https://www.pb08taxi.com",
+  "version": "1.0.0",
+  "provider": {
+    "name": "PB08 TAXI Logistics",
+    "url": "https://www.pb08taxi.com",
+    "contact": "pb08taxi@gmail.com"
+  },
+  "capabilities": [
+    "taxi_booking",
+    "fare_estimation",
+    "airport_transfers",
+    "outstation_travel"
+  ],
+  "contact": {
+    "phone": "+919888079736",
+    "whatsapp": "https://wa.me/919888079736",
+    "address": "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India"
+  }
+}

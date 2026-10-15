@@ -1,0 +1,10 @@
+{
+  "mcpVersion": "1.0.0",
+  "name": "pb08-taxi",
+  "description": "PB08 TAXI 24/7 Cabs in Punjab, Airport Transfers & Outstation Bookings",
+  "homepage": "https://www.pb08taxi.com",
+  "endpoints": {
+    "web": "https://www.pb08taxi.com",
+    "api": "https://pb08-taxi-api.onrender.com/api"
+  }
+}

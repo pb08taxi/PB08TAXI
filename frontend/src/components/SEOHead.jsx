@@ -27,7 +27,7 @@ export default function SEOHead() {
       };
 
       // 2. Standard Meta Tags
-      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.');
+      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
       setMeta('name', 'author', 'Harmanpreet Singh, PB08 TAXI Operations');
@@ -47,9 +47,12 @@ export default function SEOHead() {
       // 4. OpenGraph Tags (Facebook, WhatsApp, Instagram, LinkedIn)
       setMeta('property', 'og:site_name', seo.business_name || 'PB08 TAXI');
       setMeta('property', 'og:title', seo.og_title || seo.meta_title);
-      setMeta('property', 'og:description', seo.og_description || seo.meta_description);
+      setMeta('property', 'og:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
       if (seo.og_image) {
         setMeta('property', 'og:image', seo.og_image);
+        setMeta('property', 'og:image:width', '1200');
+        setMeta('property', 'og:image:height', '630');
+        setMeta('property', 'og:image:alt', 'PB08 TAXI — 24/7 Premium Cabs in Punjab');
       }
       const canonicalUrl = seo.canonical_url || 'https://www.pb08taxi.com';
       setMeta('property', 'og:url', canonicalUrl);
@@ -64,9 +67,11 @@ export default function SEOHead() {
       // 5. Twitter Card Tags
       setMeta('name', 'twitter:card', seo.twitter_card || 'summary_large_image');
       setMeta('name', 'twitter:title', seo.og_title || seo.meta_title);
-      setMeta('name', 'twitter:description', seo.og_description || seo.meta_description);
+      setMeta('name', 'twitter:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.');
       if (seo.og_image) {
         setMeta('name', 'twitter:image', seo.og_image);
+        setMeta('name', 'twitter:image:width', '1200');
+        setMeta('name', 'twitter:image:height', '630');
       }
 
       // 6. Search Engine Verification
@@ -117,6 +122,21 @@ export default function SEOHead() {
           },
           image: `${canonicalUrl}/icon-512.png`,
           telephone: seo.support_phone || '+919888079736',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: settings?.physical_address || 'Model Town, Near BMC Chowk',
+            addressLocality: 'Jalandhar',
+            addressRegion: seo.geo_region || 'Punjab',
+            postalCode: '144001',
+            addressCountry: 'IN'
+          },
+          contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: seo.support_phone || '+919888079736',
+            contactType: 'customer service',
+            areaServed: 'IN',
+            availableLanguage: ['en', 'hi', 'pa']
+          },
           sameAs: socialLinks
         });
 
@@ -133,9 +153,10 @@ export default function SEOHead() {
           sameAs: socialLinks,
           logo: `${canonicalUrl}/icon-512.png`,
           image: seo.og_image || `${canonicalUrl}/icon-512.png`,
-          description: seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.',
+          description: seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, Punjab outstation trips & local city rides with verified drivers & upfront fares.',
           author: {
             '@type': 'Person',
+            '@id': `${canonicalUrl}/#founder`,
             name: 'Harmanpreet Singh',
             jobTitle: 'Fleet Operations Lead & Senior Transport Specialist',
             description: 'Certified fleet operations manager with 12+ years of professional Punjab passenger transport experience, road safety verification, and round-the-clock highway dispatch expertise.',
