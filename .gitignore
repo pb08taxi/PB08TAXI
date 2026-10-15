@@ -33,6 +33,10 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
-*.png
+# Temporary root test screenshots
+/*.png
+!frontend/public/**
+!frontend/src/**
+!Logo/**
 charged-camera*.json
 test_*.py

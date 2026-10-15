@@ -64,6 +64,13 @@ export default function AdminLoginPage() {
               <img
                 src={settings.site_logo_url}
                 alt="PB08 TAXI"
+                onError={(e) => {
+                  if (!e.currentTarget.dataset.triedFallback) {
+                    e.currentTarget.dataset.triedFallback = 'true';
+                    const filename = (settings.site_logo_url || '').split('/').pop() || 'pb08taxi-logo-1791754759.png';
+                    e.currentTarget.src = `https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/${filename}`;
+                  }
+                }}
                 className="max-h-16 max-w-[200px] object-contain rounded-xl p-1 bg-zinc-900 border border-zinc-800"
               />
             </div>

@@ -31,6 +31,14 @@ export default function Footer({ onOpenBooking }) {
                   height={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
                   loading="lazy"
                   decoding="async"
+                  onError={(e) => {
+                    if (!e.currentTarget.dataset.triedFallback) {
+                      e.currentTarget.dataset.triedFallback = 'true';
+                      const filename = (settings.site_logo_url || '').split('/').pop() || 'pb08taxi-logo-1791754759.png';
+                      e.currentTarget.src = `https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/${filename}`;
+                      e.currentTarget.removeAttribute('srcset');
+                    }
+                  }}
                   style={{
                     height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
                     width: 'auto'

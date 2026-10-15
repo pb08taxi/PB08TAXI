@@ -72,7 +72,18 @@ export default function AdminLayout({ children }) {
       <div className="md:hidden bg-zinc-950 border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {settings.site_logo_url ? (
-            <img src={settings.site_logo_url} alt="Logo" className="w-8 h-8 object-contain rounded-lg bg-zinc-900/60 p-0.5 border border-zinc-800" />
+            <img
+              src={settings.site_logo_url}
+              alt="Logo"
+              onError={(e) => {
+                if (!e.currentTarget.dataset.triedFallback) {
+                  e.currentTarget.dataset.triedFallback = 'true';
+                  const filename = (settings.site_logo_url || '').split('/').pop() || 'pb08taxi-logo-1791754759.png';
+                  e.currentTarget.src = `https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/${filename}`;
+                }
+              }}
+              className="w-8 h-8 object-contain rounded-lg bg-zinc-900/60 p-0.5 border border-zinc-800"
+            />
           ) : (
             <div className="w-8 h-8 rounded-lg bg-taxi-yellow flex items-center justify-center text-black font-black">
               <Car className="w-5 h-5 stroke-[2.5]" />
@@ -98,7 +109,18 @@ export default function AdminLayout({ children }) {
           <div className="p-6 border-b border-zinc-850 flex items-center justify-between">
             <Link to="/admin" className="flex items-center space-x-3">
               {settings.site_logo_url ? (
-                <img src={settings.site_logo_url} alt="Logo" className="w-10 h-10 object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0" />
+                <img
+                  src={settings.site_logo_url}
+                  alt="Logo"
+                  onError={(e) => {
+                    if (!e.currentTarget.dataset.triedFallback) {
+                      e.currentTarget.dataset.triedFallback = 'true';
+                      const filename = (settings.site_logo_url || '').split('/').pop() || 'pb08taxi-logo-1791754759.png';
+                      e.currentTarget.src = `https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/${filename}`;
+                    }
+                  }}
+                  className="w-10 h-10 object-contain rounded-xl bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0"
+                />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20 flex-shrink-0">
                   <Car className="w-6 h-6 stroke-[2.5]" />
