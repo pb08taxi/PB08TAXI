@@ -27,7 +27,8 @@ import {
   Sliders,
   Share2,
   Globe,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { 
   getAdminSettings, 
@@ -94,6 +95,7 @@ export default function AdminSettingsPage() {
   // Contact & Brand settings
   const [supportPhone, setSupportPhone] = useState('+919876543210');
   const [whatsappNumber, setWhatsappNumber] = useState('+919876543210');
+  const [physicalAddress, setPhysicalAddress] = useState('Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
   const [siteLogoSize, setSiteLogoSize] = useState(48);
@@ -239,6 +241,7 @@ export default function AdminSettingsPage() {
     if (data) {
       setSupportPhone(data.support_phone || '+919876543210');
       setWhatsappNumber(data.whatsapp_number || '+919876543210');
+      setPhysicalAddress(data.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
       setSiteLogoSize(data.site_logo_size || 48);
@@ -284,7 +287,8 @@ export default function AdminSettingsPage() {
         social_facebook: socialFacebook.trim(),
         social_instagram: socialInstagram.trim(),
         social_twitter: socialTwitter.trim(),
-        social_youtube: socialYoutube.trim()
+        social_youtube: socialYoutube.trim(),
+        physical_address: physicalAddress.trim() || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India'
       };
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
@@ -453,9 +457,9 @@ export default function AdminSettingsPage() {
                 <Phone className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Public Contact Numbers</h2>
+                <h2 className="text-lg font-bold text-white">Public Contact Numbers & Central Hub Address</h2>
                 <p className="text-xs text-zinc-400">
-                  Update customer calling helpline and floating WhatsApp chat destination.
+                  Update customer calling helpline, floating WhatsApp chat destination, and central office address.
                 </p>
               </div>
             </div>
@@ -501,6 +505,28 @@ export default function AdminSettingsPage() {
                 </div>
                 <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
                   Destination for the floating bottom-right <strong className="text-[#25D366]">"Chat with PB08 TAXI Support"</strong> WhatsApp button.
+                </p>
+              </div>
+
+              {/* Physical Address / Central Hub */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center space-x-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-taxi-yellow" />
+                  <span>Physical Address / Central Hub</span>
+                </label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={physicalAddress}
+                    onChange={(e) => setPhysicalAddress(e.target.value)}
+                    placeholder="Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India"
+                    className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-sans"
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">
+                  Displayed on the website Footer, Contact Us section, and Google Schema.org local business structured data.
                 </p>
               </div>
 

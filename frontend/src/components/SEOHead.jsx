@@ -128,7 +128,7 @@ export default function SEOHead() {
               areaServed: areaList,
               address: {
                 '@type': 'PostalAddress',
-                streetAddress: 'Model Town, Near BMC Chowk',
+                streetAddress: settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India',
                 addressLocality: 'Jalandhar',
                 addressRegion: seo.geo_region || 'Punjab',
                 postalCode: '144001',
@@ -342,7 +342,7 @@ export default function SEOHead() {
       .catch((err) => {
         console.warn('SEO settings could not be fetched:', err);
       });
-  }, []);
+  }, [settings]);
 
   return null;
 }

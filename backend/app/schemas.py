@@ -325,6 +325,7 @@ class SiteSettingsOut(BaseModel):
     social_instagram: Optional[str] = "https://instagram.com/pb08taxi"
     social_twitter: Optional[str] = "https://twitter.com/pb08taxi"
     social_youtube: Optional[str] = "https://youtube.com/@pb08taxi"
+    physical_address: str = "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India"
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -345,6 +346,7 @@ class SiteSettingsUpdate(BaseModel):
     social_instagram: Optional[str] = None
     social_twitter: Optional[str] = None
     social_youtube: Optional[str] = None
+    physical_address: Optional[str] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod

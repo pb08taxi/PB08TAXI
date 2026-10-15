@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS = {
   social_instagram: "https://instagram.com/pb08taxi",
   social_twitter: "https://twitter.com/pb08taxi",
   social_youtube: "https://youtube.com/@pb08taxi",
+  physical_address: "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India",
 };
 
 function getInitialSettings() {

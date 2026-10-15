@@ -73,6 +73,7 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     social_instagram = _get_setting_val(db, "social_instagram", "https://instagram.com/pb08taxi")
     social_twitter = _get_setting_val(db, "social_twitter", "https://twitter.com/pb08taxi")
     social_youtube = _get_setting_val(db, "social_youtube", "https://youtube.com/@pb08taxi")
+    physical_address = _get_setting_val(db, "physical_address", "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India")
     try:
         slider_fade_duration = int(slider_fade_duration_raw)
     except (ValueError, TypeError):
@@ -104,7 +105,8 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         social_facebook=social_facebook,
         social_instagram=social_instagram,
         social_twitter=social_twitter,
-        social_youtube=social_youtube
+        social_youtube=social_youtube,
+        physical_address=physical_address
     )
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
@@ -187,6 +189,9 @@ def update_admin_site_settings(
 
     if payload.social_youtube is not None:
         _set_setting_val(db, "social_youtube", payload.social_youtube.strip())
+
+    if payload.physical_address is not None:
+        _set_setting_val(db, "physical_address", payload.physical_address.strip() or "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India")
 
     return get_public_site_settings(db)
 
@@ -476,6 +481,7 @@ def factory_reset_system(
             db.add(SystemSetting(key="admin_alert_whatsapp_enabled", value="true", updated_at=datetime.utcnow()))
             db.add(SystemSetting(key="admin_alert_whatsapp_number", value="", updated_at=datetime.utcnow()))
             db.add(SystemSetting(key="booking_modal_animation", value="golden-glow", updated_at=datetime.utcnow()))
+            db.add(SystemSetting(key="physical_address", value="Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India", updated_at=datetime.utcnow()))
 
             if saved_session_id:
                 db.add(SystemSetting(key="openwa_session_id", value=saved_session_id, updated_at=datetime.utcnow()))

@@ -59,7 +59,7 @@ export default function Footer({ onOpenBooking }) {
             </p>
             <div className="text-xs text-zinc-400 space-y-1 bg-zinc-900/50 p-3 rounded-xl border border-zinc-850">
               <p className="font-bold text-zinc-200">Physical Address / Central Hub:</p>
-              <p className="text-zinc-300">Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India</p>
+              <p className="text-zinc-300 leading-relaxed">{settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India'}</p>
               <p className="text-zinc-400 pt-0.5">Phone: <a href={telLink} className="text-taxi-yellow hover:underline">{phone}</a></p>
             </div>
             <div className="pt-1 flex flex-col space-y-2">
