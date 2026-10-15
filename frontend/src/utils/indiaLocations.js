@@ -518,6 +518,7 @@ export async function searchOnlineMapLocations(query, signal) {
  * Reverse Geocode Coordinates to human-readable Indian locality (for GPS button)
  */
 export async function reverseGeocodeGPS(lat, lon) {
+  const coordText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
   try {
     const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`;
     const resp = await fetch(url);
@@ -531,10 +532,11 @@ export async function reverseGeocodeGPS(lat, lon) {
       const parts = [locality, city, state].filter(Boolean);
       // Remove duplicate consecutive words
       const unique = parts.filter((val, idx, arr) => arr.indexOf(val) === idx);
-      return unique.join(', ');
+      const addr = unique.join(', ');
+      return `${addr} (GPS: ${coordText})`;
     }
   } catch (err) {
     console.warn('Reverse geocode error:', err);
   }
-  return `GPS Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+  return `GPS Location (${coordText})`;
 }

@@ -6,7 +6,8 @@ from sqlalchemy import or_
 from app.database import get_db
 from app.models import AdminUser, Booking, Customer, WhatsAppMessage, Driver, MessageTemplate, SystemSetting
 from app.schemas import BookingOut, BookingStatusUpdate
-from app.services.whatsapp_service import whatsapp_service, send_background_message
+from app.services.whatsapp_service import whatsapp_service, send_background_message, send_background_location_message
+from app.routers.public import get_google_maps_url
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/admin/bookings", tags=["Admin Bookings"])
@@ -90,6 +91,9 @@ def list_bookings(
                 destination=b.destination,
                 pickup_date=b.pickup_date,
                 pickup_time=b.pickup_time,
+                pickup_lat=b.pickup_lat,
+                pickup_lng=b.pickup_lng,
+                google_maps_url=get_google_maps_url(b.pickup_lat, b.pickup_lng, b.pickup_location),
                 status=b.status,
                 notes=b.notes,
                 created_at=b.created_at,
@@ -132,6 +136,8 @@ async def update_booking_status(
     if payload.send_whatsapp:
         date_disp = format_friendly_date(booking.pickup_date) or "As scheduled"
         time_disp = format_friendly_time(booking.pickup_time) or "Immediate"
+        maps_url = get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location)
+        gps_line = f"🗺️ *GPS Map:* {maps_url}" if maps_url else ""
 
         base_ctx = {
             "customer_name": booking.customer.name,
@@ -140,6 +146,8 @@ async def update_booking_status(
             "pickup_date": date_disp,
             "pickup_time": time_disp,
             "pickup_location": booking.pickup_location or "Not specified",
+            "gps_location": gps_line,
+            "google_maps_link": maps_url or "",
             "destination": booking.destination or "Not specified",
             "support_phone": support_phone,
             "notes": booking.notes or "None"
@@ -158,12 +166,19 @@ async def update_booking_status(
             tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_confirmed").first()
             if tmpl:
                 cust_msg = render_template(tmpl.content, cust_ctx)
+                if gps_line and maps_url and maps_url not in cust_msg:
+                    if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in cust_msg:
+                        cust_msg = cust_msg.replace(
+                            f"📍 *Pickup Location:* {booking.pickup_location}",
+                            f"📍 *Pickup Location:* {booking.pickup_location}\n{gps_line}"
+                        )
             else:
+                cust_maps_clause = f"\n• *GPS Map:* {maps_url}" if maps_url else ""
                 cust_msg = (
                     f"🚖 *PB08 TAXI — Ride Confirmed!*\n"
                     f"Hello {booking.customer.name}, your ride has been confirmed (Ref: #{booking.booking_reference})!\n"
                     f"📅 *Pickup Date:* {date_disp} at {time_disp}\n"
-                    f"📍 *Pickup:* {booking.pickup_location}\n"
+                    f"📍 *Pickup:* {booking.pickup_location}{cust_maps_clause}\n"
                     f"🏁 *Destination:* {booking.destination}\n\n"
                     f"🚗 *Driver & Cab Details:*\n"
                     f"👤 *Driver Name:* {cust_ctx['driver_name']}\n"
@@ -195,11 +210,20 @@ async def update_booking_status(
                     "pickup_date": date_disp,
                     "pickup_time": time_disp,
                     "pickup_location": booking.pickup_location or "Not specified",
+                    "gps_location": gps_line,
+                    "google_maps_link": maps_url or "",
                     "destination": booking.destination or "Not specified",
                 }
                 if driver_tmpl:
                     driver_msg = render_template(driver_tmpl.content, driver_ctx)
+                    if gps_line and maps_url and maps_url not in driver_msg:
+                        if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in driver_msg:
+                            driver_msg = driver_msg.replace(
+                                f"📍 *Pickup Location:* {booking.pickup_location}",
+                                f"📍 *Pickup Location:* {booking.pickup_location}\n{gps_line}"
+                            )
                 else:
+                    driver_maps_clause = f"\n• *GPS Map:* {maps_url}" if maps_url else ""
                     driver_msg = (
                         f"🚖 *PB08 TAXI — New Duty Assigned!*\n"
                         f"Hello {driver.name}, a new ride has been assigned to your cab ({car_name_val} - {driver.taxi_registration}):\n"
@@ -207,8 +231,8 @@ async def update_booking_status(
                         f"👤 *Customer Name:* {booking.customer.name}\n"
                         f"📞 *Contact:* {booking.customer.whatsapp_number}\n"
                         f"📅 *Scheduled:* {date_disp} at {time_disp}\n"
-                        f"📍 *Pickup:* {booking.pickup_location}\n"
-                        f"🏁 *Destination:* {booking.destination}\n"
+                        f"📍 *Pickup:* {booking.pickup_location}{driver_maps_clause}\n"
+                        f"🏁 *Destination:* {booking.destination}\n\n"
                         f"👉 Please coordinate with the customer."
                     )
                 background_tasks.add_task(
@@ -217,6 +241,17 @@ async def update_booking_status(
                     message=driver_msg,
                     message_type="DRIVER_DUTY_ALERT"
                 )
+
+                # Also dispatch native WhatsApp location pin card to driver if GPS coordinates exist!
+                if booking.pickup_lat and booking.pickup_lng:
+                    background_tasks.add_task(
+                        send_background_location_message,
+                        phone=driver.contact_number,
+                        latitude=booking.pickup_lat,
+                        longitude=booking.pickup_lng,
+                        address=booking.pickup_location or "Passenger Pickup Location",
+                        description=f"Duty: {booking.customer.name} (Ref #{booking.booking_reference})"
+                    )
 
         # 2. Status COMPLETED
         elif payload.status == "COMPLETED":
@@ -279,6 +314,9 @@ async def update_booking_status(
         destination=booking.destination,
         pickup_date=booking.pickup_date,
         pickup_time=booking.pickup_time,
+        pickup_lat=booking.pickup_lat,
+        pickup_lng=booking.pickup_lng,
+        google_maps_url=get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location),
         status=booking.status,
         notes=booking.notes,
         created_at=booking.created_at,

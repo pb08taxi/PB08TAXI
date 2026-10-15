@@ -78,6 +78,8 @@ class BookingCreate(BaseModel):
     destination: Optional[str] = Field(None, max_length=255)
     pickup_date: Optional[str] = Field(None, max_length=50)
     pickup_time: Optional[str] = Field(None, max_length=50)
+    pickup_lat: Optional[float] = None
+    pickup_lng: Optional[float] = None
     marketing_consent: bool = True
 
     @field_validator("whatsapp_number")
@@ -174,6 +176,9 @@ class BookingOut(BaseModel):
     destination: Optional[str] = None
     pickup_date: Optional[str] = None
     pickup_time: Optional[str] = None
+    pickup_lat: Optional[float] = None
+    pickup_lng: Optional[float] = None
+    google_maps_url: Optional[str] = None
     status: str
     notes: Optional[str] = None
     created_at: datetime

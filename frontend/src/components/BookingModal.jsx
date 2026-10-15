@@ -118,6 +118,8 @@ export default function BookingModal({ isOpen, onClose }) {
     car_name: '',
     pickup_date: getTodayDateString(),
     pickup_time: getCurrentTimeString(),
+    pickup_lat: null,
+    pickup_lng: null,
     marketing_consent: true,
   });
 
@@ -401,6 +403,8 @@ export default function BookingModal({ isOpen, onClose }) {
         ...formData,
         car_name: formData.car_name ? formData.car_name.trim() : undefined,
         whatsapp_number: `${activeCode}${cleanDigits}`,
+        pickup_lat: formData.pickup_lat || undefined,
+        pickup_lng: formData.pickup_lng || undefined,
       };
       const res = await createBooking(payload);
       trackBookingSubmitted(`${formData.pickup_location || 'Local'} ➔ ${formData.destination || 'Drop'}`);
@@ -440,6 +444,8 @@ export default function BookingModal({ isOpen, onClose }) {
       car_name: '',
       pickup_date: getTodayDateString(),
       pickup_time: getCurrentTimeString(),
+      pickup_lat: null,
+      pickup_lng: null,
       marketing_consent: true,
     });
     setCarSearchQuery('');
@@ -1037,8 +1043,13 @@ export default function BookingModal({ isOpen, onClose }) {
                 label="Pickup Location"
                 name="pickup_location"
                 value={formData.pickup_location}
-                onChange={(val) => {
-                  setFormData((prev) => ({ ...prev, pickup_location: val }));
+                onChange={(val, coords) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    pickup_location: val,
+                    pickup_lat: coords?.lat !== undefined ? coords.lat : (val ? prev.pickup_lat : null),
+                    pickup_lng: coords?.lng !== undefined ? coords.lng : (val ? prev.pickup_lng : null),
+                  }));
                   setError('');
                 }}
                 placeholder="Type city, airport or area (e.g. Jal, Model Town, Delhi)..."

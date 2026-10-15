@@ -491,6 +491,101 @@ class WhatsAppService:
             db.commit()
             return False, error_msg
 
+    async def send_location_message(
+        self,
+        db: Session,
+        phone: str,
+        latitude: float,
+        longitude: float,
+        address: str = "Passenger Pickup Location",
+        description: str = "PB08 TAXI",
+        message_type: str = "LOCATION_PIN",
+        customer_id: Optional[int] = None
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Send native WhatsApp location card via OpenWA and record audit log in Neon DB.
+        Allows instant tap-to-navigate in Google Maps directly from WhatsApp!
+        """
+        chat_id = format_whatsapp_chat_id(phone)
+
+        norm_phone = phone.strip()
+        if not norm_phone.startswith("+"):
+            digits = re.sub(r"\D", "", norm_phone)
+            if len(digits) == 10:
+                norm_phone = f"+91{digits}"
+            elif digits:
+                norm_phone = f"+{digits}"
+
+        maps_link = f"https://maps.google.com/?q={latitude:.5f},{longitude:.5f}"
+        log_entry = WhatsAppMessage(
+            customer_id=customer_id,
+            phone=norm_phone,
+            message_type=message_type,
+            content=f"📍 GPS Location Pin: {latitude:.5f}, {longitude:.5f} ({address}) — {maps_link}",
+            status="PENDING"
+        )
+        db.add(log_entry)
+        db.commit()
+        db.refresh(log_entry)
+
+        if self.simulator_mode:
+            log_entry.status = "SENT"
+            log_entry.error_detail = "Simulated location pin delivery (Simulator Mode)"
+            db.commit()
+            return True, None
+
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                session_id = await self._resolve_session_id(client, db)
+                if not session_id:
+                    err = "OpenWA session not initialized on gateway. Please verify WhatsApp connection in admin panel."
+                    log_entry.status = "FAILED"
+                    log_entry.error_detail = err
+                    db.commit()
+                    return False, err
+
+                endpoint = f"{self.base_url}/sessions/{session_id}/messages/send-location"
+                payload = {
+                    "chatId": chat_id,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "address": address or "Pickup Location",
+                    "description": description or "PB08 TAXI"
+                }
+                res = await client.post(
+                    endpoint,
+                    headers=self._headers(),
+                    json=payload
+                )
+
+                if res.status_code == 404:
+                    self._cached_session_id = None
+                    session_id = await self._resolve_session_id(client, db, force_refresh=True)
+                    if session_id:
+                        res = await client.post(
+                            f"{self.base_url}/sessions/{session_id}/messages/send-location",
+                            headers=self._headers(),
+                            json=payload
+                        )
+
+                if res.status_code in (200, 201):
+                    log_entry.status = "SENT"
+                    log_entry.error_detail = None
+                    db.commit()
+                    return True, None
+                else:
+                    error_msg = f"HTTP {res.status_code}: {res.text}"
+                    log_entry.status = "FAILED"
+                    log_entry.error_detail = error_msg
+                    db.commit()
+                    return False, error_msg
+        except Exception as e:
+            error_msg = f"Location delivery error: {str(e) or type(e).__name__}"
+            log_entry.status = "FAILED"
+            log_entry.error_detail = error_msg
+            db.commit()
+            return False, error_msg
+
 whatsapp_service = WhatsAppService()
 
 async def send_background_message(
@@ -515,6 +610,35 @@ async def send_background_message(
         )
     except Exception as e:
         print(f"[PB08 TAXI Background WhatsApp Error] {e}")
+    finally:
+        db.close()
+
+async def send_background_location_message(
+    phone: str,
+    latitude: float,
+    longitude: float,
+    address: str = "Passenger Pickup Location",
+    description: str = "PB08 TAXI",
+    message_type: str = "LOCATION_PIN",
+    customer_id: Optional[int] = None
+):
+    """
+    Safely dispatch a native WhatsApp GPS location pin in background worker.
+    """
+    db = SessionLocal()
+    try:
+        await whatsapp_service.send_location_message(
+            db=db,
+            phone=phone,
+            latitude=latitude,
+            longitude=longitude,
+            address=address,
+            description=description,
+            message_type=message_type,
+            customer_id=customer_id
+        )
+    except Exception as e:
+        print(f"[PB08 TAXI Background Location Pin Error] {e}")
     finally:
         db.close()
 

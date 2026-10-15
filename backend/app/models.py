@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, UniqueConstraint, Float
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -63,6 +63,8 @@ class Booking(Base):
     destination = Column(String(255), nullable=True)
     pickup_date = Column(String(50), nullable=True)
     pickup_time = Column(String(50), nullable=True)
+    pickup_lat = Column(Float, nullable=True)
+    pickup_lng = Column(Float, nullable=True)
     status = Column(String(50), default="PENDING", nullable=False)  # PENDING, CONFIRMED, COMPLETED, CANCELLED
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -2,14 +2,14 @@ import re
 import random
 import string
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
 from app.models import Customer, Booking, SliderImage, MarketingConsent, WhatsAppMessage, SystemSetting, MessageTemplate, FleetCar
 from app.schemas import BookingCreate, BookingOut, SliderImageOut, FleetCarOut, normalize_phone_with_plus
-from app.services.whatsapp_service import whatsapp_service, send_background_message
+from app.services.whatsapp_service import whatsapp_service, send_background_message, send_background_location_message
 
 router = APIRouter(tags=["Public"])
 
@@ -32,6 +32,27 @@ def format_friendly_time(time_str: Optional[str]) -> str:
         return t.strftime("%I:%M %p")
     except Exception:
         return time_str.strip()
+
+def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]]:
+    """Extract latitude and longitude from location text like 'GPS Location (31.3174, 75.6209)'."""
+    if not text:
+        return None
+    match = re.search(r"(-?\d+\.\d{3,}),\s*(-?\d+\.\d{3,})", text)
+    if match:
+        try:
+            return float(match.group(1).strip()), float(match.group(2).strip())
+        except ValueError:
+            return None
+    return None
+
+def get_google_maps_url(lat: Optional[float], lng: Optional[float], location_text: Optional[str] = None) -> Optional[str]:
+    """Generate clean, short Google Maps URL (https://maps.google.com/?q=lat,lng)."""
+    if lat is not None and lng is not None:
+        return f"https://maps.google.com/?q={lat:.5f},{lng:.5f}"
+    coords = extract_gps_coordinates(location_text)
+    if coords:
+        return f"https://maps.google.com/?q={coords[0]:.5f},{coords[1]:.5f}"
+    return None
 
 def generate_booking_reference(db: Session) -> str:
     """Generate a unique human-friendly booking reference like PB08-26-8942."""
@@ -145,6 +166,14 @@ async def create_booking(
     pickup_time_clean = booking_in.pickup_time.strip() if booking_in.pickup_time else None
     car_name_val = booking_in.car_name.strip() if (booking_in.car_name and booking_in.car_name.strip()) else None
 
+    # Resolve GPS coordinates if provided or if embedded in pickup_location text
+    lat_val = booking_in.pickup_lat
+    lng_val = booking_in.pickup_lng
+    if lat_val is None or lng_val is None:
+        coords = extract_gps_coordinates(booking_in.pickup_location)
+        if coords:
+            lat_val, lng_val = coords
+
     booking = Booking(
         booking_reference=ref_code,
         customer_id=customer.id,
@@ -153,6 +182,8 @@ async def create_booking(
         destination=booking_in.destination.strip() if booking_in.destination else None,
         pickup_date=pickup_date_clean,
         pickup_time=pickup_time_clean,
+        pickup_lat=lat_val,
+        pickup_lng=lng_val,
         status="PENDING",
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()
@@ -165,6 +196,9 @@ async def create_booking(
     friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else "Immediate / Today"
     friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
     
+    maps_url = get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location)
+    gps_line = f"🗺️ *GPS Map:* {maps_url}" if maps_url else ""
+
     support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
     support_phone_val = support_setting.value if support_setting and support_setting.value else "+919876543210"
 
@@ -178,6 +212,8 @@ async def create_booking(
             "pickup_date": friendly_date,
             "pickup_time": friendly_time,
             "pickup_location": booking.pickup_location or "Not specified",
+            "gps_location": gps_line,
+            "google_maps_link": maps_url or "",
             "destination": booking.destination or "Not specified",
             "support_phone": support_phone_val,
             "notes": booking.notes or ""
@@ -185,14 +221,25 @@ async def create_booking(
         confirmation_text = tpl.content
         for k, v in ctx.items():
             confirmation_text = confirmation_text.replace(f"{{{k}}}", str(v) if v is not None else "")
+        # If template didn't include {gps_location} or {google_maps_link}, seamlessly append GPS map link under pickup location
+        if gps_line and maps_url and maps_url not in confirmation_text:
+            if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in confirmation_text:
+                confirmation_text = confirmation_text.replace(
+                    f"📍 *Pickup Location:* {booking.pickup_location}",
+                    f"📍 *Pickup Location:* {booking.pickup_location}\n{gps_line}"
+                )
+            else:
+                confirmation_text += f"\n{gps_line}"
     else:
         schedule_text = f" for {friendly_date} at {friendly_time}" if (friendly_date and friendly_time) else ""
         vehicle_text = f" [Car: {car_name_val}]" if car_name_val else ""
+        maps_clause = f"\n{gps_line}" if gps_line else ""
         confirmation_text = (
             f"Hi {customer.name}, our support team will contact you shortly. "
             f"You will receive a call from us soon. "
             f"Thank you for connecting with PB08 TAXI! "
             f"(Booking Ref: #{booking.booking_reference}{schedule_text}{vehicle_text})"
+            f"{maps_clause}"
         )
 
     # Dispatch to customer asynchronously in background task (Instant API response!)
@@ -224,6 +271,7 @@ async def create_booking(
             date_disp = format_friendly_date(booking.pickup_date)
             time_disp = format_friendly_time(booking.pickup_time)
             car_disp = car_name_val if car_name_val else "Any Available Cab"
+            admin_maps_clause = f"\n🗺️ *GPS Live Map:* {maps_url}" if maps_url else ""
 
             admin_alert_text = (
                 f"🚖 *PB08 TAXI — New Booking Alert!*\n"
@@ -234,14 +282,15 @@ async def create_booking(
                 f"🚘 *Selected Car:* {car_disp}\n"
                 f"📅 *Pickup Date:* {date_disp}\n"
                 f"⏰ *Pickup Time:* {time_disp}\n"
-                f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}\n"
+                f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}"
+                f"{admin_maps_clause}\n"
                 f"🏁 *Destination:* {booking.destination or 'Not specified'}\n"
                 f"🕒 *Booked At (IST):* {booked_at_ist}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"👉 _Please contact customer promptly to confirm the ride._"
             )
 
-            # Dispatch to admin asynchronously in background task (Zero blocking latency!)
+            # Dispatch text message alert to admin
             background_tasks.add_task(
                 send_background_message,
                 phone=admin_target_phone,
@@ -249,6 +298,18 @@ async def create_booking(
                 message_type="ADMIN_BOOKING_ALERT",
                 customer_id=customer.id
             )
+
+            # If GPS coordinates exist, ALSO dispatch native WhatsApp location pin card to admin!
+            if lat_val is not None and lng_val is not None:
+                background_tasks.add_task(
+                    send_background_location_message,
+                    phone=admin_target_phone,
+                    latitude=lat_val,
+                    longitude=lng_val,
+                    address=booking.pickup_location or "Customer Pickup Location",
+                    description=f"Booking #{booking.booking_reference}: {customer.name}",
+                    customer_id=customer.id
+                )
     except Exception:
         pass
 
@@ -263,6 +324,9 @@ async def create_booking(
         destination=booking.destination,
         pickup_date=booking.pickup_date,
         pickup_time=booking.pickup_time,
+        pickup_lat=booking.pickup_lat,
+        pickup_lng=booking.pickup_lng,
+        google_maps_url=maps_url,
         status=booking.status,
         notes=booking.notes,
         created_at=booking.created_at,

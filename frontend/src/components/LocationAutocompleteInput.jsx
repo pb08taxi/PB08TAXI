@@ -132,7 +132,7 @@ export default function LocationAutocompleteInput({
         try {
           const { latitude, longitude } = pos.coords;
           const address = await reverseGeocodeGPS(latitude, longitude);
-          onChange(address);
+          onChange(address, { lat: latitude, lng: longitude });
           setIsOpen(false);
         } catch (err) {
           console.warn('GPS location resolution error:', err);

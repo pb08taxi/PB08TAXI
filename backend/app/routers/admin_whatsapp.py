@@ -319,7 +319,7 @@ DEFAULT_TEMPLATES = [
             "🏁 *Destination:* {destination}\n\n"
             "Our team will contact you shortly to confirm your ride. For immediate assistance call {support_phone}."
         ),
-        "variables_hint": "{customer_name}, {booking_ref}, {car_name}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {support_phone}"
+        "variables_hint": "{customer_name}, {booking_ref}, {car_name}, {pickup_date}, {pickup_time}, {pickup_location}, {gps_location}, {destination}, {support_phone}"
     },
     {
         "template_key": "booking_confirmed",
@@ -339,7 +339,7 @@ DEFAULT_TEMPLATES = [
             "📞 *Driver Contact:* {driver_contact}\n\n"
             "Your driver will arrive on time. Have a safe journey!"
         ),
-        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}, {driver_name}, {car_name}, {taxi_number}, {driver_contact}, {support_phone}"
+        "variables_hint": "{customer_name}, {booking_ref}, {pickup_date}, {pickup_time}, {pickup_location}, {gps_location}, {destination}, {driver_name}, {car_name}, {taxi_number}, {driver_contact}, {support_phone}"
     },
     {
         "template_key": "driver_assignment",
@@ -356,7 +356,7 @@ DEFAULT_TEMPLATES = [
             "🏁 *Destination:* {destination}\n\n"
             "👉 Please call the customer in advance to coordinate pickup."
         ),
-        "variables_hint": "{driver_name}, {car_name}, {taxi_number}, {booking_ref}, {customer_name}, {customer_contact}, {pickup_date}, {pickup_time}, {pickup_location}, {destination}"
+        "variables_hint": "{driver_name}, {car_name}, {taxi_number}, {booking_ref}, {customer_name}, {customer_contact}, {pickup_date}, {pickup_time}, {pickup_location}, {gps_location}, {destination}"
     },
     {
         "template_key": "booking_completed",

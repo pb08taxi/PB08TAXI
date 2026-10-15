@@ -310,7 +310,21 @@ export default function AdminBookingsPage() {
                       <div className="space-y-1">
                         <div className="flex items-start space-x-1.5 text-zinc-300">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
-                          <span className="truncate">{b.pickup_location || 'Not provided'}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="truncate">{b.pickup_location || 'Not provided'}</span>
+                            {(b.pickup_lat && b.pickup_lng) && (
+                              <a
+                                href={`https://maps.google.com/?q=${b.pickup_lat},${b.pickup_lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-[11px] text-taxi-yellow hover:underline font-mono"
+                                title="Open GPS Coordinates in Google Maps"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <span>🗺️ {b.pickup_lat.toFixed(4)}, {b.pickup_lng.toFixed(4)} (Map)</span>
+                              </a>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-start space-x-1.5 text-zinc-400">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 flex-shrink-0"></span>
@@ -461,6 +475,20 @@ export default function AdminBookingsPage() {
                 <span className="text-zinc-500">Pickup Location:</span>
                 <span className="text-right max-w-[280px] truncate">{selectedBooking.pickup_location || 'Not provided'}</span>
               </div>
+              {(selectedBooking.pickup_lat && selectedBooking.pickup_lng) && (
+                <div className="flex justify-between items-center bg-zinc-900/80 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                  <span className="text-zinc-400 text-xs">GPS Location:</span>
+                  <a
+                    href={`https://maps.google.com/?q=${selectedBooking.pickup_lat},${selectedBooking.pickup_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-taxi-yellow text-xs font-mono font-bold hover:underline flex items-center space-x-1"
+                  >
+                    <span>{selectedBooking.pickup_lat.toFixed(4)}, {selectedBooking.pickup_lng.toFixed(4)}</span>
+                    <span className="text-[10px] text-zinc-400 font-sans">(Open Map)</span>
+                  </a>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-zinc-500">Destination:</span>
                 <span className="text-right max-w-[280px] truncate">{selectedBooking.destination || 'Not provided'}</span>
