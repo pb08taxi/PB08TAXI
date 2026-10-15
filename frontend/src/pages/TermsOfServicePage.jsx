@@ -21,8 +21,9 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
-import BookingModal from '../components/BookingModal';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+
+const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
 export default function TermsOfServicePage() {
   const { settings } = useSiteSettings();
@@ -457,7 +458,11 @@ export default function TermsOfServicePage() {
       <FloatingWhatsApp onOpenBooking={handleOpenBooking} />
 
       {/* One Click Book Your Ride Modal */}
-      <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
+      {isBookingOpen && (
+        <React.Suspense fallback={null}>
+          <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
+        </React.Suspense>
+      )}
     </div>
   );
 }

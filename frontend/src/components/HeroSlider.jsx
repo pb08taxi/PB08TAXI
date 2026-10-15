@@ -8,19 +8,19 @@ const DEFAULT_SLIDES = [
     id: 4,
     title: "PB08 TAXI — 24/7 Premium Cabs in Punjab",
     subtitle: "Reliable, Safe & Air-Conditioned Rides at Affordable Fixed Rates",
-    image_url: "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1600&q=80"
+    image_url: "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1080&q=70"
   },
   {
     id: 5,
     title: "Airport Pickups & Outstation Journeys",
     subtitle: "Direct transfers to Amritsar, Chandigarh & Delhi Airports with On-Time Guarantee",
-    image_url: "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?auto=format&fit=crop&w=1600&q=80"
+    image_url: "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?auto=format&fit=crop&w=1080&q=70"
   },
   {
     id: 6,
     title: "Verified Drivers & Sanitized Fleet",
     subtitle: "Instant WhatsApp Confirmation & Dedicated Customer Support",
-    image_url: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1600&q=80"
+    image_url: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1080&q=70"
   }
 ];
 
@@ -38,7 +38,7 @@ const getInitialSlides = () => {
 const getResponsiveSrcSet = (url) => {
   if (!url || typeof url !== 'string' || !url.includes('images.unsplash.com')) return undefined;
   const baseUrl = url.split('?')[0];
-  return `${baseUrl}?auto=format&fit=crop&w=640&q=75 640w, ${baseUrl}?auto=format&fit=crop&w=1080&q=75 1080w, ${baseUrl}?auto=format&fit=crop&w=1600&q=80 1600w`;
+  return `${baseUrl}?auto=format&fit=crop&w=640&q=70 640w, ${baseUrl}?auto=format&fit=crop&w=1080&q=70 1080w, ${baseUrl}?auto=format&fit=crop&w=1600&q=75 1600w`;
 };
 
 export default function HeroSlider({ onOpenBooking }) {

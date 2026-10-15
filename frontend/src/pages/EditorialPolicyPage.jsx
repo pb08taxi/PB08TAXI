@@ -18,8 +18,9 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
-import BookingModal from '../components/BookingModal';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+
+const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
 export default function EditorialPolicyPage() {
   const { settings } = useSiteSettings();
@@ -206,7 +207,11 @@ export default function EditorialPolicyPage() {
 
       <Footer onOpenBooking={() => setIsBookingOpen(true)} />
       <FloatingWhatsApp />
-      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+      {isBookingOpen && (
+        <React.Suspense fallback={null}>
+          <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+        </React.Suspense>
+      )}
     </div>
   );
 }
