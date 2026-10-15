@@ -179,26 +179,26 @@ export default function LocationAutocompleteInput({
     }
   };
 
-  // Highlight matching letters in suggestion title
+  // Highlight matching letters in suggestion title (supports single & multi-token queries)
   const renderHighlightedName = (name, query) => {
     if (!query || !query.trim()) return name;
-    const q = query.trim().toLowerCase();
-    const idx = name.toLowerCase().indexOf(q);
-    if (idx === -1) return name;
+    const tokens = query.trim().split(/[\s,()/-]+/).filter((t) => t.length > 0);
+    if (tokens.length === 0) return name;
 
-    const before = name.substring(0, idx);
-    const match = name.substring(idx, idx + q.length);
-    const after = name.substring(idx + q.length);
+    const pattern = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const regex = new RegExp(`(${pattern})`, 'gi');
+    const parts = name.split(regex);
 
-    return (
-      <>
-        {before}
-        <span className="text-taxi-yellow font-black underline decoration-taxi-yellow/60 underline-offset-2">
-          {match}
+    return parts.map((part, i) => {
+      const isMatch = tokens.some((t) => t.toLowerCase() === part.toLowerCase());
+      return isMatch ? (
+        <span key={i} className="text-taxi-yellow font-black underline decoration-taxi-yellow/60 underline-offset-2">
+          {part}
         </span>
-        {after}
-      </>
-    );
+      ) : (
+        part
+      );
+    });
   };
 
   // Helper icon by location type
