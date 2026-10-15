@@ -5,28 +5,39 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 
 const DEFAULT_SLIDES = [
   {
-    id: 1,
+    id: 4,
     title: "PB08 TAXI — 24/7 Premium Cabs in Punjab",
     subtitle: "Reliable, Safe & Air-Conditioned Rides at Affordable Fixed Rates",
-    image_url: "/Logo/pb08taxi-banner-default.webp"
+    image_url: "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1600&q=80"
   },
   {
-    id: 2,
+    id: 5,
     title: "Airport Pickups & Outstation Journeys",
     subtitle: "Direct transfers to Amritsar, Chandigarh & Delhi Airports with On-Time Guarantee",
     image_url: "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?auto=format&fit=crop&w=1600&q=80"
   },
   {
-    id: 3,
+    id: 6,
     title: "Verified Drivers & Sanitized Fleet",
     subtitle: "Instant WhatsApp Confirmation & Dedicated Customer Support",
     image_url: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1600&q=80"
   }
 ];
 
+const getInitialSlides = () => {
+  try {
+    const cached = localStorage.getItem('pb08_sliders_cache');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return DEFAULT_SLIDES;
+};
+
 export default function HeroSlider({ onOpenBooking }) {
   const { settings } = useSiteSettings();
-  const [slides, setSlides] = useState(DEFAULT_SLIDES);
+  const [slides, setSlides] = useState(getInitialSlides);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
@@ -38,7 +49,15 @@ export default function HeroSlider({ onOpenBooking }) {
     fetchPublicSliders()
       .then((data) => {
         if (data && data.length > 0) {
-          setSlides(data);
+          setSlides((prev) => {
+            const prevStr = JSON.stringify(prev);
+            const dataStr = JSON.stringify(data);
+            if (prevStr === dataStr) return prev;
+            try {
+              localStorage.setItem('pb08_sliders_cache', dataStr);
+            } catch (e) {}
+            return data;
+          });
         }
       })
       .catch((err) => {
@@ -106,11 +125,10 @@ export default function HeroSlider({ onOpenBooking }) {
               alt={slide.title}
               width="1600"
               height="900"
-              srcSet={`${slide.image_url} 1200w, ${slide.image_url} 1600w`}
-              sizes="(max-width: 768px) 100vw, 1600px"
               fetchpriority={idx === 0 ? "high" : "low"}
               loading="eager"
-              className="w-full h-full object-cover object-center filter brightness-95"
+              decoding="async"
+              className="w-full h-full object-cover object-center filter brightness-95 text-transparent text-[0px]"
             />
             {/* Admin Customizable Color & Darkness Overlay Layer */}
             <div 
