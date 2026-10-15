@@ -25,13 +25,27 @@ const DEFAULT_SETTINGS = {
   physical_address: "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India",
 };
 
+function normalizeSettings(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const copy = { ...obj };
+  if (copy.site_logo_url && typeof copy.site_logo_url === 'string' && copy.site_logo_url.includes('raw.githubusercontent.com') && copy.site_logo_url.includes('Logo/')) {
+    const filename = copy.site_logo_url.split('Logo/')[1];
+    copy.site_logo_url = `/Logo/${filename}`;
+  }
+  if (copy.site_favicon_url && typeof copy.site_favicon_url === 'string' && copy.site_favicon_url.includes('raw.githubusercontent.com') && copy.site_favicon_url.includes('Logo/')) {
+    const filename = copy.site_favicon_url.split('Logo/')[1];
+    copy.site_favicon_url = `/Logo/${filename}`;
+  }
+  return copy;
+}
+
 function getInitialSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
-        return { ...DEFAULT_SETTINGS, ...parsed };
+        return normalizeSettings({ ...DEFAULT_SETTINGS, ...parsed });
       }
     }
   } catch (e) {
@@ -96,7 +110,7 @@ export function SiteSettingsProvider({ children }) {
   // Method to immediately update settings in memory and localStorage (zero latency)
   const updateLocalSettings = useCallback((newSettings) => {
     setSettings((prev) => {
-      const merged = { ...prev, ...newSettings };
+      const merged = normalizeSettings({ ...prev, ...newSettings });
       try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
       } catch (e) {
@@ -118,7 +132,7 @@ export function SiteSettingsProvider({ children }) {
       const data = await getPublicSiteSettings();
       if (data) {
         setSettings((prev) => {
-          const merged = { ...prev, ...data };
+          const merged = normalizeSettings({ ...prev, ...data });
           try {
             localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
           } catch (e) {
