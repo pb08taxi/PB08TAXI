@@ -86,28 +86,43 @@ def delete_slider_image(
     db.commit()
     return {"message": "Slide deleted successfully", "id": slide_id}
 
+from app.utils.image_converter import convert_to_webp
+
 @router.post("/upload")
 async def upload_slide_image(
     file: UploadFile = File(...),
     admin: AdminUser = Depends(get_current_admin)
 ):
-    """Upload an image file and return its accessible URL."""
-    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
-    if file.content_type not in allowed_types:
+    """
+    Upload an image file (JPG, PNG, GIF, BMP, TIFF, WEBP, etc.):
+    Automatically converts the uploaded file into modern, lightweight WebP format.
+    """
+    file_bytes = await file.read()
+    if not file_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid file type {file.content_type}. Allowed: JPEG, PNG, WEBP."
+            detail="Uploaded file is empty."
         )
 
-    # Secure unique filename
-    ext = os.path.splitext(file.filename)[1].lower() or ".jpg"
-    safe_name = f"slide_{uuid.uuid4().hex[:12]}{ext}"
+    # Automatically convert any format (jpg, png, gif, bmp, tiff, etc.) to optimized WebP
+    webp_bytes, _, _ = convert_to_webp(
+        file_bytes=file_bytes,
+        original_filename=file.filename or "slide.jpg",
+        max_dimension=1920,
+        quality=85
+    )
+
+    # Secure unique WebP filename
+    safe_name = f"slide_{uuid.uuid4().hex[:12]}.webp"
     dest_path = os.path.join(UPLOAD_DIR, safe_name)
 
     with open(dest_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(webp_bytes)
 
     return {
         "url": f"/uploads/{safe_name}",
-        "filename": safe_name
+        "filename": safe_name,
+        "format": "webp",
+        "original_size": len(file_bytes),
+        "optimized_size": len(webp_bytes)
     }

@@ -155,13 +155,13 @@ export default function Navbar({ onOpenBooking }) {
           <div className="flex md:hidden items-center space-x-2">
             <button
               onClick={onOpenBooking}
-              className="bg-taxi-yellow text-black font-bold px-3 py-1.5 rounded-full text-xs"
+              className="bg-taxi-yellow text-black font-extrabold px-4 py-2 rounded-full text-xs min-h-[42px] flex items-center justify-center active:scale-95 transition-transform"
             >
               Book
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-zinc-400 hover:text-white p-2 rounded-lg"
+              className="text-zinc-400 hover:text-white p-2 rounded-lg w-11 h-11 flex items-center justify-center"
               aria-label="Toggle Navigation"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

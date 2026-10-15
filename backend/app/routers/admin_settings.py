@@ -190,6 +190,8 @@ def update_admin_site_settings(
 
     return get_public_site_settings(db)
 
+from app.utils.image_converter import convert_to_webp
+
 @router.post("/admin/settings/upload-asset")
 async def upload_site_asset(
     file: UploadFile = File(...),
@@ -199,45 +201,39 @@ async def upload_site_asset(
 ):
     """
     Upload Site Logo or Favicon:
-    1. Validates file format.
-    2. Auto-renames according to site branding: pb08taxi-logo-{ts}.ext or pb08taxi-favicon-{ts}.ext.
-    3. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
-    4. Auto-populates and persists the direct raw URL into database system settings.
+    1. Accepts any image format (PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, ICO).
+    2. Automatically converts raster images into modern, ultra-lightweight WebP format.
+    3. Auto-renames according to site branding: pb08taxi-logo-{ts}.webp or pb08taxi-favicon-{ts}.webp.
+    4. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
+    5. Auto-populates and persists the direct raw URL into database system settings.
     """
     ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
     
     if asset_type == "favicon":
-        allowed_exts = [".ico", ".png", ".svg", ".webp"]
-        if ext not in allowed_exts and file.content_type not in ["image/x-icon", "image/vnd.microsoft.icon", "image/png", "image/svg+xml"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid favicon format. Allowed: .ico, .png, .svg"
-            )
         prefix = "pb08taxi-favicon"
     elif asset_type in ("banner", "og_image", "social_banner"):
-        allowed_exts = [".png", ".jpg", ".jpeg", ".webp"]
-        if ext not in allowed_exts and not (file.content_type and file.content_type.startswith("image/")):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid banner format. Allowed: .png, .jpg, .jpeg, .webp"
-            )
         prefix = "pb08taxi-banner"
     else:
-        allowed_exts = [".png", ".jpg", ".jpeg", ".webp", ".svg"]
-        if ext not in allowed_exts:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid logo format. Allowed: .png, .jpg, .jpeg, .webp, .svg"
-            )
         prefix = "pb08taxi-logo"
 
     file_bytes = await file.read()
     if len(file_bytes) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
 
+    # Automatically convert any raster format (PNG, JPG, JPEG, GIF, BMP, TIFF) to WebP
+    if ext != ".svg" and (asset_type != "favicon" or ext != ".ico"):
+        max_dim = 800 if asset_type == "logo" else (256 if asset_type == "favicon" else 1920)
+        file_bytes, _, _ = convert_to_webp(
+            file_bytes=file_bytes,
+            original_filename=file.filename or "asset.png",
+            max_dimension=max_dim,
+            quality=88
+        )
+        ext = ".webp"
+
     # Unique site-branded filename with timestamp
     ts = int(datetime.utcnow().timestamp())
-    site_filename = f"{prefix}-{ts}{ext or '.png'}"
+    site_filename = f"{prefix}-{ts}{ext or '.webp'}"
     github_path = f"Logo/{site_filename}"
     commit_msg = f"Upload {prefix} branding asset: {site_filename}"
 

@@ -17,7 +17,7 @@ settings_cfg = get_settings()
 
 router = APIRouter(tags=["Advance SEO"])
 
-DEFAULT_OG_BANNER_URL = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.png"
+DEFAULT_OG_BANNER_URL = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.webp"
 
 SEO_DEFAULTS = {
     "seo_meta_title": "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab",
@@ -172,6 +172,8 @@ def reset_admin_seo_defaults(
         _set_val(db, key, val)
     return build_seo_response(db)
 
+from app.utils.image_converter import convert_to_webp
+
 @router.post("/admin/seo/upload-banner")
 async def upload_seo_banner(
     file: UploadFile = File(...),
@@ -180,27 +182,29 @@ async def upload_seo_banner(
 ):
     """
     Upload Social Sharing Preview Banner (og:image / WhatsApp & Social Card):
-    1. Validates file format (.png, .jpg, .jpeg, .webp).
-    2. Auto-renames to pb08taxi-banner-{ts}.ext.
-    3. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
-    4. Auto-saves direct raw URL into database under 'seo_og_image'.
+    1. Accepts any image format (PNG, JPG, JPEG, GIF, WEBP, BMP, etc.).
+    2. Automatically converts into modern, ultra-lightweight WebP format.
+    3. Auto-renames to pb08taxi-banner-{ts}.webp.
+    4. Uploads directly to GitHub repository under 'Logo/' folder via GitHub API.
+    5. Auto-saves direct raw URL into database under 'seo_og_image'.
     """
-    ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
-    allowed_exts = [".png", ".jpg", ".jpeg", ".webp"]
-    if ext not in allowed_exts and not (file.content_type and file.content_type.startswith("image/")):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid banner format. Allowed: .png, .jpg, .jpeg, .webp"
-        )
-
     file_bytes = await file.read()
     if len(file_bytes) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
 
+    # Automatically convert any image format to WebP
+    webp_bytes, _, _ = convert_to_webp(
+        file_bytes=file_bytes,
+        original_filename=file.filename or "banner.png",
+        max_dimension=1920,
+        quality=85
+    )
+
     ts = int(datetime.utcnow().timestamp())
-    site_filename = f"pb08taxi-banner-{ts}{ext or '.png'}"
+    site_filename = f"pb08taxi-banner-{ts}.webp"
     github_path = f"Logo/{site_filename}"
     commit_msg = f"Upload pb08taxi-banner social card asset: {site_filename}"
+    file_bytes = webp_bytes
 
     uploaded_url = None
 

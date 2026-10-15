@@ -505,7 +505,7 @@ export default function BookingModal({ isOpen, onClose }) {
         {/* Close Button */}
         <button
           onClick={handleReset}
-          className="absolute top-4 right-4 sm:top-5 sm:right-5 text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-zinc-800 transition-colors z-20"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-zinc-400 hover:text-white w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors z-20"
           aria-label="Close"
         >
           <X className="w-5 h-5" />

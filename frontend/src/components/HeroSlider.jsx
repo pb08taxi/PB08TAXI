@@ -213,7 +213,7 @@ export default function HeroSlider({ onOpenBooking }) {
           <button
             onClick={prevSlide}
             aria-label="Previous Slide"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/60 hover:bg-taxi-yellow text-white hover:text-black border border-white/20 hover:border-taxi-yellow flex items-center justify-center backdrop-blur-md transition-all shadow-lg"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-taxi-yellow text-white hover:text-black border border-white/20 hover:border-taxi-yellow flex items-center justify-center backdrop-blur-md transition-all shadow-lg"
           >
             <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
           </button>
@@ -221,24 +221,28 @@ export default function HeroSlider({ onOpenBooking }) {
           <button
             onClick={nextSlide}
             aria-label="Next Slide"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/60 hover:bg-taxi-yellow text-white hover:text-black border border-white/20 hover:border-taxi-yellow flex items-center justify-center backdrop-blur-md transition-all shadow-lg"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-taxi-yellow text-white hover:text-black border border-white/20 hover:border-taxi-yellow flex items-center justify-center backdrop-blur-md transition-all shadow-lg"
           >
             <ChevronRight className="w-6 h-6 stroke-[2.5]" />
           </button>
 
           {/* Dots Indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-2.5 bg-black/50 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
             {slides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
                 aria-label={`Go to slide ${i + 1}`}
-                className={`transition-all duration-300 rounded-full ${
-                  i === currentIndex
-                    ? 'w-7 h-2.5 bg-taxi-yellow'
-                    : 'w-2.5 h-2.5 bg-zinc-500 hover:bg-zinc-300'
-                }`}
-              />
+                className="p-2 flex items-center justify-center min-w-[36px] min-h-[36px] transition-all"
+              >
+                <span
+                  className={`block transition-all duration-300 rounded-full ${
+                    i === currentIndex
+                      ? 'w-7 h-2.5 bg-taxi-yellow'
+                      : 'w-2.5 h-2.5 bg-zinc-500 hover:bg-zinc-300'
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </>
