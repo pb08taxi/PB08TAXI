@@ -363,14 +363,14 @@ class FactoryResetRequest(BaseModel):
     secret_pin: str = Field(..., min_length=1, max_length=50)
 
 class SEOSettingsOut(BaseModel):
-    meta_title: str = "PB08 TAXI — One Click Book Your Ride | 24/7 Cab Service"
-    meta_description: str = "PB08 TAXI provides fast, reliable, 24/7 taxi booking in Jalandhar, Punjab, and airport transfers. One click instant booking with live WhatsApp confirmation."
+    meta_title: str = "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab"
+    meta_description: str = "PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation."
     meta_keywords: str = "PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab"
-    canonical_url: str = "https://pb08taxi.com"
-    robots_directive: str = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    canonical_url: str = "https://www.pb08taxi.com"
+    robots_directive: str = "index, follow, max-image-preview:large"
     
-    og_title: str = "PB08 TAXI — 24/7 Cab Service in Punjab | One Click Booking"
-    og_description: str = "Reliable & affordable cabs in Jalandhar, Amritsar, Ludhiana, Chandigarh & Delhi Airport. One-click reservation with instant WhatsApp confirmation."
+    og_title: str = "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab"
+    og_description: str = "PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation."
     og_image: str = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png"
     twitter_card: str = "summary_large_image"
     

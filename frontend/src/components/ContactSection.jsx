@@ -50,7 +50,7 @@ export default function ContactSection({ onOpenBooking }) {
             <a 
               href={`https://wa.me/${cleanWa}`} 
               target="_blank" 
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="text-[#25D366] font-extrabold text-sm block hover:underline"
             >
               Chat on WhatsApp
@@ -63,9 +63,9 @@ export default function ContactSection({ onOpenBooking }) {
               <MapPin className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-white">Central Hub</h3>
-            <p className="text-xs text-zinc-400">Model Town / BMC Chowk</p>
+            <p className="text-xs text-zinc-400">Model Town, Near BMC Chowk</p>
             <p className="text-xs text-zinc-300 font-semibold">
-              Jalandhar, Punjab 144001
+              Jalandhar, Punjab 144001, India
             </p>
           </div>
 

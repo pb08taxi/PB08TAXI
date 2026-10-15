@@ -104,6 +104,10 @@ export default function HeroSlider({ onOpenBooking }) {
             <img
               src={slide.image_url}
               alt={slide.title}
+              width="1600"
+              height="900"
+              fetchpriority={idx === 0 ? "high" : "auto"}
+              loading={idx === 0 ? "eager" : "lazy"}
               className="w-full h-full object-cover object-center filter brightness-95"
             />
             {/* Admin Customizable Color & Darkness Overlay Layer */}

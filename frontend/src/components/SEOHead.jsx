@@ -99,7 +99,8 @@ export default function SEOHead() {
               telephone: seo.support_phone || '+919888079736'
             },
             {
-              '@type': ['TaxiService', 'LocalBusiness'],
+              '@type': 'TaxiService',
+              additionalType: 'https://schema.org/LocalBusiness',
               '@id': `${canonicalUrl}/#taxiservice`,
               name: seo.business_name || 'PB08 TAXI',
               alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
@@ -107,14 +108,14 @@ export default function SEOHead() {
               telephone: seo.support_phone || '+919888079736',
               logo: `${canonicalUrl}/icon-512.png`,
               image: seo.og_image || `${canonicalUrl}/icon-512.png`,
-              description: seo.meta_description || 'PB08 TAXI — #1 Jalandhar Taxi, One Way Jalandhar & 24/7 Airport Taxi Service for Delhi to Jalandhar, Jalandhar to Delhi, Amritsar, Chandigarh, Ludhiana, and Hoshiarpur.',
+              description: seo.meta_description || 'PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation.',
               priceRange: seo.schema_taxi_price_range || '₹₹',
               currenciesAccepted: 'INR',
               paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',
               areaServed: areaList,
               address: {
                 '@type': 'PostalAddress',
-                streetAddress: 'Jalandhar City',
+                streetAddress: 'Model Town, Near BMC Chowk',
                 addressLocality: 'Jalandhar',
                 addressRegion: seo.geo_region || 'Punjab',
                 postalCode: '144001',

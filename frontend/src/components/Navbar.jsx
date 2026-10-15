@@ -15,6 +15,14 @@ export default function Navbar({ onOpenBooking }) {
 
   return (
     <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-zinc-800">
+      {/* Accessibility Skip to Main Content Link */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-taxi-yellow focus:text-black focus:font-extrabold focus:rounded-xl focus:shadow-xl focus:ring-2 focus:ring-black"
+      >
+        Skip to main content
+      </a>
+
       {/* Top micro banner */}
       <div className="bg-taxi-yellow text-black text-xs font-bold py-1 px-4 text-center tracking-wide flex items-center justify-center space-x-3">
         <span className="flex items-center space-x-1">
@@ -29,11 +37,13 @@ export default function Navbar({ onOpenBooking }) {
         <div className="flex items-center justify-between min-h-20 py-2.5">
           
           {/* Brand Logo & Editable Text */}
-          <a href="#" className="flex items-center space-x-3 group">
+          <a href="/" className="flex items-center space-x-3 group">
             {settings?.site_logo_url ? (
               <img
                 src={settings.site_logo_url}
                 alt={brandTitle}
+                width={settings?.site_logo_size || 48}
+                height={settings?.site_logo_size || 48}
                 style={{ height: `${settings?.site_logo_size || 48}px`, width: 'auto' }}
                 className="max-h-28 max-w-[220px] object-contain rounded-xl shadow-md group-hover:scale-105 transition-all bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0"
               />

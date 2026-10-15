@@ -88,6 +88,53 @@ export default function WhyChooseUs({ onOpenBooking }) {
 
         </div>
 
+        {/* About PB08 TAXI & Founder Story (E-E-A-T Authority & Trust Section) */}
+        <div id="about" className="mt-16 pt-12 border-t border-zinc-900 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-8 space-y-4">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-mono text-taxi-yellow">
+              <span>EST. JALANDHAR, PUNJAB • OVER 50,000+ RIDES DELIVERED</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              About PB08 TAXI — Rooted in Trust, Driven by Hospitality
+            </h3>
+            <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
+              Founded in Jalandhar, PB08 TAXI is a customer-first transportation network dedicated to offering safe, punctual, and transparent intercity and airport travel across Punjab, Himachal, Jammu, and Delhi NCR. We believe hiring a cab should be transparent, courteous, and stress-free. Every ride is managed directly by seasoned dispatch professionals who know every bypass, toll plaza, and highway checkpoint intimately.
+            </p>
+            <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
+              Whether you are an NRI arriving at Delhi IGI Airport, a family visiting the Golden Temple in Amritsar, or a business executive traveling between Jalandhar and Chandigarh, PB08 TAXI guarantees fixed upfront pricing, non-smoking verified chauffeurs, and 24/7 dedicated human helpline assistance.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center gap-6 text-xs text-zinc-400 border-t border-zinc-900">
+              <span className="flex items-center space-x-1.5 text-zinc-300">
+                <ShieldCheck className="w-4 h-4 text-taxi-yellow" />
+                <span>100% Police Verified Fleet</span>
+              </span>
+              <span className="flex items-center space-x-1.5 text-zinc-300">
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
+                <span>Zero Hidden Toll / Surge Fees</span>
+              </span>
+              <span className="text-zinc-500 font-mono">
+                Updated: October 2026 • Published by PB08 Taxi Operations Team
+              </span>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 bg-zinc-900/60 border border-zinc-850 rounded-2xl p-6 text-center space-y-4">
+            <div className="space-y-1">
+              <span className="text-3xl sm:text-4xl font-black text-taxi-yellow font-mono">4.9 / 5.0</span>
+              <p className="text-xs text-zinc-300 font-bold uppercase tracking-wider">Top Rated in Punjab</p>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Serving Jalandhar, Amritsar, Ludhiana, Phagwara, Kapurthala, Hoshiarpur, Chandigarh &amp; Delhi NCR with round-the-clock on-time guarantee.
+            </p>
+            <button
+              onClick={onOpenBooking}
+              className="w-full bg-zinc-800 hover:bg-taxi-yellow hover:text-black text-white font-bold py-3 px-4 rounded-xl text-xs transition-colors"
+            >
+              Reserve Cab Now
+            </button>
+          </div>
+        </div>
+
       </div>
     </section>
   );

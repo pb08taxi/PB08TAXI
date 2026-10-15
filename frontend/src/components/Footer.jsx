@@ -26,6 +26,8 @@ export default function Footer({ onOpenBooking }) {
                 <img
                   src={settings.site_logo_url}
                   alt={brandTitle}
+                  width={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
+                  height={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
                   style={{
                     height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
                     width: 'auto'
@@ -53,17 +55,18 @@ export default function Footer({ onOpenBooking }) {
               </div>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Jalandhar's top-rated cab service delivering seamless point-to-point, airport, and outstation taxi travel with verified chauffeurs across North India.
+              Jalandhar's top-rated cab network delivering seamless point-to-point, airport transfers, and outstation taxi travel with verified chauffeurs across North India.
             </p>
+            <div className="text-xs text-zinc-400 space-y-1 bg-zinc-900/50 p-3 rounded-xl border border-zinc-850">
+              <p className="font-bold text-zinc-200">Physical Address / Central Hub:</p>
+              <p className="text-zinc-300">Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India</p>
+              <p className="text-zinc-400 pt-0.5">Phone: <a href={telLink} className="text-taxi-yellow hover:underline">{phone}</a></p>
+            </div>
             <div className="pt-1 flex flex-col space-y-2">
               <span className="inline-flex items-center space-x-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full w-fit">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>Cabs Available Right Now</span>
               </span>
-              <a href={telLink} className="inline-flex items-center space-x-1.5 text-xs text-zinc-300 hover:text-taxi-yellow font-medium">
-                <Phone className="w-3.5 h-3.5 text-taxi-yellow" />
-                <span>Helpline: {phone}</span>
-              </a>
             </div>
           </div>
 
@@ -72,11 +75,12 @@ export default function Footer({ onOpenBooking }) {
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Quick Links</h4>
             <ul className="space-y-2 text-xs">
               <li><a href="#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
+              <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">About Us</a></li>
               <li><a href="#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
               <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar Routes</a></li>
               <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
               <li><a href="#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
-              <li><a href="#contact" className="hover:text-taxi-yellow transition-colors">Contact Information</a></li>
+              <li><a href="#contact" className="hover:text-taxi-yellow transition-colors">Contact Us</a></li>
               <li>
                 <button onClick={onOpenBooking} className="text-taxi-yellow hover:underline font-bold">
                   One Click Book Your Ride
@@ -98,7 +102,7 @@ export default function Footer({ onOpenBooking }) {
             </ul>
           </div>
 
-          {/* Legal & Admin */}
+          {/* Legal & Trust */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Admin & Trust</h4>
             <ul className="space-y-2 text-xs">
@@ -117,6 +121,17 @@ export default function Footer({ onOpenBooking }) {
                   Safe Travel Guidelines
                 </Link>
               </li>
+              {/* Verified Social Media Profiles */}
+              <li className="pt-2">
+                <span className="text-[11px] font-bold text-zinc-300 block mb-1">Connect With Us:</span>
+                <div className="flex items-center space-x-3 text-zinc-400">
+                  <a href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">WhatsApp</a>
+                  <span>•</span>
+                  <a href="https://facebook.com/pb08taxi" target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Facebook</a>
+                  <span>•</span>
+                  <a href="https://instagram.com/pb08taxi" target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Instagram</a>
+                </div>
+              </li>
               <li className="pt-2">
                 <Link
                   to="/admin/login"
@@ -131,8 +146,13 @@ export default function Footer({ onOpenBooking }) {
 
         </div>
 
+        {/* Disclaimer Note for Transparency */}
+        <div className="mt-8 pt-4 border-t border-zinc-900 text-[11px] text-zinc-500 text-center sm:text-left">
+          <p>* Disclaimer &amp; Fair Pricing Policy: PB08 TAXI offers transparent, upfront pricing with zero surge charges. Government toll taxes, state border entry fees, and parking charges are charged on actuals without extra commission.</p>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 space-y-4 sm:space-y-0">
+        <div className="mt-6 pt-6 border-t border-zinc-900/80 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 space-y-4 sm:space-y-0">
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <p>© {new Date().getFullYear()} PB08 TAXI. All rights reserved.</p>
             <div className="flex items-center space-x-3 text-zinc-500">
@@ -145,7 +165,7 @@ export default function Footer({ onOpenBooking }) {
           <p className="flex items-center space-x-1">
             <span>Built for Punjab with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" />
-            <span>• Fast & Lightweight</span>
+            <span>• Fast &amp; Lightweight</span>
           </p>
         </div>
       </div>
