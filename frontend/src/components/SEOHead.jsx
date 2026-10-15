@@ -27,7 +27,9 @@ export default function SEOHead() {
       };
 
       // 2. Standard Meta Tags
-      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
+      const DEFAULT_META_DESC = 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.';
+      const finalDesc = (seo.meta_description && seo.meta_description.length <= 135) ? seo.meta_description : DEFAULT_META_DESC;
+      setMeta('name', 'description', finalDesc);
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
       setMeta('name', 'author', 'Harmanpreet Singh, PB08 TAXI Operations');
@@ -47,14 +49,14 @@ export default function SEOHead() {
       // 4. OpenGraph Tags (Facebook, WhatsApp, Instagram, LinkedIn)
       setMeta('property', 'og:site_name', seo.business_name || 'PB08 TAXI');
       setMeta('property', 'og:title', seo.og_title || seo.meta_title);
-      setMeta('property', 'og:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
-      if (seo.og_image) {
-        setMeta('property', 'og:image', seo.og_image);
-        setMeta('property', 'og:image:width', '1200');
-        setMeta('property', 'og:image:height', '630');
-        setMeta('property', 'og:image:alt', 'PB08 TAXI — 24/7 Premium Cabs in Punjab');
-      }
-      const canonicalUrl = seo.canonical_url || 'https://www.pb08taxi.com';
+      setMeta('property', 'og:description', finalDesc);
+      const ogImg = (seo.og_image && !seo.og_image.includes('raw.githubusercontent.com')) ? seo.og_image : 'https://www.pb08taxi.com/Logo/pb08taxi-banner-default.webp';
+      setMeta('property', 'og:image', ogImg);
+      setMeta('property', 'og:image:width', '1200');
+      setMeta('property', 'og:image:height', '630');
+      setMeta('property', 'og:image:alt', 'PB08 TAXI — 24/7 Premium Cabs in Punjab');
+
+      const canonicalUrl = 'https://www.pb08taxi.com/';
       setMeta('property', 'og:url', canonicalUrl);
       let linkCanonical = document.querySelector('link[rel="canonical"]');
       if (!linkCanonical) {
@@ -67,12 +69,10 @@ export default function SEOHead() {
       // 5. Twitter Card Tags
       setMeta('name', 'twitter:card', seo.twitter_card || 'summary_large_image');
       setMeta('name', 'twitter:title', seo.og_title || seo.meta_title);
-      setMeta('name', 'twitter:description', seo.og_description || seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.');
-      if (seo.og_image) {
-        setMeta('name', 'twitter:image', seo.og_image);
-        setMeta('name', 'twitter:image:width', '1200');
-        setMeta('name', 'twitter:image:height', '630');
-      }
+      setMeta('name', 'twitter:description', finalDesc);
+      setMeta('name', 'twitter:image', ogImg);
+      setMeta('name', 'twitter:image:width', '1200');
+      setMeta('name', 'twitter:image:height', '630');
 
       // 6. Search Engine Verification
       if (seo.google_site_verification) {

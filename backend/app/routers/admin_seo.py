@@ -17,17 +17,17 @@ settings_cfg = get_settings()
 
 router = APIRouter(tags=["Advance SEO"])
 
-DEFAULT_OG_BANNER_URL = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-banner-default.webp"
+DEFAULT_OG_BANNER_URL = "https://www.pb08taxi.com/Logo/pb08taxi-banner-default.webp"
 
 SEO_DEFAULTS = {
     "seo_meta_title": "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab",
-    "seo_meta_description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.",
+    "seo_meta_description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.",
     "seo_meta_keywords": "Jalandhar Taxi, One Way Jalandhar, PB08 TAXI, Delhi to Jalandhar, Jalandhar to Delhi, Amritsar to Jalandhar, Jalandhar to Amritsar, Ludhiana to Jalandhar, Jalandhar to Ludhiana, Chandigarh to Jalandhar, Jalandhar to Chandigarh, Hoshiarpur to Jalandhar, Jalandhar to Hoshiarpur, Airport taxi",
-    "seo_canonical_url": "https://www.pb08taxi.com",
+    "seo_canonical_url": "https://www.pb08taxi.com/",
     "seo_robots_directive": "index, follow, max-image-preview:large",
     
     "seo_og_title": "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab",
-    "seo_og_description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.",
+    "seo_og_description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.",
     "seo_og_image": DEFAULT_OG_BANNER_URL,
     "seo_twitter_card": "summary_large_image",
     
