@@ -97,6 +97,31 @@ export default function ServicesSection({ onOpenBooking }) {
           })}
         </div>
 
+        {/* Why Travelers Prefer PB08 TAXI (Natural conversational English, Grade 8-9 readability) */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
+            <span className="text-xs font-mono text-taxi-yellow uppercase font-bold tracking-wider">Zero Cancellations</span>
+            <h4 className="text-base font-bold text-white">Guaranteed Car &amp; Chauffeur</h4>
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              Unlike ride-hailing apps with frequent driver cancellations, PB08 TAXI confirms your car and driver well in advance. Your ride is 100% assured.
+            </p>
+          </div>
+          <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
+            <span className="text-xs font-mono text-emerald-400 uppercase font-bold tracking-wider">Express Highway Transit</span>
+            <h4 className="text-base font-bold text-white">Direct Non-Stop Navigation</h4>
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              Our chauffeurs take the fastest national expressways (NH44 and NH703). You enjoy smooth highway cruising with zero unexpected detours.
+            </p>
+          </div>
+          <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
+            <span className="text-xs font-mono text-blue-400 uppercase font-bold tracking-wider">Warm Hospitality</span>
+            <h4 className="text-base font-bold text-white">Luggage &amp; Senior Citizen Help</h4>
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              We treat every traveler like family. Chauffeurs gladly help elderly passengers with boarding and carry heavy airport luggage right to your doorstep.
+            </p>
+          </div>
+        </div>
+
         {/* Bottom Banner */}
         <div className="mt-16 bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 text-center sm:text-left">

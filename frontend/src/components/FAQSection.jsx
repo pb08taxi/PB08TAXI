@@ -96,11 +96,15 @@ export default function FAQSection({ onOpenBooking }) {
                   </div>
                 </button>
 
-                {isOpen && (
-                  <div className="px-6 pb-6 pt-1 text-zinc-300 text-sm sm:text-base leading-relaxed border-t border-zinc-800/60">
-                    <p>{faq.a}</p>
-                  </div>
-                )}
+                <div
+                  className={`px-6 text-zinc-300 text-sm sm:text-base leading-relaxed transition-all duration-300 ${
+                    isOpen
+                      ? 'max-h-96 opacity-100 pb-6 pt-1 border-t border-zinc-800/60'
+                      : 'max-h-0 opacity-0 overflow-hidden py-0 border-transparent'
+                  }`}
+                >
+                  <p>{faq.a}</p>
+                </div>
               </div>
             );
           })}
