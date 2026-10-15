@@ -46,12 +46,16 @@ def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]
     return None
 
 def get_google_maps_url(lat: Optional[float], lng: Optional[float], location_text: Optional[str] = None) -> Optional[str]:
-    """Generate clean, short Google Maps URL (https://maps.google.com/?q=lat,lng)."""
-    if lat is not None and lng is not None:
-        return f"https://maps.google.com/?q={lat:.5f},{lng:.5f}"
+    """
+    Generate official Google Maps Directions URL (https://www.google.com/maps/dir/?api=1&destination=lat,lng&travelmode=driving).
+    When opened on mobile (WhatsApp) or desktop, Google Maps immediately locks destination to the passenger pickup point
+    and computes turn-by-turn driving directions from the user/chauffeur's current location.
+    """
+    if lat is not None and lng is not None and (abs(lat) > 0.0001 or abs(lng) > 0.0001):
+        return f"https://www.google.com/maps/dir/?api=1&destination={lat:.6f},{lng:.6f}&travelmode=driving"
     coords = extract_gps_coordinates(location_text)
-    if coords:
-        return f"https://maps.google.com/?q={coords[0]:.5f},{coords[1]:.5f}"
+    if coords and (abs(coords[0]) > 0.0001 or abs(coords[1]) > 0.0001):
+        return f"https://www.google.com/maps/dir/?api=1&destination={coords[0]:.6f},{coords[1]:.6f}&travelmode=driving"
     return None
 
 def generate_booking_reference(db: Session) -> str:
@@ -197,7 +201,7 @@ async def create_booking(
     friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
     
     maps_url = get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location)
-    gps_line = f"🗺️ *GPS Map:* {maps_url}" if maps_url else ""
+    gps_line = f"🗺️ *GPS Navigation:* {maps_url}" if maps_url else ""
 
     support_setting = db.query(SystemSetting).filter(SystemSetting.key == "support_phone").first()
     support_phone_val = support_setting.value if support_setting and support_setting.value else "+919876543210"
@@ -271,7 +275,7 @@ async def create_booking(
             date_disp = format_friendly_date(booking.pickup_date)
             time_disp = format_friendly_time(booking.pickup_time)
             car_disp = car_name_val if car_name_val else "Any Available Cab"
-            admin_maps_clause = f"\n🗺️ *GPS Live Map:* {maps_url}" if maps_url else ""
+            admin_maps_clause = f"\n🗺️ *GPS Live Navigation:* {maps_url}" if maps_url else ""
 
             admin_alert_text = (
                 f"🚖 *PB08 TAXI — New Booking Alert!*\n"

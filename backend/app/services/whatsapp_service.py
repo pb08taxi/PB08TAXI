@@ -516,12 +516,12 @@ class WhatsAppService:
             elif digits:
                 norm_phone = f"+{digits}"
 
-        maps_link = f"https://maps.google.com/?q={latitude:.5f},{longitude:.5f}"
+        maps_link = f"https://www.google.com/maps/dir/?api=1&destination={latitude:.6f},{longitude:.6f}&travelmode=driving"
         log_entry = WhatsAppMessage(
             customer_id=customer_id,
             phone=norm_phone,
             message_type=message_type,
-            content=f"📍 GPS Location Pin: {latitude:.5f}, {longitude:.5f} ({address}) — {maps_link}",
+            content=f"📍 GPS Location Navigation: {latitude:.6f}, {longitude:.6f} ({address}) — {maps_link}",
             status="PENDING"
         )
         db.add(log_entry)

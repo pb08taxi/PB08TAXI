@@ -518,7 +518,7 @@ export async function searchOnlineMapLocations(query, signal) {
  * Reverse Geocode Coordinates to human-readable Indian locality (for GPS button)
  */
 export async function reverseGeocodeGPS(lat, lon) {
-  const coordText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  const coordText = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
   try {
     const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`;
     const resp = await fetch(url);

@@ -137,7 +137,7 @@ async def update_booking_status(
         date_disp = format_friendly_date(booking.pickup_date) or "As scheduled"
         time_disp = format_friendly_time(booking.pickup_time) or "Immediate"
         maps_url = get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location)
-        gps_line = f"🗺️ *GPS Map:* {maps_url}" if maps_url else ""
+        gps_line = f"🗺️ *GPS Navigation:* {maps_url}" if maps_url else ""
 
         base_ctx = {
             "customer_name": booking.customer.name,
@@ -173,7 +173,7 @@ async def update_booking_status(
                             f"📍 *Pickup Location:* {booking.pickup_location}\n{gps_line}"
                         )
             else:
-                cust_maps_clause = f"\n• *GPS Map:* {maps_url}" if maps_url else ""
+                cust_maps_clause = f"\n• *GPS Navigation:* {maps_url}" if maps_url else ""
                 cust_msg = (
                     f"🚖 *PB08 TAXI — Ride Confirmed!*\n"
                     f"Hello {booking.customer.name}, your ride has been confirmed (Ref: #{booking.booking_reference})!\n"
@@ -223,7 +223,7 @@ async def update_booking_status(
                                 f"📍 *Pickup Location:* {booking.pickup_location}\n{gps_line}"
                             )
                 else:
-                    driver_maps_clause = f"\n• *GPS Map:* {maps_url}" if maps_url else ""
+                    driver_maps_clause = f"\n• *GPS Navigation:* {maps_url}" if maps_url else ""
                     driver_msg = (
                         f"🚖 *PB08 TAXI — New Duty Assigned!*\n"
                         f"Hello {driver.name}, a new ride has been assigned to your cab ({car_name_val} - {driver.taxi_registration}):\n"

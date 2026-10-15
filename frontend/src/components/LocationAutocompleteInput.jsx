@@ -129,14 +129,15 @@ export default function LocationAutocompleteInput({
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let address = `GPS Location (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
         try {
-          const { latitude, longitude } = pos.coords;
-          const address = await reverseGeocodeGPS(latitude, longitude);
-          onChange(address, { lat: latitude, lng: longitude });
-          setIsOpen(false);
+          address = await reverseGeocodeGPS(latitude, longitude);
         } catch (err) {
           console.warn('GPS location resolution error:', err);
         } finally {
+          onChange(address, { lat: latitude, lng: longitude });
+          setIsOpen(false);
           setIsLocating(false);
         }
       },

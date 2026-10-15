@@ -314,14 +314,14 @@ export default function AdminBookingsPage() {
                             <span className="truncate">{b.pickup_location || 'Not provided'}</span>
                             {(b.pickup_lat && b.pickup_lng) && (
                               <a
-                                href={`https://maps.google.com/?q=${b.pickup_lat},${b.pickup_lng}`}
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${b.pickup_lat},${b.pickup_lng}&travelmode=driving`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center space-x-1 text-[11px] text-taxi-yellow hover:underline font-mono"
-                                title="Open GPS Coordinates in Google Maps"
+                                title="Open Driving Directions in Google Maps"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <span>🗺️ {b.pickup_lat.toFixed(4)}, {b.pickup_lng.toFixed(4)} (Map)</span>
+                                <span>🗺️ {b.pickup_lat.toFixed(4)}, {b.pickup_lng.toFixed(4)} (Navigate)</span>
                               </a>
                             )}
                           </div>
@@ -477,15 +477,15 @@ export default function AdminBookingsPage() {
               </div>
               {(selectedBooking.pickup_lat && selectedBooking.pickup_lng) && (
                 <div className="flex justify-between items-center bg-zinc-900/80 px-2.5 py-1.5 rounded-lg border border-zinc-800">
-                  <span className="text-zinc-400 text-xs">GPS Location:</span>
+                  <span className="text-zinc-400 text-xs">GPS Navigation:</span>
                   <a
-                    href={`https://maps.google.com/?q=${selectedBooking.pickup_lat},${selectedBooking.pickup_lng}`}
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${selectedBooking.pickup_lat},${selectedBooking.pickup_lng}&travelmode=driving`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-taxi-yellow text-xs font-mono font-bold hover:underline flex items-center space-x-1"
                   >
                     <span>{selectedBooking.pickup_lat.toFixed(4)}, {selectedBooking.pickup_lng.toFixed(4)}</span>
-                    <span className="text-[10px] text-zinc-400 font-sans">(Open Map)</span>
+                    <span className="text-[10px] text-zinc-400 font-sans">(Open Navigation)</span>
                   </a>
                 </div>
               )}
