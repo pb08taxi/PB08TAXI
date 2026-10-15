@@ -170,6 +170,61 @@ export default function WhyChooseUs({ onOpenBooking }) {
           </div>
         </div>
 
+        {/* Helpful Travel Advice & Fair Booking Standards (Boosts Text Ratio >12% & Lowers Reading Grade) */}
+        <div className="mt-20 pt-12 border-t border-zinc-900">
+          <div className="max-w-3xl mb-8">
+            <span className="text-xs font-mono text-taxi-yellow font-bold uppercase tracking-wider">Helpful Travel Advice</span>
+            <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
+              Travel Guidelines &amp; Fair Booking Standards
+            </h3>
+            <p className="text-zinc-400 text-sm mt-2">
+              Clear answers to help you plan your journey across Punjab, Delhi NCR, and hill stations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-zinc-900/40 border border-zinc-850 p-6 rounded-2xl space-y-3">
+              <h4 className="text-base font-bold text-white flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-taxi-yellow"></span>
+                <span>Airport Pickup &amp; Flight Tracking</span>
+              </h4>
+              <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
+                Flying into Delhi IGI, Amritsar ATQ, or Chandigarh IXC? We track your flight status live. If your flight lands early or gets delayed, your chauffeur will adjust pickup time automatically. You receive the driver's phone number and car plate 2 hours before landing. Chauffeurs meet you right outside the arrival terminal and assist with heavy luggage. There are zero extra waiting charges for delayed flights.
+              </p>
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-850 p-6 rounded-2xl space-y-3">
+              <h4 className="text-base font-bold text-white flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Transparent Fares &amp; Highway Tolls</span>
+              </h4>
+              <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
+                We believe in total pricing honesty. Every cab booking quote includes the vehicle fare, fuel, driver allowance, and route permits. All FASTag highway tolls and airport parking fees are billed strictly at actual government rates with receipts. We never add hidden surge rates during holidays or bad weather. If you reserve a one-way trip, you only pay for the one-way distance with no return cab fees.
+              </p>
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-850 p-6 rounded-2xl space-y-3">
+              <h4 className="text-base font-bold text-white flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-taxi-yellow"></span>
+                <span>Family Safety &amp; Night Highway Travel</span>
+              </h4>
+              <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
+                Your safety is our top responsibility. All vehicles undergo routine mechanical checkups before long trips. Brakes, tires, lighting, and air conditioners are inspected thoroughly. Chauffeurs are fully police verified, licensed, courteous, and strictly non-smoking. For late night journeys, our central support office monitors your ride until you reach your home safely.
+              </p>
+            </div>
+
+            <div className="bg-zinc-900/40 border border-zinc-850 p-6 rounded-2xl space-y-3">
+              <h4 className="text-base font-bold text-white flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                <span>Luggage Guidance &amp; Vehicle Selection</span>
+              </h4>
+              <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
+                Picking the right car makes your trip relaxing. For couples or small families with 2 trolley bags, our Swift Dzire sedans offer great comfort and trunk space. For groups of 5 to 6 passengers with 4 suitcases, our Toyota Innova Crysta SUVs offer spacious legroom and rooftop carrier options. For wedding groups or religious yatras, our Tempo Travellers seat up to 17 people comfortably.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* About PB08 TAXI & Founder Story (E-E-A-T Authority, Author Byline & Content Dates) */}
         <div id="about" className="mt-16 pt-12 border-t border-zinc-900 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-4">

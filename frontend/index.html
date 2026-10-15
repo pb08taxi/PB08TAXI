@@ -87,8 +87,27 @@
     <meta name="twitter:description" content="Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares &amp; instant WhatsApp booking confirmation." />
     <meta name="twitter:image" content="https://www.pb08taxi.com/icon-512.png" />
 
+    <!-- Structured Data 0: Organization Schema -->
+    <script id="schema-organization" type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://www.pb08taxi.com/#organization",
+      "name": "PB08 TAXI",
+      "url": "https://www.pb08taxi.com/",
+      "logo": "https://www.pb08taxi.com/icon-512.png",
+      "image": "https://www.pb08taxi.com/icon-512.png",
+      "telephone": "+919888079736",
+      "sameAs": [
+        "https://wa.me/919888079736",
+        "https://facebook.com/pb08taxi",
+        "https://instagram.com/pb08taxi"
+      ]
+    }
+    </script>
+
     <!-- Structured Data 1: TaxiService & LocalBusiness Schema -->
-    <script type="application/ld+json">
+    <script id="schema-taxi-service" type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "TaxiService",
@@ -193,7 +212,7 @@
     </script>
 
     <!-- Structured Data 2: WebSite Schema with SearchAction -->
-    <script type="application/ld+json">
+    <script id="schema-website" type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -209,7 +228,7 @@
     </script>
 
     <!-- Structured Data 3: FAQPage Schema -->
-    <script type="application/ld+json">
+    <script id="schema-faq" type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",

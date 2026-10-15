@@ -74,15 +74,21 @@ export default function SEOHead() {
         setMeta('name', 'google-site-verification', seo.google_site_verification);
       }
 
-      // 7. Schema.org Multi-Entity Structured Data Graph (TaxiService, LocalBusiness, WebSite, FAQPage)
+      // 7. Schema.org Individual Entity Scripts (Each with root @type to eliminate SEOmator missing @type warning)
       try {
-        let schemaEl = document.getElementById('seo-dynamic-schema');
-        if (!schemaEl) {
-          schemaEl = document.createElement('script');
-          schemaEl.id = 'seo-dynamic-schema';
-          schemaEl.type = 'application/ld+json';
-          document.head.appendChild(schemaEl);
-        }
+        const oldDynamic = document.getElementById('seo-dynamic-schema');
+        if (oldDynamic) oldDynamic.remove();
+
+        const updateOrCreateSchema = (id, schemaData) => {
+          let el = document.getElementById(id);
+          if (!el) {
+            el = document.createElement('script');
+            el.id = id;
+            el.type = 'application/ld+json';
+            document.head.appendChild(el);
+          }
+          el.text = JSON.stringify(schemaData);
+        };
 
         const areaList = seo.service_areas
           ? seo.service_areas.split(',').map((s) => s.trim()).filter(Boolean)
@@ -96,190 +102,194 @@ export default function SEOHead() {
           `https://wa.me/${(settings?.whatsapp_number || seo.support_phone || '+919888079736').replace(/\D/g, '')}`
         ].filter(Boolean);
 
-        const schemaGraph = {
+        // Entity 1: Organization Schema
+        updateOrCreateSchema('schema-organization', {
           '@context': 'https://schema.org',
-          '@graph': [
-            {
-              '@type': 'Organization',
-              '@id': `${canonicalUrl}/#organization`,
-              name: seo.business_name || 'PB08 TAXI',
-              url: canonicalUrl,
-              logo: {
-                '@type': 'ImageObject',
-                url: `${canonicalUrl}/icon-512.png`,
-                width: 512,
-                height: 512
-              },
-              image: `${canonicalUrl}/icon-512.png`,
-              telephone: seo.support_phone || '+919888079736',
-              sameAs: socialLinks
-            },
-            {
-              '@type': 'TaxiService',
-              additionalType: 'https://schema.org/LocalBusiness',
-              '@id': `${canonicalUrl}/#taxiservice`,
-              name: seo.business_name || 'PB08 TAXI',
-              alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
-              url: canonicalUrl,
-              telephone: seo.support_phone || '+919888079736',
-              sameAs: socialLinks,
-              logo: `${canonicalUrl}/icon-512.png`,
-              image: seo.og_image || `${canonicalUrl}/icon-512.png`,
-              description: seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.',
-              author: {
-                '@type': 'Person',
-                name: 'Harmanpreet Singh',
-                jobTitle: 'Fleet Operations Lead & Senior Transport Specialist'
-              },
-              datePublished: '2024-01-01T00:00:00+05:30',
-              dateModified: '2026-10-15T15:00:00+05:30',
-              priceRange: seo.schema_taxi_price_range || '₹₹',
-              currenciesAccepted: 'INR',
-              paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',
-              areaServed: areaList,
-              address: {
-                '@type': 'PostalAddress',
-                streetAddress: settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India',
-                addressLocality: 'Jalandhar',
-                addressRegion: seo.geo_region || 'Punjab',
-                postalCode: '144001',
-                addressCountry: 'IN'
-              },
-              geo: {
-                '@type': 'GeoCoordinates',
-                latitude: Number(seo.geo_latitude || 31.3260),
-                longitude: Number(seo.geo_longitude || 75.5762)
-              },
-              openingHoursSpecification: {
-                '@type': 'OpeningHoursSpecification',
-                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                opens: '00:00',
-                closes: '23:59'
-              },
-              hasOfferCatalog: {
-                '@type': 'OfferCatalog',
-                name: 'PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & Airport Taxi Routes',
-                itemListElement: [
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'Jalandhar to Delhi & Delhi to Jalandhar Taxi',
-                      description: '24/7 One Way Jalandhar and round-trip Airport taxi between Jalandhar and Delhi IGI Airport / NCR.'
-                    }
-                  },
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'Jalandhar to Amritsar & Amritsar to Jalandhar Taxi',
-                      description: 'Fast cab service for Jalandhar to Amritsar Golden Temple, ATQ Airport, and Amritsar to Jalandhar.'
-                    }
-                  },
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'Jalandhar to Chandigarh & Chandigarh to Jalandhar Taxi',
-                      description: 'One-way and round-trip taxi service connecting Jalandhar to Chandigarh and Chandigarh to Jalandhar.'
-                    }
-                  },
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'Jalandhar to Ludhiana & Ludhiana to Jalandhar Taxi',
-                      description: 'Express intercity taxi for Jalandhar to Ludhiana and Ludhiana to Jalandhar.'
-                    }
-                  },
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar Taxi',
-                      description: '24/7 local and outstation cab between Jalandhar to Hoshiarpur and Hoshiarpur to Jalandhar.'
-                    }
-                  },
-                  {
-                    '@type': 'Offer',
-                    itemOffered: {
-                      '@type': 'Service',
-                      name: 'One Way Jalandhar & 24/7 Airport Taxi',
-                      description: 'Top-rated Jalandhar Taxi with one-way drop fares and zero return charges.'
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              '@type': 'WebSite',
-              '@id': `${canonicalUrl}/#website`,
-              url: canonicalUrl,
-              name: seo.business_name || 'PB08 TAXI',
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: `${canonicalUrl}/?q={search_term_string}`,
-                'query-input': 'required name=search_term_string'
-              }
-            },
-            {
-              '@type': 'FAQPage',
-              '@id': `${canonicalUrl}/#faq`,
-              mainEntity: [
-                {
-                  '@type': 'Question',
-                  name: 'How can I book a cab with PB08 TAXI?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'Booking is effortless! Click the \'One Click Book Your Ride\' button anywhere on our website, enter your pickup location, drop destination, date & time, and select your preferred vehicle. You will receive instant booking confirmation directly on WhatsApp with driver and vehicle details.'
-                  }
-                },
-                {
-                  '@type': 'Question',
-                  name: 'Do you offer airport taxi transfers for Delhi (DEL), Amritsar (ATQ), and Chandigarh (IXC)?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'Yes! We specialize in on-time airport transfers between Jalandhar, all Punjab towns, and Delhi IGI Airport (T1, T2, T3), Amritsar Sri Guru Ram Dass Jee International Airport, and Chandigarh Shaheed Bhagat Singh Airport with live flight tracking.'
-                  }
-                },
-                {
-                  '@type': 'Question',
-                  name: 'Which vehicles are available in your taxi fleet?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'We maintain a pristine, fully air-conditioned fleet: Compact Sedans (Swift Dzire, Honda Amaze), Premium SUVs (Toyota Innova Crysta, Ertiga, Carens), Luxury Executive Cars (Toyota Fortuner, BMW, Audi for weddings), and 12-17 seater Tempo Travellers.'
-                  }
-                },
-                {
-                  '@type': 'Question',
-                  name: 'Are PB08 TAXI fares transparent with no hidden charges?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'Yes, 100%. We provide transparent fixed pricing with zero surge fees. Fares are confirmed in advance with complete clarity on vehicle charges, driver allowance, tolls, and state permits.'
-                  }
-                },
-                {
-                  '@type': 'Question',
-                  name: 'Can I book a one-way outstation cab or is it only round-trip?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'PB08 TAXI offers both one-way drop cabs and round-trip rentals. If you only need a drop to Delhi, Chandigarh, Amritsar, Himachal (Shimla, Manali, Dharamshala), or Jammu, you only pay for the one-way route.'
-                  }
-                },
-                {
-                  '@type': 'Question',
-                  name: 'Are PB08 TAXI chauffeurs verified and safe for night travel?',
-                  acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: 'Safety is our paramount commitment. Every chauffeur undergoes background screening, commercial licensing verification, and highway safety training. Our drivers are courteous, strictly non-smoking, and trained for late-night family travel.'
-                  }
+          '@type': 'Organization',
+          '@id': `${canonicalUrl}/#organization`,
+          name: seo.business_name || 'PB08 TAXI',
+          url: canonicalUrl,
+          logo: {
+            '@type': 'ImageObject',
+            url: `${canonicalUrl}/icon-512.png`,
+            width: 512,
+            height: 512
+          },
+          image: `${canonicalUrl}/icon-512.png`,
+          telephone: seo.support_phone || '+919888079736',
+          sameAs: socialLinks
+        });
+
+        // Entity 2: TaxiService & LocalBusiness Schema
+        updateOrCreateSchema('schema-taxi-service', {
+          '@context': 'https://schema.org',
+          '@type': 'TaxiService',
+          additionalType: 'https://schema.org/LocalBusiness',
+          '@id': `${canonicalUrl}/#taxiservice`,
+          name: seo.business_name || 'PB08 TAXI',
+          alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
+          url: canonicalUrl,
+          telephone: seo.support_phone || '+919888079736',
+          sameAs: socialLinks,
+          logo: `${canonicalUrl}/icon-512.png`,
+          image: seo.og_image || `${canonicalUrl}/icon-512.png`,
+          description: seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.',
+          author: {
+            '@type': 'Person',
+            name: 'Harmanpreet Singh',
+            jobTitle: 'Fleet Operations Lead & Senior Transport Specialist'
+          },
+          datePublished: '2024-01-01T00:00:00+05:30',
+          dateModified: '2026-10-15T15:00:00+05:30',
+          priceRange: seo.schema_taxi_price_range || '₹₹',
+          currenciesAccepted: 'INR',
+          paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',
+          areaServed: areaList,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India',
+            addressLocality: 'Jalandhar',
+            addressRegion: seo.geo_region || 'Punjab',
+            postalCode: '144001',
+            addressCountry: 'IN'
+          },
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: Number(seo.geo_latitude || 31.3260),
+            longitude: Number(seo.geo_longitude || 75.5762)
+          },
+          openingHoursSpecification: {
+            '@type': 'OpeningHoursSpecification',
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            opens: '00:00',
+            closes: '23:59'
+          },
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'PB08 TAXI — Jalandhar Taxi, One Way Jalandhar & Airport Taxi Routes',
+            itemListElement: [
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Jalandhar to Delhi & Delhi to Jalandhar Taxi',
+                  description: '24/7 One Way Jalandhar and round-trip Airport taxi between Jalandhar and Delhi IGI Airport / NCR.'
                 }
-              ]
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Jalandhar to Amritsar & Amritsar to Jalandhar Taxi',
+                  description: 'Fast cab service for Jalandhar to Amritsar Golden Temple, ATQ Airport, and Amritsar to Jalandhar.'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Jalandhar to Chandigarh & Chandigarh to Jalandhar Taxi',
+                  description: 'One-way and round-trip taxi service connecting Jalandhar to Chandigarh and Chandigarh to Jalandhar.'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Jalandhar to Ludhiana & Ludhiana to Jalandhar Taxi',
+                  description: 'Express intercity taxi for Jalandhar to Ludhiana and Ludhiana to Jalandhar.'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar Taxi',
+                  description: '24/7 local and outstation cab between Jalandhar to Hoshiarpur and Hoshiarpur to Jalandhar.'
+                }
+              },
+              {
+                '@type': 'Offer',
+                itemOffered: {
+                  '@type': 'Service',
+                  name: 'One Way Jalandhar & 24/7 Airport Taxi',
+                  description: 'Top-rated Jalandhar Taxi with one-way drop fares and zero return charges.'
+                }
+              }
+            ]
+          }
+        });
+
+        // Entity 3: WebSite Schema
+        updateOrCreateSchema('schema-website', {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          '@id': `${canonicalUrl}/#website`,
+          url: canonicalUrl,
+          name: seo.business_name || 'PB08 TAXI',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${canonicalUrl}/?q={search_term_string}`,
+            'query-input': 'required name=search_term_string'
+          }
+        });
+
+        // Entity 4: FAQPage Schema
+        updateOrCreateSchema('schema-faq', {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          '@id': `${canonicalUrl}/#faq`,
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'How can I book a cab with PB08 TAXI?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: "Booking is effortless! Click the 'One Click Book Your Ride' button anywhere on our website, enter your pickup location, drop destination, date & time, and select your preferred vehicle. You will receive instant booking confirmation directly on WhatsApp with driver and vehicle details."
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Do you offer airport taxi transfers for Delhi (DEL), Amritsar (ATQ), and Chandigarh (IXC)?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes! We specialize in on-time airport transfers between Jalandhar, all Punjab towns, and Delhi IGI Airport (T1, T2, T3), Amritsar Sri Guru Ram Dass Jee International Airport, and Chandigarh Shaheed Bhagat Singh Airport with live flight tracking.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Which vehicles are available in your taxi fleet?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'We maintain a pristine, fully air-conditioned fleet: Compact Sedans (Swift Dzire, Honda Amaze), Premium SUVs (Toyota Innova Crysta, Ertiga, Carens), Luxury Executive Cars (Toyota Fortuner, BMW, Audi for weddings), and 12-17 seater Tempo Travellers.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Are PB08 TAXI fares transparent with no hidden charges?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes, 100%. We provide transparent fixed pricing with zero surge fees. Fares are confirmed in advance with complete clarity on vehicle charges, driver allowance, tolls, and state permits.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Can I book a one-way outstation cab or is it only round-trip?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'PB08 TAXI offers both one-way drop cabs and round-trip rentals. If you only need a drop to Delhi, Chandigarh, Amritsar, Himachal (Shimla, Manali, Dharamshala), or Jammu, you only pay for the one-way route.'
+              }
+            },
+            {
+              '@type': 'Question',
+              name: 'Are PB08 TAXI chauffeurs verified and safe for night travel?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Safety is our paramount commitment. Every chauffeur undergoes background screening, commercial licensing verification, and highway safety training. Our drivers are courteous, strictly non-smoking, and trained for late-night family travel.'
+              }
             }
           ]
-        };
-
-        schemaEl.text = JSON.stringify(schemaGraph);
+        });
       } catch (err) {
         console.warn('Failed to inject dynamic SEO Schema:', err);
       }
