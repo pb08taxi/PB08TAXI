@@ -50,11 +50,11 @@ export default function FAQSection({ onOpenBooking }) {
         <div className="text-center space-y-4 mb-16">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/15 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>Got Questions? We Have Answers</span>
+            <span>Got Questions? We Have Answers.</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-            Frequently Asked <span className="text-taxi-yellow">Questions</span>
+            Frequently Asked <span className="text-taxi-yellow">Questions</span>.
           </h2>
 
           <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">

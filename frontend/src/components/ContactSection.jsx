@@ -14,10 +14,10 @@ export default function ContactSection({ onOpenBooking }) {
         
         <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/10 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
-            <span>Get In Touch</span>
+            <span>Get In Touch.</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-            Contact PB08 TAXI
+            Contact PB08 TAXI.
           </h2>
           <p className="text-zinc-400 text-base sm:text-lg">
             Have questions about fares, routes, or wedding rentals? Reach our 24/7 central desk anytime.
@@ -25,13 +25,13 @@ export default function ContactSection({ onOpenBooking }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Card 1: 24/7 Helpline */}
+          {/* Card 1: 24/7 Helpline */}
           <div className="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-6 text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-taxi-yellow flex items-center justify-center mx-auto">
               <Phone className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">24/7 Call Booking</h3>
-            <p className="text-xs text-zinc-400">Direct booking helpline</p>
+            <h3 className="text-base font-bold text-white">24/7 Call Booking.</h3>
+            <p className="text-xs text-zinc-400">Direct booking helpline.</p>
             <a 
               href={telLink} 
               className="text-taxi-yellow font-extrabold text-sm block hover:underline"
@@ -45,8 +45,8 @@ export default function ContactSection({ onOpenBooking }) {
             <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-[#25D366] flex items-center justify-center mx-auto">
               <MessageSquare className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">WhatsApp Support</h3>
-            <p className="text-xs text-zinc-400">Live chat & instant dispatch</p>
+            <h3 className="text-base font-bold text-white">WhatsApp Support.</h3>
+            <p className="text-xs text-zinc-400">Live chat &amp; instant dispatch.</p>
             <a 
               href={`https://wa.me/${cleanWa}`} 
               target="_blank" 
@@ -66,13 +66,13 @@ export default function ContactSection({ onOpenBooking }) {
             <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-taxi-yellow flex items-center justify-center mx-auto">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">Central Hub</h3>
+            <h3 className="text-base font-bold text-white">Central Hub.</h3>
             <p className="text-xs text-zinc-300 font-semibold leading-relaxed px-2">
               <span itemProp="streetAddress">{settings?.physical_address?.split(',')[0] || 'Model Town, Near BMC Chowk'}</span>,{' '}
               <span itemProp="addressLocality">Jalandhar</span>,{' '}
               <span itemProp="addressRegion">Punjab</span>{' '}
               <span itemProp="postalCode">144001</span>,{' '}
-              <span itemProp="addressCountry">India</span>
+              <span itemProp="addressCountry">India.</span>
             </p>
           </address>
 
@@ -81,10 +81,10 @@ export default function ContactSection({ onOpenBooking }) {
             <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-taxi-yellow flex items-center justify-center mx-auto">
               <Clock className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">Service Hours</h3>
-            <p className="text-xs text-zinc-400">Open 365 Days a Year</p>
+            <h3 className="text-base font-bold text-white">Service Hours.</h3>
+            <p className="text-xs text-zinc-400">Open 365 Days a Year.</p>
             <p className="text-xs text-zinc-300 font-semibold">
-              Round the Clock (24x7)
+              Round the Clock (24x7).
             </p>
           </div>
 

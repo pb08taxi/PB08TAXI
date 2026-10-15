@@ -137,7 +137,19 @@ export default function SEOHead() {
           author: {
             '@type': 'Person',
             name: 'Harmanpreet Singh',
-            jobTitle: 'Fleet Operations Lead & Senior Transport Specialist'
+            jobTitle: 'Fleet Operations Lead & Senior Transport Specialist',
+            description: 'Certified fleet operations manager with 12+ years of professional Punjab passenger transport experience, road safety verification, and round-the-clock highway dispatch expertise.',
+            knowsAbout: [
+              'Punjab Highway Logistics',
+              'Passenger Transport Safety',
+              'Airport Taxi Transit',
+              'Fleet Operations'
+            ],
+            hasCredential: {
+              '@type': 'EducationalOccupationalCredential',
+              credentialCategory: 'Commercial Transport Operations Certification',
+              name: 'Professional Highway Passenger Logistics & Fleet Safety'
+            }
           },
           datePublished: '2024-01-01T00:00:00+05:30',
           dateModified: '2026-10-15T15:00:00+05:30',

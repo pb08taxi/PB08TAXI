@@ -78,10 +78,10 @@ export default function Navbar({ onOpenBooking }) {
       <div className="bg-taxi-yellow text-black text-xs font-bold py-1 px-4 text-center tracking-wide flex items-center justify-center space-x-3">
         <span className="flex items-center space-x-1">
           <ShieldCheck className="w-3.5 h-3.5 inline" />
-          <span>{brandTitle} — PUNJAB'S TRUSTED 24/7 CAB SERVICE</span>
+          <span>{brandTitle} — PUNJAB'S TRUSTED 24/7 CAB SERVICE.</span>
         </span>
         <span className="hidden md:inline">•</span>
-        <span className="hidden md:inline">JALANDHAR • AMRITSAR • CHANDIGARH • DELHI AIRPORT</span>
+        <span className="hidden md:inline">JALANDHAR • AMRITSAR • CHANDIGARH • DELHI AIRPORT.</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

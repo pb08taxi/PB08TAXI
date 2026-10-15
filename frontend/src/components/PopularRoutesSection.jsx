@@ -5,80 +5,80 @@ import { trackRouteClick } from '../utils/analytics';
 
 const POPULAR_ROUTES = [
   {
-    title: "Jalandhar to Delhi & Delhi to Jalandhar",
-    shortRoute: "Jalandhar ⇄ Delhi / IGI Airport",
-    keywords: ["Delhi Highway", "IGI Airport Cab", "One Way Drop", "NH44 Route"],
-    distance: "~375 km • 6–7 Hours via NH44",
+    title: "Jalandhar to Delhi & Delhi to Jalandhar.",
+    shortRoute: "Jalandhar ⇄ Delhi / IGI Airport.",
+    keywords: ["Delhi Highway.", "IGI Airport Cab.", "One Way Drop.", "NH44 Route."],
+    distance: "~375 km • 6–7 Hours via NH44.",
     description:
       "Non-stop air-conditioned rides between Jalandhar and Delhi IGI Airport (Terminals 1, 2, and 3). Available for both one-way drops and return journeys with zero return fee.",
-    badge: "Bestseller Airport Route",
-    vehicles: "Dzire, Ertiga, Innova Crysta",
+    badge: "Bestseller Airport Route.",
+    vehicles: "Dzire, Ertiga, Innova Crysta.",
   },
   {
-    title: "Jalandhar to Amritsar & Amritsar to Jalandhar",
-    shortRoute: "Jalandhar ⇄ Amritsar / ATQ Airport",
-    keywords: ["Harmandir Sahib", "Wagah Border", "ATQ Airport", "GT Road"],
-    distance: "~85 km • 1.5 Hours via GT Road",
+    title: "Jalandhar to Amritsar & Amritsar to Jalandhar.",
+    shortRoute: "Jalandhar ⇄ Amritsar / ATQ Airport.",
+    keywords: ["Harmandir Sahib.", "Wagah Border.", "ATQ Airport.", "GT Road."],
+    distance: "~85 km • 1.5 Hours via GT Road.",
     description:
       "Comfortable intercity cab travel for family visits to the Golden Temple, Wagah Border parade, and Amritsar Sri Guru Ram Dass Jee International Airport.",
-    badge: "Golden Temple & Airport",
-    vehicles: "Sedan, SUV, Tempo Traveller",
+    badge: "Golden Temple & Airport.",
+    vehicles: "Sedan, SUV, Tempo Traveller.",
   },
   {
-    title: "Jalandhar to Chandigarh & Chandigarh to Jalandhar",
-    shortRoute: "Jalandhar ⇄ Chandigarh / IXC Airport",
-    keywords: ["Sector 17", "Mohali Transit", "PGI Hospital", "IXC Airport"],
-    distance: "~150 km • 2.5–3 Hours",
+    title: "Jalandhar to Chandigarh & Chandigarh to Jalandhar.",
+    shortRoute: "Jalandhar ⇄ Chandigarh / IXC Airport.",
+    keywords: ["Sector 17.", "Mohali Transit.", "PGI Hospital.", "IXC Airport."],
+    distance: "~150 km • 2.5–3 Hours.",
     description:
       "Punctual executive cars and family cabs connecting Jalandhar with Mohali, Panchkula, PGI, and Shaheed Bhagat Singh International Airport.",
-    badge: "Express Highway Cab",
-    vehicles: "Dzire, Amaze, Innova Crysta",
+    badge: "Express Highway Cab.",
+    vehicles: "Dzire, Amaze, Innova Crysta.",
   },
   {
-    title: "Jalandhar to Ludhiana & Ludhiana to Jalandhar",
-    shortRoute: "Jalandhar ⇄ Ludhiana City",
-    keywords: ["Industrial Hub", "Railway Junction", "City Commute", "Express NH44"],
-    distance: "~62 km • 1 Hour via NH44",
+    title: "Jalandhar to Ludhiana & Ludhiana to Jalandhar.",
+    shortRoute: "Jalandhar ⇄ Ludhiana City.",
+    keywords: ["Industrial Hub.", "Railway Junction.", "City Commute.", "Express NH44."],
+    distance: "~62 km • 1 Hour via NH44.",
     description:
       "Direct doorstep pickup for shopping, corporate business meetings, railway junction connections, and daily travel at guaranteed fixed prices.",
-    badge: "1-Hour Intercity Express",
-    vehicles: "Hatchback, Sedan, SUV",
+    badge: "1-Hour Intercity Express.",
+    vehicles: "Hatchback, Sedan, SUV.",
   },
   {
-    title: "Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar",
-    shortRoute: "Jalandhar ⇄ Hoshiarpur",
-    keywords: ["Doaba Belt", "Local Outstation", "Daily Commute", "Hospital Transit"],
-    distance: "~45 km • 50 Mins",
+    title: "Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar.",
+    shortRoute: "Jalandhar ⇄ Hoshiarpur.",
+    keywords: ["Doaba Belt.", "Local Outstation.", "Daily Commute.", "Hospital Transit."],
+    distance: "~45 km • 50 Mins.",
     description:
       "Reliable day and night cab rides between Doaba hubs. Great for medical appointments, university visits, and smooth transit across Punjab.",
-    badge: "Doaba Local & One-Way",
-    vehicles: "Sedan, Ertiga, Innova",
+    badge: "Doaba Local & One-Way.",
+    vehicles: "Sedan, Ertiga, Innova.",
   },
   {
-    title: "All-Punjab One Way Drops & North India Outstation",
-    shortRoute: "Punjab, Himachal & North India",
-    keywords: ["Shimla Manali", "Jammu Katra", "Fixed Pricing", "Zero Return Fare"],
-    distance: "Pay Only One-Way Fare • Zero Return Charge",
+    title: "All-Punjab One Way Drops & North India Outstation.",
+    shortRoute: "Punjab, Himachal & North India.",
+    keywords: ["Shimla Manali.", "Jammu Katra.", "Fixed Pricing.", "Zero Return Fare."],
+    distance: "Pay Only One-Way Fare • Zero Return Charge.",
     description:
       "Travel anywhere across North India and pay only for the distance you ride. Transparent fixed pricing, courteous chauffeurs, and instant WhatsApp booking confirmation.",
-    badge: "No Return Fare",
-    vehicles: "All Fleet Categories Available",
+    badge: "No Return Fare.",
+    vehicles: "All Fleet Categories Available.",
   },
 ];
 
 const SEO_SEARCH_TAGS = [
-  "Airport Transfers",
-  "One Way Cabs",
-  "Outstation Trips",
-  "Delhi IGI Terminal Drops",
-  "Amritsar Golden Temple",
-  "Chandigarh Highway",
-  "Ludhiana Express",
-  "Hoshiarpur Travel",
-  "Innova Crysta Rental",
-  "Swift Dzire Booking",
-  "Fixed Fare Cabs",
-  "Punjab Roadways Taxi"
+  "Airport Transfers.",
+  "One Way Cabs.",
+  "Outstation Trips.",
+  "Delhi IGI Terminal Drops.",
+  "Amritsar Golden Temple.",
+  "Chandigarh Highway.",
+  "Ludhiana Express.",
+  "Hoshiarpur Travel.",
+  "Innova Crysta Rental.",
+  "Swift Dzire Booking.",
+  "Fixed Fare Cabs.",
+  "Punjab Roadways Taxi."
 ];
 
 export default function PopularRoutesSection({ onOpenBooking }) {
@@ -93,11 +93,11 @@ export default function PopularRoutesSection({ onOpenBooking }) {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/15 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
             <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>Popular Intercity Travel Routes</span>
+            <span>Popular Intercity Travel Routes.</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Popular <span className="text-taxi-yellow">Outstation</span> &amp; <span className="text-taxi-yellow">Airport Cab</span> Routes
+            Popular <span className="text-taxi-yellow">Outstation</span> &amp; <span className="text-taxi-yellow">Airport Cab</span> Routes.
           </h2>
 
           <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
@@ -162,8 +162,9 @@ export default function PopularRoutesSection({ onOpenBooking }) {
                 <button
                   type="button"
                   onClick={() => {
-                    trackRouteClick(route.shortRoute);
-                    onOpenBooking(route.shortRoute);
+                    const cleanRoute = route.shortRoute.replace(/\.$/, '');
+                    trackRouteClick(cleanRoute);
+                    onOpenBooking(cleanRoute);
                   }}
                   className="bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-4 py-2 rounded-xl text-xs shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5 flex-shrink-0"
                 >
@@ -179,7 +180,7 @@ export default function PopularRoutesSection({ onOpenBooking }) {
         <div className="mt-12 bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 text-center md:text-left">
             <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-taxi-yellow bg-taxi-yellow/10 border border-taxi-yellow/20 px-3 py-1 rounded-full">
-              Across Punjab &amp; All India
+              Across Punjab &amp; All India.
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-white">
               Looking for More Destinations &amp; Outstation Routes?
@@ -192,7 +193,7 @@ export default function PopularRoutesSection({ onOpenBooking }) {
             to="/popular-routes"
             className="flex-shrink-0 bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-6 py-3.5 rounded-xl text-xs sm:text-sm shadow-md shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
           >
-            <span>View All 35+ India Routes &amp; Rates</span>
+            <span>View All 35+ India Routes &amp; Rates.</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -201,7 +202,7 @@ export default function PopularRoutesSection({ onOpenBooking }) {
         <div className="mt-12 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-taxi-yellow mb-3">
             <Sparkles className="w-4 h-4" />
-            <span>Popular Jalandhar &amp; Outstation Taxi Searches</span>
+            <span>Popular Jalandhar &amp; Outstation Taxi Searches.</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {SEO_SEARCH_TAGS.map((tag, idx) => (
@@ -209,8 +210,9 @@ export default function PopularRoutesSection({ onOpenBooking }) {
                 key={idx}
                 type="button"
                 onClick={() => {
-                  trackRouteClick(`Search Pill: ${tag}`);
-                  onOpenBooking(tag);
+                  const cleanTag = tag.replace(/\.$/, '');
+                  trackRouteClick(`Search Pill: ${cleanTag}`);
+                  onOpenBooking(cleanTag);
                 }}
                 className="text-xs font-semibold text-zinc-300 hover:text-black bg-zinc-950 hover:bg-taxi-yellow border border-zinc-800 hover:border-taxi-yellow px-3 py-1.5 rounded-lg transition-all"
               >

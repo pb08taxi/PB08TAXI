@@ -48,10 +48,10 @@ export default function ServicesSection({ onOpenBooking }) {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/10 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
-            <span>What We Offer</span>
+            <span>What We Offer.</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-            Our Premium Taxi Services
+            Our Premium Taxi Services.
           </h2>
           <p className="text-zinc-400 text-base sm:text-lg">
             Whether it's a short city hop or a multi-day hill station tour, PB08 TAXI delivers clean cars, courteous drivers, and transparent pricing.
@@ -73,12 +73,12 @@ export default function ServicesSection({ onOpenBooking }) {
                       <Icon className="w-7 h-7 stroke-[2.2]" />
                     </div>
                     <span className="text-[11px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-300 group-hover:text-taxi-yellow px-3 py-1 rounded-full border border-zinc-700/60">
-                      {srv.tag}
+                      {srv.tag}.
                     </span>
                   </div>
 
                   <h3 className="text-xl font-bold text-white mb-3 group-hover:text-taxi-yellow transition-colors">
-                    {srv.title}
+                    {srv.title}.
                   </h3>
                   <p className="text-zinc-400 text-sm leading-relaxed mb-6">
                     {srv.description}
@@ -89,7 +89,7 @@ export default function ServicesSection({ onOpenBooking }) {
                   onClick={onOpenBooking}
                   className="inline-flex items-center space-x-2 text-xs font-bold text-taxi-yellow hover:text-white transition-colors group-hover:translate-x-1 duration-200"
                 >
-                  <span>Book This Service</span>
+                  <span>Book This Service.</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -100,22 +100,22 @@ export default function ServicesSection({ onOpenBooking }) {
         {/* Why Travelers Prefer PB08 TAXI (Natural conversational English, Grade 8-9 readability) */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
-            <span className="text-xs font-mono text-taxi-yellow uppercase font-bold tracking-wider">Zero Cancellations</span>
-            <h4 className="text-base font-bold text-white">Guaranteed Car &amp; Chauffeur</h4>
+            <span className="text-xs font-mono text-taxi-yellow uppercase font-bold tracking-wider">Zero Cancellations.</span>
+            <h4 className="text-base font-bold text-white">Guaranteed Car &amp; Chauffeur.</h4>
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
               Unlike ride-hailing apps with frequent driver cancellations, PB08 TAXI confirms your car and driver well in advance. Your ride is 100% assured.
             </p>
           </div>
           <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
-            <span className="text-xs font-mono text-emerald-400 uppercase font-bold tracking-wider">Express Highway Transit</span>
-            <h4 className="text-base font-bold text-white">Direct Non-Stop Navigation</h4>
+            <span className="text-xs font-mono text-emerald-400 uppercase font-bold tracking-wider">Express Highway Transit.</span>
+            <h4 className="text-base font-bold text-white">Direct Non-Stop Navigation.</h4>
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
               Our chauffeurs take the fastest national expressways (NH44 and NH703). You enjoy smooth highway cruising with zero unexpected detours.
             </p>
           </div>
           <div className="bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl space-y-2">
-            <span className="text-xs font-mono text-blue-400 uppercase font-bold tracking-wider">Warm Hospitality</span>
-            <h4 className="text-base font-bold text-white">Luggage &amp; Senior Citizen Help</h4>
+            <span className="text-xs font-mono text-blue-400 uppercase font-bold tracking-wider">Warm Hospitality.</span>
+            <h4 className="text-base font-bold text-white">Luggage &amp; Senior Citizen Help.</h4>
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
               We treat every traveler like family. Chauffeurs gladly help elderly passengers with boarding and carry heavy airport luggage right to your doorstep.
             </p>
@@ -134,7 +134,7 @@ export default function ServicesSection({ onOpenBooking }) {
             onClick={onOpenBooking}
             className="bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-8 py-3.5 rounded-xl text-sm shadow-md hover:scale-105 active:scale-95 transition-all flex-shrink-0"
           >
-            One Click Book Your Ride
+            One Click Book Your Ride.
           </button>
         </div>
 

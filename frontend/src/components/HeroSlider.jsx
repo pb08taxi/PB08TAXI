@@ -150,7 +150,7 @@ export default function HeroSlider({ onOpenBooking }) {
           {/* Badge */}
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/15 border border-taxi-yellow/40 backdrop-blur-md px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs sm:text-sm font-bold tracking-wide">
             <Zap className="w-4 h-4 fill-taxi-yellow text-taxi-yellow" />
-            <span>PUNJAB'S PREMIER 24/7 TAXI NETWORK</span>
+            <span>PUNJAB'S PREMIER 24/7 TAXI NETWORK.</span>
           </div>
 
           {/* Heading */}
@@ -167,15 +167,15 @@ export default function HeroSlider({ onOpenBooking }) {
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs sm:text-sm font-semibold text-zinc-300">
             <div className="flex items-center space-x-1.5 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg">
               <ShieldCheck className="w-4 h-4 text-taxi-yellow" />
-              <span>Verified Chauffeurs</span>
+              <span>Verified Chauffeurs.</span>
             </div>
             <div className="flex items-center space-x-1.5 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg">
               <Clock className="w-4 h-4 text-taxi-yellow" />
-              <span>24/7 Available</span>
+              <span>24/7 Available.</span>
             </div>
             <div className="flex items-center space-x-1.5 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-lg">
               <MapPin className="w-4 h-4 text-taxi-yellow" />
-              <span>All India Permits</span>
+              <span>All India Permits.</span>
             </div>
           </div>
 
@@ -197,7 +197,7 @@ export default function HeroSlider({ onOpenBooking }) {
               href={telLink}
               className="inline-flex items-center justify-center bg-zinc-900/90 hover:bg-zinc-800 text-white font-bold text-base px-6 py-4 rounded-2xl border border-zinc-700 transition-colors"
             >
-              Call 24/7: {phone}
+              Call 24/7: {phone}.
             </a>
 
           </div>

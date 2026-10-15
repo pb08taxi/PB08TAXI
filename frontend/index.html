@@ -4,30 +4,19 @@
     <meta charset="UTF-8" />
     <!-- Google Search & Browser Favicons -->
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
-    <link id="app-favicon" rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link id="app-favicon" rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    
-    <!-- Web Application Manifest (PWA & Android Add to Home Screen) -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Apple iOS Safari & Mobile Add to Home Screen Application Icons -->
-    <link id="apple-touch-icon" rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <!-- Apple iOS Safari & Mobile Application Icons -->
+    <link id="apple-touch-icon" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="PB08 TAXI" />
-    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="PB08 TAXI" />
 
-    <!-- Cache-Control -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <!-- HTTP/3 Alt-Svc Declaration -->
+    <meta http-equiv="Alt-Svc" content='h3=":443"; ma=86400, h3-29=":443"; ma=86400' />
 
     <!-- Instant Zero-Flicker Synchronous Favicon & Brand Hydration -->
     <script>(function(){try{var r=localStorage.getItem('pb08_site_settings_cache');if(r){var s=JSON.parse(r),u=s.site_logo_url||s.site_favicon_url;if(u&&u.indexOf('http')===0){var a=document.querySelectorAll("link[rel='apple-touch-icon']");for(var i=0;i<a.length;i++)a[i].href=u;}if(s.site_favicon_url&&s.site_favicon_url.indexOf('http')===0){var f=document.getElementById('app-favicon');if(f)f.href=s.site_favicon_url;}if(s.brand_title){var t=document.querySelector("meta[name='apple-mobile-web-app-title']");if(t)t.content=s.brand_title;var n=document.querySelector("meta[name='application-name']");if(n)n.content=s.brand_title;}}var e=localStorage.getItem('pb08_seo_settings_cache');if(e){var o=JSON.parse(e);if(o&&o.meta_title)document.title=o.meta_title;}}catch(x){}})();</script>
@@ -35,7 +24,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="google-site-verification" content="BAxc5FdmVweV91Jq3JdbrHI6RwWAcGTfNTjh6Dc7ch0" />
 
-    <!-- Performance Preconnect & DNS-Prefetch Hints -->
+    <!-- Performance Preconnect & Preload Hints -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,9 +34,9 @@
     <!-- LCP Hero Image Preload Hint -->
     <link rel="preload" as="image" href="/Logo/pb08taxi-banner-default.webp" type="image/webp" fetchpriority="high" />
 
-    <!-- Google Font Loading Optimization (Preloaded with display=swap) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" />
+    <!-- Google Font Loading Optimization (WOFF2 Preload with display=swap) -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;display=swap" />
 
     <!-- Google tag (gtag.js) - Google Analytics 4 (Minified) -->
     <script id="seo-ga4-script" async src="https://www.googletagmanager.com/gtag/js?id=G-MD0W9GNM7V"></script>
@@ -119,6 +108,23 @@
       "logo": "https://www.pb08taxi.com/icon-512.png",
       "image": "https://www.pb08taxi.com/icon-512.png",
       "description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.",
+      "author": {
+        "@type": "Person",
+        "name": "Harmanpreet Singh",
+        "jobTitle": "Fleet Operations Lead & Senior Transport Specialist",
+        "description": "Certified fleet operations manager with 12+ years of professional Punjab passenger transport experience, road safety verification, and round-the-clock highway dispatch expertise.",
+        "knowsAbout": [
+          "Punjab Highway Logistics",
+          "Passenger Transport Safety",
+          "Airport Taxi Transit",
+          "Fleet Operations"
+        ],
+        "hasCredential": {
+          "@type": "EducationalOccupationalCredential",
+          "credentialCategory": "Commercial Transport Operations Certification",
+          "name": "Professional Highway Passenger Logistics & Fleet Safety"
+        }
+      },
       "telephone": "+919888079736",
       "priceRange": "₹₹",
       "currenciesAccepted": "INR",
