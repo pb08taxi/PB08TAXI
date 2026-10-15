@@ -5,12 +5,12 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackCallClick, trackBookRideClick } from '../utils/analytics';
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Home' },
-  { id: 'services', label: 'Our Services' },
-  { id: 'routes', label: 'Popular Routes' },
-  { id: 'why-us', label: 'Why Choose Us' },
-  { id: 'faq', label: 'FAQs' },
-  { id: 'contact', label: 'Contact Us' },
+  { id: 'home', label: 'Home', path: '/' },
+  { id: 'services', label: 'Our Services', path: '/#services' },
+  { id: 'routes', label: 'Popular Routes', path: '/#routes' },
+  { id: 'why-us', label: 'About Us', path: '/about' },
+  { id: 'faq', label: 'FAQs', path: '/#faq' },
+  { id: 'contact', label: 'Contact Us', path: '/contact' },
 ];
 
 export default function Navbar({ onOpenBooking }) {
@@ -28,6 +28,28 @@ export default function Navbar({ onOpenBooking }) {
   const handleNavClick = (e, item) => {
     e.preventDefault();
     setMobileMenuOpen(false);
+
+    if (item.path === '/about' || item.id === 'why-us') {
+      if (location.pathname === '/' || location.pathname === '/about') {
+        const el = document.getElementById('why-us') || document.getElementById('about');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', '/about');
+      } else {
+        navigate('/about');
+      }
+      return;
+    }
+
+    if (item.path === '/contact' || item.id === 'contact') {
+      if (location.pathname === '/' || location.pathname === '/contact') {
+        const el = document.getElementById('contact');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', '/contact');
+      } else {
+        navigate('/contact');
+      }
+      return;
+    }
 
     if (location.pathname === '/') {
       const el = document.getElementById(item.id);
@@ -83,6 +105,9 @@ export default function Navbar({ onOpenBooking }) {
                 alt={brandTitle}
                 width={settings?.site_logo_size || 48}
                 height={settings?.site_logo_size || 48}
+                srcSet={`${settings.site_logo_url} 1x, ${settings.site_logo_url} 2x`}
+                loading="eager"
+                fetchpriority="high"
                 style={{ height: `${settings?.site_logo_size || 48}px`, width: 'auto' }}
                 className="max-h-28 max-w-[220px] object-contain rounded-xl shadow-md group-hover:scale-105 transition-all bg-zinc-900/60 p-1 border border-zinc-800 flex-shrink-0"
               />
@@ -119,7 +144,7 @@ export default function Navbar({ onOpenBooking }) {
             {NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
-                href={`/#${item.id}`}
+                href={item.path}
                 onClick={(e) => handleNavClick(e, item)}
                 className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors"
               >
@@ -178,7 +203,7 @@ export default function Navbar({ onOpenBooking }) {
             {NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
-                href={`/#${item.id}`}
+                href={item.path}
                 onClick={(e) => handleNavClick(e, item)}
                 className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
               >

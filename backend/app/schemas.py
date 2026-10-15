@@ -387,13 +387,13 @@ class FactoryResetRequest(BaseModel):
 
 class SEOSettingsOut(BaseModel):
     meta_title: str = "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab"
-    meta_description: str = "PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation."
+    meta_description: str = "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation."
     meta_keywords: str = "PB08 TAXI, Jalandhar Taxi, Punjab Cab Service, Airport Taxi, Outstation Cab, Amritsar Airport Cab, Delhi Airport Transfer, Jalandhar Cab Service, Best Taxi in Punjab"
     canonical_url: str = "https://www.pb08taxi.com"
     robots_directive: str = "index, follow, max-image-preview:large"
     
     og_title: str = "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab"
-    og_description: str = "PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation."
+    og_description: str = "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation."
     og_image: str = "https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/Logo/pb08taxi-logo-1791751050.png"
     twitter_card: str = "summary_large_image"
     

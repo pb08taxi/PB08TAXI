@@ -27,6 +27,7 @@ export default function Footer({ onOpenBooking }) {
                   src={settings.site_logo_url}
                   alt={brandTitle}
                   width={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
+                  srcSet={`${logoSrc} 1x, ${logoSrc} 2x`}
                   height={Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}
                   style={{
                     height: `${Math.min(56, Math.max(32, settings?.site_logo_size ? Math.round(settings.site_logo_size * 0.85) : 40))}px`,
@@ -57,11 +58,21 @@ export default function Footer({ onOpenBooking }) {
             <p className="text-xs text-zinc-400 leading-relaxed">
               Jalandhar's top-rated cab network delivering seamless point-to-point, airport transfers, and outstation taxi travel with verified chauffeurs across North India.
             </p>
-            <div className="text-xs text-zinc-400 space-y-1 bg-zinc-900/50 p-3 rounded-xl border border-zinc-850">
+            <address 
+              itemScope 
+              itemType="https://schema.org/PostalAddress" 
+              className="not-italic text-xs text-zinc-400 space-y-1 bg-zinc-900/50 p-3 rounded-xl border border-zinc-850 block"
+            >
               <p className="font-bold text-zinc-200">Physical Address / Central Hub:</p>
-              <p className="text-zinc-300 leading-relaxed">{settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India'}</p>
-              <p className="text-zinc-400 pt-0.5">Phone: <a href={telLink} className="text-taxi-yellow hover:underline">{phone}</a></p>
-            </div>
+              <p className="text-zinc-300 leading-relaxed">
+                <span itemProp="streetAddress">{settings?.physical_address?.split(',')[0] || 'Model Town, Near BMC Chowk'}</span>,{' '}
+                <span itemProp="addressLocality">Jalandhar</span>,{' '}
+                <span itemProp="addressRegion">Punjab</span>{' '}
+                <span itemProp="postalCode">144001</span>,{' '}
+                <span itemProp="addressCountry">India</span>
+              </p>
+              <p className="text-zinc-400 pt-0.5">Phone: <a href={telLink} itemProp="telephone" className="text-taxi-yellow hover:underline">{phone}</a></p>
+            </address>
             <div className="pt-1 flex flex-col space-y-2">
               <span className="inline-flex items-center space-x-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full w-fit">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -75,13 +86,13 @@ export default function Footer({ onOpenBooking }) {
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Quick Links</h4>
             <ul className="space-y-2 text-xs">
               <li><a href="/#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
-              <li><a href="/#why-us" className="hover:text-taxi-yellow transition-colors">About Us</a></li>
+              <li><Link to="/about" className="hover:text-taxi-yellow transition-colors font-medium">About Us</Link></li>
               <li><a href="/#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
               <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar Routes</a></li>
               <li><Link to="/popular-routes" className="hover:text-taxi-yellow text-taxi-yellow/90 font-semibold transition-colors">Popular Routes (All India)</Link></li>
               <li><a href="/#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
               <li><a href="/#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
-              <li><a href="/#contact" className="hover:text-taxi-yellow transition-colors">Contact Us</a></li>
+              <li><Link to="/contact" className="hover:text-taxi-yellow transition-colors font-medium">Contact Us</Link></li>
               <li>
                 <button onClick={onOpenBooking} className="text-taxi-yellow hover:underline font-bold">
                   One Click Book Your Ride
@@ -130,6 +141,11 @@ export default function Footer({ onOpenBooking }) {
                   Safe Travel Guidelines
                 </Link>
               </li>
+              <li>
+                <Link to="/editorial-policy" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
+                  Editorial Policy
+                </Link>
+              </li>
               {/* Dynamic Social Media Profiles from Site Settings */}
               <li className="pt-2">
                 <span className="text-[11px] font-bold text-zinc-300 block mb-1">Connect With Us:</span>
@@ -176,8 +192,9 @@ export default function Footer({ onOpenBooking }) {
         </div>
 
         {/* Disclaimer Note for Transparency */}
-        <div className="mt-8 pt-4 border-t border-zinc-900 text-[11px] text-zinc-500 text-center sm:text-left">
+        <div className="mt-8 pt-4 border-t border-zinc-900 text-[11px] text-zinc-500 text-center sm:text-left flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p>* Disclaimer &amp; Fair Pricing Policy: PB08 TAXI offers transparent, upfront pricing with zero surge charges. Government toll taxes, state border entry fees, and parking charges are charged on actuals without extra commission.</p>
+          <time dateTime="2026-10-15" className="text-zinc-600 font-mono text-[10px] whitespace-nowrap">Last Verified: October 15, 2026</time>
         </div>
 
         {/* Bottom Bar */}
@@ -189,6 +206,8 @@ export default function Footer({ onOpenBooking }) {
               <Link to="/privacy-policy" className="hover:text-taxi-yellow transition-colors">Privacy Policy</Link>
               <span>•</span>
               <Link to="/terms-of-service" className="hover:text-taxi-yellow transition-colors">Terms of Service</Link>
+              <span>•</span>
+              <Link to="/editorial-policy" className="hover:text-taxi-yellow transition-colors">Editorial Policy</Link>
             </div>
           </div>
           <p className="flex items-center space-x-1">

@@ -20,6 +20,7 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 const PopularRoutesPage = lazy(() => import('./pages/PopularRoutesPage'));
 const SafeTravelGuidelinesPage = lazy(() => import('./pages/SafeTravelGuidelinesPage'));
+const EditorialPolicyPage = lazy(() => import('./pages/EditorialPolicyPage'));
 
 function PageLoader() {
   return (
@@ -44,18 +45,24 @@ export default function App() {
       <Routes>
         {/* Public Taxi Homepage */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<HomePage />} />
+        <Route path="/about-us" element={<Navigate to="/about" replace />} />
+        <Route path="/contact" element={<HomePage />} />
+        <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
 
         {/* Popular Routes Across India SEO Landing Page */}
         <Route path="/popular-routes" element={<PopularRoutesPage />} />
         <Route path="/routes" element={<Navigate to="/popular-routes" replace />} />
 
-        {/* Legal & Trust Pages */}
+        {/* Legal, Safety & Trust Pages */}
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />
         <Route path="/terms" element={<Navigate to="/terms-of-service" replace />} />
         <Route path="/safe-travel-guidelines" element={<SafeTravelGuidelinesPage />} />
         <Route path="/safety" element={<Navigate to="/safe-travel-guidelines" replace />} />
+        <Route path="/editorial-policy" element={<EditorialPolicyPage />} />
+        <Route path="/editorial" element={<Navigate to="/editorial-policy" replace />} />
 
         {/* Admin Authentication */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

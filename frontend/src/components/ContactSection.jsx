@@ -58,15 +58,23 @@ export default function ContactSection({ onOpenBooking }) {
           </div>
 
           {/* Card 3: Head Office */}
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-6 text-center space-y-3">
+          <address 
+            itemScope 
+            itemType="https://schema.org/PostalAddress" 
+            className="not-italic bg-zinc-900/60 border border-zinc-800 rounded-3xl p-6 text-center space-y-3 block"
+          >
             <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-taxi-yellow flex items-center justify-center mx-auto">
               <MapPin className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-white">Central Hub</h3>
             <p className="text-xs text-zinc-300 font-semibold leading-relaxed px-2">
-              {settings?.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India'}
+              <span itemProp="streetAddress">{settings?.physical_address?.split(',')[0] || 'Model Town, Near BMC Chowk'}</span>,{' '}
+              <span itemProp="addressLocality">Jalandhar</span>,{' '}
+              <span itemProp="addressRegion">Punjab</span>{' '}
+              <span itemProp="postalCode">144001</span>,{' '}
+              <span itemProp="addressCountry">India</span>
             </p>
-          </div>
+          </address>
 
           {/* Card 4: Operating Hours */}
           <div className="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-6 text-center space-y-3">

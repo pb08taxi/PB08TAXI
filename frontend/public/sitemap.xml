@@ -47,4 +47,28 @@
     <priority>0.80</priority>
   </url>
 
+  <!-- Editorial Policy & Content Standards -->
+  <url>
+    <loc>https://www.pb08taxi.com/editorial-policy</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- About Us Authority Page -->
+  <url>
+    <loc>https://www.pb08taxi.com/about</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Contact Us Central Hub Page -->
+  <url>
+    <loc>https://www.pb08taxi.com/contact</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
 </urlset>

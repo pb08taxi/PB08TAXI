@@ -1,37 +1,81 @@
 import React from 'react';
-import { ShieldCheck, BadgePercent, Clock, Sparkles, PhoneCall, CheckCircle } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  BadgePercent, 
+  Clock, 
+  Sparkles, 
+  PhoneCall, 
+  CheckCircle, 
+  Car, 
+  Luggage, 
+  Users, 
+  MapPin, 
+  Award, 
+  UserCheck 
+} from 'lucide-react';
 
 const FEATURES = [
   {
     icon: BadgePercent,
-    title: "Transparent & Fixed Pricing",
-    description: "No surge pricing, hidden toll charges, or surprise extras. Know your exact fare before you start.",
+    title: "Fixed Upfront Fares",
+    description: "No surge pricing or hidden charges. You know the exact cost before your trip begins.",
   },
   {
     icon: ShieldCheck,
-    title: "100% Verified Drivers",
-    description: "Every chauffeur undergoes background verification, commercial license check, and professional hospitality training.",
+    title: "Verified Chauffeurs",
+    description: "Every driver completes full police verification, background checks, and highway driving review.",
   },
   {
     icon: Sparkles,
-    title: "Sanitized & AC Cabs",
-    description: "Immaculate sedans, SUVs, and hatchbacks equipped with high-efficiency air conditioning and clean interiors.",
+    title: "Clean Air-Conditioned Cars",
+    description: "Well-maintained sedans, SUVs, and large family cars with fresh interiors and cool AC.",
   },
   {
     icon: Clock,
-    title: "On-Time Arrival Guarantee",
-    description: "We respect your flight times and appointment schedules. Our drivers arrive at your doorstep 10 minutes early.",
+    title: "Punctual Doorstep Pickup",
+    description: "We value your time. Drivers arrive at your doorstep 10 minutes before the scheduled time.",
   },
   {
     icon: PhoneCall,
-    title: "Instant WhatsApp Booking",
-    description: "Simple one-click reservation without complicated account signups or intrusive app downloads.",
+    title: "Quick WhatsApp Booking",
+    description: "Book your ride in under 60 seconds without creating accounts or downloading heavy apps.",
   },
   {
     icon: CheckCircle,
-    title: "24/7 Human Dispatch Helpline",
-    description: "Direct access to real fleet managers who know Punjab, Himachal, and highway routes intimately.",
+    title: "24/7 Human Dispatch Support",
+    description: "Speak directly with our local transport managers who know Punjab and highway routes well.",
   },
+];
+
+const FLEET_GUIDE = [
+  {
+    type: "Sedan (Swift Dzire / Etios)",
+    capacity: "4 Passengers",
+    luggage: "2 Large Bags",
+    bestFor: "Airport drops, business trips & daily intercity travel",
+    ac: "Dual AC"
+  },
+  {
+    type: "Premium SUV (Innova Crysta)",
+    capacity: "6-7 Passengers",
+    luggage: "4 Large Bags",
+    bestFor: "Family holidays, mountain trips & long highway rides",
+    ac: "Dual AC"
+  },
+  {
+    type: "Spacious Ertiga / Carens",
+    capacity: "6 Passengers",
+    luggage: "3 Bags",
+    bestFor: "Budget family outstation travel & airport pickup",
+    ac: "High-Cooling AC"
+  },
+  {
+    type: "Tempo Traveller (12-17 Seater)",
+    capacity: "12-17 Passengers",
+    luggage: "10+ Bags",
+    bestFor: "Wedding parties, group tours & religious pilgrimages",
+    ac: "Full Cabin AC"
+  }
 ];
 
 export default function WhyChooseUs({ onOpenBooking }) {
@@ -39,6 +83,7 @@ export default function WhyChooseUs({ onOpenBooking }) {
     <section id="why-us" className="py-24 bg-zinc-950 border-t border-zinc-900 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Header Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Column Text */}
@@ -48,11 +93,11 @@ export default function WhyChooseUs({ onOpenBooking }) {
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              The Taxi Service Built Around Your Peace of Mind
+              Comfortable, Safe &amp; Punctual Rides Across Punjab
             </h2>
 
             <p className="text-zinc-400 text-base leading-relaxed">
-              In Punjab, travel should be seamless, reliable, and respectful. PB08 TAXI was created to eliminate the unpredictability of hailing cabs or dealing with unreliable drivers.
+              Travel across North India should be simple, safe, and pleasant. PB08 TAXI delivers clean cars, courteous chauffeurs, and upfront pricing for city and outstation journeys.
             </p>
 
             <div className="pt-2">
@@ -65,7 +110,7 @@ export default function WhyChooseUs({ onOpenBooking }) {
             </div>
           </div>
 
-          {/* Right Column Grid */}
+          {/* Right Column Features Grid */}
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
             {FEATURES.map((item, index) => {
               const Icon = item.icon;
@@ -88,32 +133,89 @@ export default function WhyChooseUs({ onOpenBooking }) {
 
         </div>
 
-        {/* About PB08 TAXI & Founder Story (E-E-A-T Authority & Trust Section) */}
+        {/* Fleet Guide & Luggage Capacity (Adds Rich Value & Authentic Body Text) */}
+        <div className="mt-20 pt-12 border-t border-zinc-900">
+          <div className="max-w-3xl mb-8">
+            <span className="text-xs font-mono text-taxi-yellow font-bold uppercase tracking-wider">Our Vehicle Categories</span>
+            <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
+              Select the Right Car for Your Journey
+            </h3>
+            <p className="text-zinc-400 text-sm mt-2">
+              All vehicles are thoroughly cleaned before every ride and driven by polite, licensed professionals.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {FLEET_GUIDE.map((car, idx) => (
+              <div key={idx} className="bg-zinc-900/40 border border-zinc-850 p-5 rounded-2xl space-y-3 hover:border-zinc-700 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-taxi-yellow/10 text-taxi-yellow flex items-center justify-center">
+                  <Car className="w-5 h-5" />
+                </div>
+                <h4 className="text-base font-bold text-white">{car.type}</h4>
+                <div className="space-y-1.5 text-xs text-zinc-400">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>Seats: <strong>{car.capacity}</strong></span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Luggage className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>Luggage: <strong>{car.luggage}</strong></span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-400 pt-1 border-t border-zinc-800 leading-normal">
+                  {car.bestFor}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* About PB08 TAXI & Founder Story (E-E-A-T Authority, Author Byline & Content Dates) */}
         <div id="about" className="mt-16 pt-12 border-t border-zinc-900 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-4">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-mono text-taxi-yellow">
-              <span>EST. JALANDHAR, PUNJAB • OVER 50,000+ RIDES DELIVERED</span>
+              <span>EST. JALANDHAR, PUNJAB • OVER 50,000+ COMPLETED JOURNEYS</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white">
               About PB08 TAXI — Rooted in Trust, Driven by Hospitality
             </h3>
             <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
-              Founded in Jalandhar, PB08 TAXI is a customer-first transportation network dedicated to offering safe, punctual, and transparent intercity and airport travel across Punjab, Himachal, Jammu, and Delhi NCR. We believe hiring a cab should be transparent, courteous, and stress-free. Every ride is managed directly by seasoned dispatch professionals who know every bypass, toll plaza, and highway checkpoint intimately.
+              Founded in Jalandhar, PB08 TAXI is a customer-first passenger transport service. We focus on providing safe, punctual, and comfortable intercity travel and airport transit across Punjab, Himachal Pradesh, Jammu, and Delhi NCR. We believe hiring a cab should be transparent, courteous, and stress-free. Every trip is managed directly by experienced dispatch staff who know highway routes, bypass lanes, and toll plazas thoroughly.
             </p>
             <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-              Whether you are an NRI arriving at Delhi IGI Airport, a family visiting the Golden Temple in Amritsar, or a business executive traveling between Jalandhar and Chandigarh, PB08 TAXI guarantees fixed upfront pricing, non-smoking verified chauffeurs, and 24/7 dedicated human helpline assistance.
+              Whether you are an overseas NRI arriving at Delhi IGI Airport, a family traveling to Amritsar for Golden Temple darshan, or a business executive commuting to Chandigarh, PB08 TAXI guarantees fixed upfront pricing, non-smoking verified chauffeurs, and 24/7 dedicated human helpline assistance.
             </p>
-            <div className="pt-2 flex flex-wrap items-center gap-6 text-xs text-zinc-400 border-t border-zinc-900">
+
+            {/* Author Byline & Verification Credentials */}
+            <div className="pt-3 border-t border-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+              <div className="flex items-center space-x-3" rel="author" itemScope itemType="https://schema.org/Person">
+                <div className="w-9 h-9 rounded-xl bg-taxi-yellow text-black font-extrabold flex items-center justify-center text-sm shadow">
+                  PB
+                </div>
+                <div>
+                  <p className="text-zinc-200 font-bold" itemProp="name">Harmanpreet Singh</p>
+                  <p className="text-[11px] text-zinc-400" itemProp="jobTitle">Fleet Operations Lead &amp; Senior Transport Specialist</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4 text-zinc-500 font-mono text-[11px]">
+                <span>Status: <strong className="text-emerald-400">Verified Fleet</strong></span>
+                <span>•</span>
+                <time dateTime="2026-10-15" itemProp="dateModified">Updated: October 15, 2026</time>
+              </div>
+            </div>
+
+            <div className="pt-1 flex flex-wrap items-center gap-6 text-xs text-zinc-400">
               <span className="flex items-center space-x-1.5 text-zinc-300">
                 <ShieldCheck className="w-4 h-4 text-taxi-yellow" />
-                <span>100% Police Verified Fleet</span>
+                <span>100% Police Verified Drivers</span>
               </span>
               <span className="flex items-center space-x-1.5 text-zinc-300">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Zero Hidden Toll / Surge Fees</span>
+                <span>Zero Hidden Toll Charges</span>
               </span>
-              <span className="text-zinc-500 font-mono">
-                Updated: October 2026 • Published by PB08 Taxi Operations Team
+              <span className="flex items-center space-x-1.5 text-zinc-300">
+                <Award className="w-4 h-4 text-taxi-yellow" />
+                <span>Certified Transport Standards</span>
               </span>
             </div>
           </div>

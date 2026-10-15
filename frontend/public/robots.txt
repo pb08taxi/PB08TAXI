@@ -3,8 +3,11 @@ User-agent: *
 Allow: /
 Allow: /popular-routes
 Allow: /safe-travel-guidelines
+Allow: /editorial-policy
 Allow: /privacy-policy
 Allow: /terms-of-service
+Allow: /about
+Allow: /contact
 Allow: /llms.txt
 Disallow: /admin
 Disallow: /admin/*

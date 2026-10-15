@@ -27,9 +27,13 @@ export default function SEOHead() {
       };
 
       // 2. Standard Meta Tags
-      setMeta('name', 'description', seo.meta_description);
+      setMeta('name', 'description', seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.');
       setMeta('name', 'keywords', seo.meta_keywords);
       setMeta('name', 'robots', seo.robots_directive);
+      setMeta('name', 'author', 'Harmanpreet Singh, PB08 TAXI Operations');
+      setMeta('property', 'article:published_time', '2024-01-01T00:00:00+05:30');
+      setMeta('property', 'article:modified_time', '2026-10-15T15:00:00+05:30');
+      setMeta('property', 'og:updated_time', '2026-10-15T15:00:00+05:30');
 
       // 3. Punjab Local Geo Tags
       setMeta('name', 'geo.region', seo.geo_region);
@@ -121,7 +125,14 @@ export default function SEOHead() {
               sameAs: socialLinks,
               logo: `${canonicalUrl}/icon-512.png`,
               image: seo.og_image || `${canonicalUrl}/icon-512.png`,
-              description: seo.meta_description || 'PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation.',
+              description: seo.meta_description || 'Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport transfers, Punjab outstation cabs, fixed fares & instant WhatsApp booking confirmation.',
+              author: {
+                '@type': 'Person',
+                name: 'Harmanpreet Singh',
+                jobTitle: 'Fleet Operations Lead & Senior Transport Specialist'
+              },
+              datePublished: '2024-01-01T00:00:00+05:30',
+              dateModified: '2026-10-15T15:00:00+05:30',
               priceRange: seo.schema_taxi_price_range || '₹₹',
               currenciesAccepted: 'INR',
               paymentAccepted: 'Cash, UPI, Google Pay, PhonePe, Paytm, Net Banking',

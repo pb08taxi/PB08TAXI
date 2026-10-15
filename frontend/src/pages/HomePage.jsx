@@ -18,22 +18,28 @@ export default function HomePage() {
   const location = useLocation();
 
   useEffect(() => {
-    trackPageView('/');
-  }, []);
-
-  // Smooth scroll to anchor if hash is present (e.g. returning from /privacy-policy#routes)
-  useEffect(() => {
-    if (location.hash) {
+    trackPageView(location.pathname);
+    if (location.pathname === '/about') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('why-us') || document.getElementById('about');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => clearTimeout(timer);
+    } else if (location.pathname === '/contact') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('contact');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => clearTimeout(timer);
+    } else if (location.hash) {
       const targetId = location.hash.replace('#', '');
       const timer = setTimeout(() => {
         const el = document.getElementById(targetId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
       }, 120);
       return () => clearTimeout(timer);
     }
-  }, [location.hash]);
+  }, [location.pathname, location.hash]);
 
   const handleOpenBooking = (source = 'Homepage') => {
     trackModalOpen(typeof source === 'string' ? source : 'Homepage Button');

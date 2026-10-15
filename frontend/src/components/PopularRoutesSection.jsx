@@ -5,82 +5,80 @@ import { trackRouteClick } from '../utils/analytics';
 
 const POPULAR_ROUTES = [
   {
-    title: "Jalandhar to Delhi & Delhi to Jalandhar Taxi",
+    title: "Jalandhar to Delhi & Delhi to Jalandhar",
     shortRoute: "Jalandhar ⇄ Delhi / IGI Airport",
-    keywords: ["Jalandhar to Delhi", "Delhi to Jalandhar", "Airport Taxi", "One Way Jalandhar"],
+    keywords: ["Delhi Highway", "IGI Airport Cab", "One Way Drop", "NH44 Route"],
     distance: "~375 km • 6–7 Hours via NH44",
     description:
-      "24/7 non-stop AC cabs from Jalandhar to Delhi (IGI Airport T1, T2, T3 & Delhi NCR) and return taxi from Delhi to Jalandhar. Available for both One Way Jalandhar drop and round-trip bookings.",
+      "Non-stop air-conditioned rides between Jalandhar and Delhi IGI Airport (Terminals 1, 2, and 3). Available for both one-way drops and return journeys with zero return fee.",
     badge: "Bestseller Airport Route",
     vehicles: "Dzire, Ertiga, Innova Crysta",
   },
   {
-    title: "Jalandhar to Amritsar & Amritsar to Jalandhar Taxi",
+    title: "Jalandhar to Amritsar & Amritsar to Jalandhar",
     shortRoute: "Jalandhar ⇄ Amritsar / ATQ Airport",
-    keywords: ["Jalandhar to Amritsar", "Amritsar to Jalandhar", "Airport Taxi", "Jalandhar Taxi"],
+    keywords: ["Harmandir Sahib", "Wagah Border", "ATQ Airport", "GT Road"],
     distance: "~85 km • 1.5 Hours via GT Road",
     description:
-      "Fast and comfortable taxi service for Jalandhar to Amritsar (Sri Harmandir Sahib Golden Temple, Wagah Border & Amritsar Airport) and Amritsar to Jalandhar one-way or same-day return rides.",
+      "Comfortable intercity cab travel for family visits to the Golden Temple, Wagah Border parade, and Amritsar Sri Guru Ram Dass Jee International Airport.",
     badge: "Golden Temple & Airport",
     vehicles: "Sedan, SUV, Tempo Traveller",
   },
   {
-    title: "Jalandhar to Chandigarh & Chandigarh to Jalandhar Taxi",
+    title: "Jalandhar to Chandigarh & Chandigarh to Jalandhar",
     shortRoute: "Jalandhar ⇄ Chandigarh / IXC Airport",
-    keywords: ["Jalandhar to Chandigarh", "Chandigarh to Jalandhar", "One Way Jalandhar", "Airport Taxi"],
+    keywords: ["Sector 17", "Mohali Transit", "PGI Hospital", "IXC Airport"],
     distance: "~150 km • 2.5–3 Hours",
     description:
-      "Punctual one-way and round-trip cabs from Jalandhar to Chandigarh (Sector 17, Mohali, Panchkula, PGI & Chandigarh Airport) and Chandigarh to Jalandhar with verified chauffeurs.",
+      "Punctual executive cars and family cabs connecting Jalandhar with Mohali, Panchkula, PGI, and Shaheed Bhagat Singh International Airport.",
     badge: "Express Highway Cab",
     vehicles: "Dzire, Amaze, Innova Crysta",
   },
   {
-    title: "Jalandhar to Ludhiana & Ludhiana to Jalandhar Taxi",
+    title: "Jalandhar to Ludhiana & Ludhiana to Jalandhar",
     shortRoute: "Jalandhar ⇄ Ludhiana City",
-    keywords: ["Jalandhar to Ludhiana", "Ludhiana to Jalandhar", "Jalandhar Taxi", "One Way Jalandhar"],
+    keywords: ["Industrial Hub", "Railway Junction", "City Commute", "Express NH44"],
     distance: "~62 km • 1 Hour via NH44",
     description:
-      "Instant doorstep pickup for Jalandhar to Ludhiana and Ludhiana to Jalandhar business commutes, shopping trips, railway transfers, and daily one-way intercity travel at fixed rates.",
+      "Direct doorstep pickup for shopping, corporate business meetings, railway junction connections, and daily travel at guaranteed fixed prices.",
     badge: "1-Hour Intercity Express",
     vehicles: "Hatchback, Sedan, SUV",
   },
   {
-    title: "Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar Taxi",
+    title: "Jalandhar to Hoshiarpur & Hoshiarpur to Jalandhar",
     shortRoute: "Jalandhar ⇄ Hoshiarpur",
-    keywords: ["Jalandhar to Hoshiarpur", "Hoshiarpur to Jalandhar", "Jalandhar Taxi", "One Way Jalandhar"],
+    keywords: ["Doaba Belt", "Local Outstation", "Daily Commute", "Hospital Transit"],
     distance: "~45 km • 50 Mins",
     description:
-      "Reliable 24/7 cab service connecting Jalandhar to Hoshiarpur and Hoshiarpur to Jalandhar. Ideal for daily travellers, family visits, hospital visits, and direct airport connections.",
+      "Reliable day and night cab rides between Doaba hubs. Great for medical appointments, university visits, and smooth transit across Punjab.",
     badge: "Doaba Local & One-Way",
     vehicles: "Sedan, Ertiga, Innova",
   },
   {
-    title: "One Way Jalandhar & 24/7 Airport Taxi Service",
-    shortRoute: "All Punjab, Himachal & North India",
-    keywords: ["PB08 TAXI", "Jalandhar Taxi", "One Way Jalandhar", "Airport taxi"],
+    title: "All-Punjab One Way Drops & North India Outstation",
+    shortRoute: "Punjab, Himachal & North India",
+    keywords: ["Shimla Manali", "Jammu Katra", "Fixed Pricing", "Zero Return Fare"],
     distance: "Pay Only One-Way Fare • Zero Return Charge",
     description:
-      "Book PB08 TAXI for the lowest-fare One Way Jalandhar cab service and 24/7 Airport Taxi pickups & drops. Transparent fixed pricing with instant WhatsApp driver confirmation.",
+      "Travel anywhere across North India and pay only for the distance you ride. Transparent fixed pricing, courteous chauffeurs, and instant WhatsApp booking confirmation.",
     badge: "No Return Fare",
     vehicles: "All Fleet Categories Available",
   },
 ];
 
 const SEO_SEARCH_TAGS = [
-  "Jalandhar Taxi",
-  "One Way Jalandhar",
-  "PB08 TAXI",
-  "Delhi to Jalandhar",
-  "Jalandhar to Delhi",
-  "Amritsar to Jalandhar",
-  "Jalandhar to Amritsar",
-  "Ludhiana to Jalandhar",
-  "Jalandhar to Ludhiana",
-  "Chandigarh to Jalandhar",
-  "Jalandhar to Chandigarh",
-  "Hoshiarpur to Jalandhar",
-  "Jalandhar to Hoshiarpur",
-  "Airport taxi",
+  "Airport Transfers",
+  "One Way Cabs",
+  "Outstation Trips",
+  "Delhi IGI Terminal Drops",
+  "Amritsar Golden Temple",
+  "Chandigarh Highway",
+  "Ludhiana Express",
+  "Hoshiarpur Travel",
+  "Innova Crysta Rental",
+  "Swift Dzire Booking",
+  "Fixed Fare Cabs",
+  "Punjab Roadways Taxi"
 ];
 
 export default function PopularRoutesSection({ onOpenBooking }) {
@@ -95,15 +93,15 @@ export default function PopularRoutesSection({ onOpenBooking }) {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/15 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
             <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>One Way Jalandhar & Intercity Routes</span>
+            <span>Popular Intercity Travel Routes</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Popular <span className="text-taxi-yellow">Jalandhar Taxi</span> &amp; <span className="text-taxi-yellow">Airport Taxi</span> Routes
+            Popular <span className="text-taxi-yellow">Outstation</span> &amp; <span className="text-taxi-yellow">Airport Cab</span> Routes
           </h2>
 
           <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
-            Book <strong>PB08 TAXI</strong> for instant <strong>One Way Jalandhar</strong> drops, round-trip outstation cabs, and 24/7 <strong>Airport taxi</strong> transfers connecting Delhi, Amritsar, Chandigarh, Ludhiana, and Hoshiarpur.
+            Choose reliable doorstep rides, one-way drops, and on-time airport transfers connecting Punjab, Delhi NCR, Chandigarh, and Himachal Pradesh.
           </p>
         </div>
 
