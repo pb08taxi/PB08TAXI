@@ -26,7 +26,8 @@ import {
   Square,
   Sliders,
   Share2,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import { 
   getAdminSettings, 
