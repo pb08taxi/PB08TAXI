@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import HeroSlider from '../components/HeroSlider';
 import ServicesSection from '../components/ServicesSection';
@@ -14,10 +15,25 @@ import { trackPageView, trackModalOpen } from '../utils/analytics';
 
 export default function HomePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     trackPageView('/');
   }, []);
+
+  // Smooth scroll to anchor if hash is present (e.g. returning from /privacy-policy#routes)
+  useEffect(() => {
+    if (location.hash) {
+      const targetId = location.hash.replace('#', '');
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash]);
 
   const handleOpenBooking = (source = 'Homepage') => {
     trackModalOpen(typeof source === 'string' ? source : 'Homepage Button');

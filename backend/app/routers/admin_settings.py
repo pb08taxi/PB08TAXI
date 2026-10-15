@@ -69,6 +69,10 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     slider_autoplay_interval_raw = _get_setting_val(db, "slider_autoplay_interval", "5500")
     slider_overlay_opacity_raw = _get_setting_val(db, "slider_overlay_opacity", "55")
     slider_overlay_color = _get_setting_val(db, "slider_overlay_color", "#000000")
+    social_facebook = _get_setting_val(db, "social_facebook", "https://facebook.com/pb08taxi")
+    social_instagram = _get_setting_val(db, "social_instagram", "https://instagram.com/pb08taxi")
+    social_twitter = _get_setting_val(db, "social_twitter", "https://twitter.com/pb08taxi")
+    social_youtube = _get_setting_val(db, "social_youtube", "https://youtube.com/@pb08taxi")
     try:
         slider_fade_duration = int(slider_fade_duration_raw)
     except (ValueError, TypeError):
@@ -96,7 +100,11 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         slider_fade_duration=slider_fade_duration,
         slider_autoplay_interval=slider_autoplay_interval,
         slider_overlay_opacity=slider_overlay_opacity,
-        slider_overlay_color=slider_overlay_color or "#000000"
+        slider_overlay_color=slider_overlay_color or "#000000",
+        social_facebook=social_facebook,
+        social_instagram=social_instagram,
+        social_twitter=social_twitter,
+        social_youtube=social_youtube
     )
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
@@ -167,6 +175,18 @@ def update_admin_site_settings(
     if payload.slider_overlay_color is not None:
         clean_color = payload.slider_overlay_color.strip() or "#000000"
         _set_setting_val(db, "slider_overlay_color", clean_color)
+
+    if payload.social_facebook is not None:
+        _set_setting_val(db, "social_facebook", payload.social_facebook.strip())
+
+    if payload.social_instagram is not None:
+        _set_setting_val(db, "social_instagram", payload.social_instagram.strip())
+
+    if payload.social_twitter is not None:
+        _set_setting_val(db, "social_twitter", payload.social_twitter.strip())
+
+    if payload.social_youtube is not None:
+        _set_setting_val(db, "social_youtube", payload.social_youtube.strip())
 
     return get_public_site_settings(db)
 

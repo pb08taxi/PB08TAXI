@@ -1,17 +1,46 @@
 import React, { useState } from 'react';
 import { Phone, Menu, X, Car, ShieldCheck } from 'lucide-react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackCallClick, trackBookRideClick } from '../utils/analytics';
+
+const NAV_ITEMS = [
+  { id: 'home', label: 'Home' },
+  { id: 'services', label: 'Our Services' },
+  { id: 'routes', label: 'Popular Routes' },
+  { id: 'why-us', label: 'Why Choose Us' },
+  { id: 'faq', label: 'FAQs' },
+  { id: 'contact', label: 'Contact Us' },
+];
 
 export default function Navbar({ onOpenBooking }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { settings } = useSiteSettings();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const phone = settings?.support_phone || '+91 98765 43210';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
   const brandTitle = settings?.brand_title || 'PB08 TAXI';
   const brandTagline = settings?.brand_tagline || 'Fast • Safe • Reliable';
+
+  const handleNavClick = (e, item) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+
+    if (location.pathname === '/') {
+      const el = document.getElementById(item.id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', `#${item.id}`);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      navigate(`/#${item.id}`);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-zinc-800">
@@ -37,7 +66,17 @@ export default function Navbar({ onOpenBooking }) {
         <div className="flex items-center justify-between min-h-20 py-2.5">
           
           {/* Brand Logo & Editable Text */}
-          <a href="/" className="flex items-center space-x-3 group">
+          <Link 
+            to="/" 
+            onClick={(e) => {
+              if (location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.history.pushState(null, '', '/');
+              }
+            }}
+            className="flex items-center space-x-3 group"
+          >
             {settings?.site_logo_url ? (
               <img
                 src={settings.site_logo_url}
@@ -73,28 +112,20 @@ export default function Navbar({ onOpenBooking }) {
                 {brandTagline}
               </p>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#home" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              Home
-            </a>
-            <a href="#services" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              Our Services
-            </a>
-            <a href="#routes" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              Popular Routes
-            </a>
-            <a href="#why-us" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              Why Choose Us
-            </a>
-            <a href="#faq" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              FAQs
-            </a>
-            <a href="#contact" className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors">
-              Contact Us
-            </a>
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.id}
+                href={`/#${item.id}`}
+                onClick={(e) => handleNavClick(e, item)}
+                className="text-sm font-semibold text-zinc-300 hover:text-taxi-yellow transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           {/* Action Buttons */}
@@ -144,48 +175,16 @@ export default function Navbar({ onOpenBooking }) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-zinc-950 border-b border-zinc-800 px-4 pt-3 pb-6 space-y-4">
           <nav className="flex flex-col space-y-3">
-            <a
-              href="#home"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              Home
-            </a>
-            <a
-              href="#services"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              Our Services
-            </a>
-            <a
-              href="#routes"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              Popular Routes
-            </a>
-            <a
-              href="#why-us"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              Why Choose Us
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              FAQs
-            </a>
-            <a
-              href="#contact"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
-            >
-              Contact Us
-            </a>
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.id}
+                href={`/#${item.id}`}
+                onClick={(e) => handleNavClick(e, item)}
+                className="text-base font-semibold text-zinc-200 hover:text-taxi-yellow py-1"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           <div className="pt-2 border-t border-zinc-800 flex flex-col space-y-3">

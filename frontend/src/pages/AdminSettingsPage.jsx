@@ -23,7 +23,9 @@ import {
   Type,
   Sparkles,
   Check,
-  Sliders
+  Sliders,
+  Share2,
+  Globe
 } from 'lucide-react';
 import { 
   getAdminSettings, 
@@ -98,6 +100,12 @@ export default function AdminSettingsPage() {
   const [showCredentialsHint, setShowCredentialsHint] = useState(false);
   const [bookingModalAnimation, setBookingModalAnimation] = useState('golden-glow');
 
+  // Social Media Links
+  const [socialFacebook, setSocialFacebook] = useState('https://facebook.com/pb08taxi');
+  const [socialInstagram, setSocialInstagram] = useState('https://instagram.com/pb08taxi');
+  const [socialTwitter, setSocialTwitter] = useState('https://twitter.com/pb08taxi');
+  const [socialYoutube, setSocialYoutube] = useState('https://youtube.com/@pb08taxi');
+
   // Upload loaders
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
@@ -135,6 +143,10 @@ export default function AdminSettingsPage() {
       setBrandTagline(data.brand_tagline || 'Fast • Safe • Reliable');
       setShowCredentialsHint(data.show_credentials_hint ?? false);
       setBookingModalAnimation(data.booking_modal_animation || 'golden-glow');
+      setSocialFacebook(data.social_facebook || '');
+      setSocialInstagram(data.social_instagram || '');
+      setSocialTwitter(data.social_twitter || '');
+      setSocialYoutube(data.social_youtube || '');
       setCurrentUsername(data.admin_username || 'admin');
     }
   }, [data]);
@@ -165,7 +177,11 @@ export default function AdminSettingsPage() {
         brand_title: brandTitle.trim() || 'PB08 TAXI',
         brand_tagline: brandTagline.trim() || 'Fast • Safe • Reliable',
         show_credentials_hint: showCredentialsHint,
-        booking_modal_animation: bookingModalAnimation
+        booking_modal_animation: bookingModalAnimation,
+        social_facebook: socialFacebook.trim(),
+        social_instagram: socialInstagram.trim(),
+        social_twitter: socialTwitter.trim(),
+        social_youtube: socialYoutube.trim()
       };
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
@@ -877,7 +893,149 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Form 4: Login Page Credentials Hint Display */}
+          {/* Form 4: Social Media Profile Links */}
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <Share2 className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Social Media Profiles &amp; Links</h2>
+                <p className="text-xs text-zinc-400">
+                  Manage official social links displayed dynamically in the website footer and Schema.org LocalBusiness metadata.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Facebook URL */}
+              <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-md bg-[#1877F2]/20 text-[#1877F2] font-black flex items-center justify-center text-xs">f</span>
+                    <span>Facebook Profile / Page URL</span>
+                  </label>
+                  {socialFacebook && (
+                    <a
+                      href={socialFacebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
+                    >
+                      <span>Test Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={socialFacebook}
+                  onChange={(e) => setSocialFacebook(e.target.value)}
+                  placeholder="https://facebook.com/pb08taxi"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2.5 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                />
+                <p className="text-[10px] text-zinc-500">Official Facebook business page link.</p>
+              </div>
+
+              {/* Instagram URL */}
+              <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#FD1D1D] to-[#833AB4] text-white font-black flex items-center justify-center text-[10px]">IG</span>
+                    <span>Instagram Profile URL</span>
+                  </label>
+                  {socialInstagram && (
+                    <a
+                      href={socialInstagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
+                    >
+                      <span>Test Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={socialInstagram}
+                  onChange={(e) => setSocialInstagram(e.target.value)}
+                  placeholder="https://instagram.com/pb08taxi"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2.5 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                />
+                <p className="text-[10px] text-zinc-500">Official Instagram handle link.</p>
+              </div>
+
+              {/* Twitter / X URL */}
+              <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-md bg-white/10 text-white font-black flex items-center justify-center text-xs">𝕏</span>
+                    <span>Twitter / X Profile URL</span>
+                  </label>
+                  {socialTwitter && (
+                    <a
+                      href={socialTwitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
+                    >
+                      <span>Test Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={socialTwitter}
+                  onChange={(e) => setSocialTwitter(e.target.value)}
+                  placeholder="https://twitter.com/pb08taxi"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2.5 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                />
+                <p className="text-[10px] text-zinc-500">Official Twitter/X page link.</p>
+              </div>
+
+              {/* YouTube Channel URL */}
+              <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-md bg-[#FF0000]/20 text-[#FF0000] font-black flex items-center justify-center text-xs">▶</span>
+                    <span>YouTube Channel URL</span>
+                  </label>
+                  {socialYoutube && (
+                    <a
+                      href={socialYoutube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
+                    >
+                      <span>Test Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={socialYoutube}
+                  onChange={(e) => setSocialYoutube(e.target.value)}
+                  placeholder="https://youtube.com/@pb08taxi"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-2.5 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
+                />
+                <p className="text-[10px] text-zinc-500">Official YouTube channel or video link.</p>
+              </div>
+
+            </div>
+
+            <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-850 flex items-start space-x-3">
+              <Globe className="w-4 h-4 text-taxi-yellow mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                <strong className="text-white">Instant Sync:</strong> Changing these links and clicking <strong className="text-taxi-yellow">"Save Site Settings"</strong> updates the icons and links in the website footer and updates Google Schema.org structured data in real-time.
+              </p>
+            </div>
+          </div>
+
+          {/* Form 5: Login Page Credentials Hint Display */}
           <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-4">
             <div className="flex items-center space-x-3 pb-3 border-b border-zinc-850">
               <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">

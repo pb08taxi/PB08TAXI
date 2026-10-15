@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 import { getPublicSEOSettings } from '../api/client';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export default function SEOHead() {
+  const { settings } = useSiteSettings();
+
   useEffect(() => {
     const applySEOSettings = (seo) => {
       if (!seo) return;
@@ -81,6 +84,14 @@ export default function SEOHead() {
           ? seo.service_areas.split(',').map((s) => s.trim()).filter(Boolean)
           : ['Jalandhar', 'Punjab', 'Delhi Airport', 'Amritsar Airport', 'Chandigarh', 'Ludhiana', 'Phagwara', 'Himachal Pradesh'];
 
+        const socialLinks = [
+          settings?.social_facebook,
+          settings?.social_instagram,
+          settings?.social_twitter,
+          settings?.social_youtube,
+          `https://wa.me/${(settings?.whatsapp_number || seo.support_phone || '+919888079736').replace(/\D/g, '')}`
+        ].filter(Boolean);
+
         const schemaGraph = {
           '@context': 'https://schema.org',
           '@graph': [
@@ -96,7 +107,8 @@ export default function SEOHead() {
                 height: 512
               },
               image: `${canonicalUrl}/icon-512.png`,
-              telephone: seo.support_phone || '+919888079736'
+              telephone: seo.support_phone || '+919888079736',
+              sameAs: socialLinks
             },
             {
               '@type': 'TaxiService',
@@ -106,6 +118,7 @@ export default function SEOHead() {
               alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
               url: canonicalUrl,
               telephone: seo.support_phone || '+919888079736',
+              sameAs: socialLinks,
               logo: `${canonicalUrl}/icon-512.png`,
               image: seo.og_image || `${canonicalUrl}/icon-512.png`,
               description: seo.meta_description || 'PB08 TAXI — 24/7 reliable taxi & cab booking in Jalandhar, Punjab. Affordable airport transfers & outstation rides. Instant WhatsApp booking confirmation.',

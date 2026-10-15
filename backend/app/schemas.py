@@ -316,6 +316,10 @@ class SiteSettingsOut(BaseModel):
     slider_autoplay_interval: int = 5500
     slider_overlay_opacity: int = 55
     slider_overlay_color: str = "#000000"
+    social_facebook: Optional[str] = "https://facebook.com/pb08taxi"
+    social_instagram: Optional[str] = "https://instagram.com/pb08taxi"
+    social_twitter: Optional[str] = "https://twitter.com/pb08taxi"
+    social_youtube: Optional[str] = "https://youtube.com/@pb08taxi"
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -332,6 +336,10 @@ class SiteSettingsUpdate(BaseModel):
     slider_autoplay_interval: Optional[int] = None
     slider_overlay_opacity: Optional[int] = None
     slider_overlay_color: Optional[str] = None
+    social_facebook: Optional[str] = None
+    social_instagram: Optional[str] = None
+    social_twitter: Optional[str] = None
+    social_youtube: Optional[str] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod

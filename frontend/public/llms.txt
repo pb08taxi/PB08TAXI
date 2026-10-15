@@ -31,3 +31,11 @@ PB08 TAXI is a premier taxi and car rental service operating across Punjab, Hary
 - **Instant WhatsApp Confirmation:** Direct one-click booking with real-time driver allocation.
 - **Clean & AC Cabs:** Rigorously sanitized vehicles with dual air conditioning.
 - **Service Hours:** 24 Hours a day, 7 Days a week, 365 Days a year.
+
+## Core Landing Pages & URLs
+- **Homepage:** https://www.pb08taxi.com/
+- **Popular Routes Across India:** https://www.pb08taxi.com/popular-routes
+- **Safe Travel Guidelines:** https://www.pb08taxi.com/safe-travel-guidelines
+- **Privacy Policy:** https://www.pb08taxi.com/privacy-policy
+- **Terms of Service:** https://www.pb08taxi.com/terms-of-service
+

@@ -74,13 +74,14 @@ export default function Footer({ onOpenBooking }) {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Quick Links</h4>
             <ul className="space-y-2 text-xs">
-              <li><a href="#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
-              <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">About Us</a></li>
-              <li><a href="#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar Routes</a></li>
-              <li><a href="#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
-              <li><a href="#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
-              <li><a href="#contact" className="hover:text-taxi-yellow transition-colors">Contact Us</a></li>
+              <li><a href="/#home" className="hover:text-taxi-yellow transition-colors">Home</a></li>
+              <li><a href="/#why-us" className="hover:text-taxi-yellow transition-colors">About Us</a></li>
+              <li><a href="/#services" className="hover:text-taxi-yellow transition-colors">Our Services</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar Routes</a></li>
+              <li><Link to="/popular-routes" className="hover:text-taxi-yellow text-taxi-yellow/90 font-semibold transition-colors">Popular Routes (All India)</Link></li>
+              <li><a href="/#why-us" className="hover:text-taxi-yellow transition-colors">Why Choose Us</a></li>
+              <li><a href="/#faq" className="hover:text-taxi-yellow transition-colors">Frequently Asked Questions</a></li>
+              <li><a href="/#contact" className="hover:text-taxi-yellow transition-colors">Contact Us</a></li>
               <li>
                 <button onClick={onOpenBooking} className="text-taxi-yellow hover:underline font-bold">
                   One Click Book Your Ride
@@ -93,12 +94,20 @@ export default function Footer({ onOpenBooking }) {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Popular Taxi Routes</h4>
             <ul className="space-y-2 text-xs">
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Delhi / Delhi to Jalandhar</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Amritsar / Amritsar to Jalandhar</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Chandigarh / Chandigarh to Jalandhar</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Ludhiana / Ludhiana to Jalandhar</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Hoshiarpur / Hoshiarpur to Jalandhar</a></li>
-              <li><a href="#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar &amp; Airport Taxi</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Delhi / Delhi to Jalandhar</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Amritsar / Amritsar to Jalandhar</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Chandigarh / Chandigarh to Jalandhar</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Ludhiana / Ludhiana to Jalandhar</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar to Hoshiarpur / Hoshiarpur to Jalandhar</a></li>
+              <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">One Way Jalandhar &amp; Airport Taxi</a></li>
+              <li className="pt-1.5">
+                <Link 
+                  to="/popular-routes" 
+                  className="inline-flex items-center space-x-1.5 text-taxi-yellow hover:text-taxi-yellowHover font-extrabold text-xs bg-taxi-yellow/10 hover:bg-taxi-yellow/20 px-3 py-1.5 rounded-lg border border-taxi-yellow/30 transition-all"
+                >
+                  <span>Explore All 35+ India Routes →</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -117,19 +126,39 @@ export default function Footer({ onOpenBooking }) {
                 </Link>
               </li>
               <li>
-                <Link to="/terms-of-service#passenger-conduct" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
+                <Link to="/safe-travel-guidelines" className="hover:text-taxi-yellow text-zinc-400 transition-colors">
                   Safe Travel Guidelines
                 </Link>
               </li>
-              {/* Verified Social Media Profiles */}
+              {/* Dynamic Social Media Profiles from Site Settings */}
               <li className="pt-2">
                 <span className="text-[11px] font-bold text-zinc-300 block mb-1">Connect With Us:</span>
-                <div className="flex items-center space-x-3 text-zinc-400">
+                <div className="flex flex-wrap items-center gap-2 text-zinc-400 text-xs">
                   <a href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">WhatsApp</a>
-                  <span>•</span>
-                  <a href="https://facebook.com/pb08taxi" target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Facebook</a>
-                  <span>•</span>
-                  <a href="https://instagram.com/pb08taxi" target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Instagram</a>
+                  {settings?.social_facebook && (
+                    <>
+                      <span>•</span>
+                      <a href={settings.social_facebook} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Facebook</a>
+                    </>
+                  )}
+                  {settings?.social_instagram && (
+                    <>
+                      <span>•</span>
+                      <a href={settings.social_instagram} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Instagram</a>
+                    </>
+                  )}
+                  {settings?.social_twitter && (
+                    <>
+                      <span>•</span>
+                      <a href={settings.social_twitter} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">Twitter/X</a>
+                    </>
+                  )}
+                  {settings?.social_youtube && (
+                    <>
+                      <span>•</span>
+                      <a href={settings.social_youtube} target="_blank" rel="noopener noreferrer" className="hover:text-taxi-yellow transition-colors">YouTube</a>
+                    </>
+                  )}
                 </div>
               </li>
               <li className="pt-2">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, ArrowLeftRight, Plane, Car, Clock, CheckCircle2, Sparkles } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Plane, Car, Clock, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { trackRouteClick } from '../utils/analytics';
 
 const POPULAR_ROUTES = [
@@ -176,8 +177,30 @@ export default function PopularRoutesSection({ onOpenBooking }) {
           ))}
         </div>
 
+        {/* Banner linking to full Popular Routes Page */}
+        <div className="mt-12 bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+          <div className="space-y-2 text-center md:text-left">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-taxi-yellow bg-taxi-yellow/10 border border-taxi-yellow/20 px-3 py-1 rounded-full">
+              Across Punjab &amp; All India
+            </span>
+            <h3 className="text-xl sm:text-2xl font-black text-white">
+              Looking for More Destinations &amp; Outstation Routes?
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
+              We operate cabs across Delhi NCR, Himachal Pradesh (Manali, Shimla, Dharamshala), Katra / Vaishno Devi, Rajasthan, Haryana, and Uttarakhand with guaranteed one-way drops &amp; zero return fare.
+            </p>
+          </div>
+          <Link
+            to="/popular-routes"
+            className="flex-shrink-0 bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-extrabold px-6 py-3.5 rounded-xl text-xs sm:text-sm shadow-md shadow-taxi-yellow/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
+          >
+            <span>View All 35+ India Routes &amp; Rates</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
         {/* Popular Search Keywords Cloud for SEO & Quick Booking */}
-        <div className="mt-14 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6">
+        <div className="mt-12 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-taxi-yellow mb-3">
             <Sparkles className="w-4 h-4" />
             <span>Popular Jalandhar &amp; Outstation Taxi Searches</span>

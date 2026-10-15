@@ -18,6 +18,10 @@ const DEFAULT_SETTINGS = {
   slider_autoplay_interval: 5500,
   slider_overlay_opacity: 55,
   slider_overlay_color: "#000000",
+  social_facebook: "https://facebook.com/pb08taxi",
+  social_instagram: "https://instagram.com/pb08taxi",
+  social_twitter: "https://twitter.com/pb08taxi",
+  social_youtube: "https://youtube.com/@pb08taxi",
 };
 
 function getInitialSettings() {

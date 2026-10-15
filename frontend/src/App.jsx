@@ -16,6 +16,8 @@ import AdminSEOPage from './pages/AdminSEOPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import PopularRoutesPage from './pages/PopularRoutesPage';
+import SafeTravelGuidelinesPage from './pages/SafeTravelGuidelinesPage';
 
 // Protected Route Component for Admin section
 function ProtectedAdminRoute({ children }) {
@@ -32,11 +34,17 @@ export default function App() {
       {/* Public Taxi Homepage */}
       <Route path="/" element={<HomePage />} />
 
+      {/* Popular Routes Across India SEO Landing Page */}
+      <Route path="/popular-routes" element={<PopularRoutesPage />} />
+      <Route path="/routes" element={<Navigate to="/popular-routes" replace />} />
+
       {/* Legal & Trust Pages */}
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       <Route path="/terms" element={<Navigate to="/terms-of-service" replace />} />
+      <Route path="/safe-travel-guidelines" element={<SafeTravelGuidelinesPage />} />
+      <Route path="/safety" element={<Navigate to="/safe-travel-guidelines" replace />} />
 
       {/* Admin Authentication */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
