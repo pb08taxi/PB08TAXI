@@ -945,8 +945,13 @@ export default function AdminSEOPage() {
           </div>
         </div>
 
-        {/* Save Bar */}
-        <div className="sticky bottom-6 z-20 bg-zinc-950/90 backdrop-blur-xl border border-zinc-800 p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Save Bar with Safe Area Bottom Inset */}
+        <div 
+          className="sticky z-20 bg-zinc-950/90 backdrop-blur-xl border border-zinc-800 p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4"
+          style={{
+            bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+          }}
+        >
           <div className="flex items-center space-x-2.5 text-xs text-zinc-400">
             <Sparkles className="w-4 h-4 text-taxi-yellow" />
             <span>Changes apply immediately across all search engines and social link previews with zero refresh flicker.</span>

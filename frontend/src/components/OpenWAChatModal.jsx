@@ -176,7 +176,15 @@ export default function OpenWAChatModal() {
   const waWebFallbackUrl = `https://wa.me/${chatTarget.phone.replace(/[^\d]/g, '')}`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+      style={{
+        paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))',
+        paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: 'calc(0.75rem + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(0.75rem + env(safe-area-inset-right, 0px))',
+      }}
+    >
       <div className="bg-zinc-950 border border-zinc-800 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[650px] max-h-[92vh] animate-in zoom-in-95 duration-200">
         
         {/* Chat Header */}

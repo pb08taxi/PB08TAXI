@@ -37,16 +37,30 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col justify-center items-center p-4 relative selection:bg-taxi-yellow selection:text-black">
+    <div 
+      className="min-h-screen bg-black flex flex-col justify-center items-center p-4 relative selection:bg-taxi-yellow selection:text-black"
+      style={{
+        paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+        paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: 'calc(1rem + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(1rem + env(safe-area-inset-right, 0px))',
+      }}
+    >
       
       {/* Background taxi pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
 
-      {/* Return to website */}
-      <div className="absolute top-6 left-6 z-10">
+      {/* Return to website with Safe Area Positioning */}
+      <div 
+        className="absolute z-10"
+        style={{
+          top: 'calc(1rem + env(safe-area-inset-top, 0px))',
+          left: 'calc(1rem + env(safe-area-inset-left, 0px))',
+        }}
+      >
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-zinc-400 hover:text-taxi-yellow text-sm font-semibold transition-colors bg-zinc-900/80 px-4 py-2 rounded-xl border border-zinc-800"
+          className="inline-flex items-center space-x-2 text-zinc-400 hover:text-taxi-yellow text-xs sm:text-sm font-semibold transition-colors bg-zinc-900/90 hover:bg-zinc-800 px-3.5 py-2 rounded-xl border border-zinc-800 shadow-lg active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to PB08 TAXI</span>
