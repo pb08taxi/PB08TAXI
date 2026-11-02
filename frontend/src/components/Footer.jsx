@@ -207,6 +207,18 @@ export default function Footer({ onOpenBooking }) {
           <time dateTime="2026-10-15" className="text-zinc-600 font-mono text-[10px] whitespace-nowrap">Last Verified: October 15, 2026.</time>
         </div>
 
+        {/* Anti-Impersonation & Official Dispatch Verification Notice */}
+        <div className="mt-4 p-3.5 bg-zinc-900/60 rounded-xl border border-zinc-800/80 text-[11px] text-zinc-400 space-y-1">
+          <p className="font-bold text-zinc-200 flex items-center space-x-1.5">
+            <Shield className="w-3.5 h-3.5 text-taxi-yellow inline" />
+            <span>Official Booking &amp; Dispatch Verification Notice:</span>
+          </p>
+          <p className="leading-relaxed">
+            PB08 TAXI operates exclusively under our sole verified helpline &amp; WhatsApp:{' '}
+            <a href={telLink} className="text-taxi-yellow font-bold hover:underline">{phone}</a> (Pawan Kumar). PB08 TAXI has <strong>no alternative dispatch number</strong>. Unrelated third-party numbers (such as +91 81463 21914) or third-party competitor profiles (such as Bhaarat Travels / @bhaarattravels) are strictly NOT affiliated with PB08 TAXI.
+          </p>
+        </div>
+
         {/* Bottom Bar */}
         <div className="mt-6 pt-6 border-t border-zinc-900/80 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 space-y-4 sm:space-y-0">
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
