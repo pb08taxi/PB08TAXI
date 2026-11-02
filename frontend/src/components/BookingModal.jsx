@@ -264,21 +264,41 @@ export default function BookingModal({ isOpen, onClose }) {
 
   // Lock background web page scrolling when booking modal is open, and restore when closed
   useEffect(() => {
-    if (isOpen) {
-      const prevOverflow = document.body.style.overflow;
-      const prevPaddingRight = document.body.style.paddingRight;
-      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (!isOpen) return;
 
-      document.body.style.overflow = 'hidden';
-      if (scrollBarWidth > 0) {
-        document.body.style.paddingRight = `${scrollBarWidth}px`;
-      }
+    // Calculate scrollbar width to prevent background layout jump
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
 
-      return () => {
-        document.body.style.overflow = prevOverflow;
-        document.body.style.paddingRight = prevPaddingRight;
-      };
+    // Save previous styles
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyPaddingRight = document.body.style.paddingRight;
+
+    // Completely lock scrolling on BOTH html and body
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
     }
+
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.paddingRight = prevBodyPaddingRight;
+    };
+  }, [isOpen]);
+
+  // Handle ESC key to dismiss modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleReset();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   const calendarDays = useMemo(() => {
@@ -469,15 +489,15 @@ export default function BookingModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden overscroll-contain">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity overscroll-contain" 
         onClick={handleReset}
       />
 
       {/* Outer Wrapper for Dialog + Ambient Animation Presets */}
-      <div className="relative max-w-lg w-full z-10 my-auto">
+      <div className="relative max-w-lg w-full z-10 my-auto flex flex-col max-h-[92vh]">
         {/* Outer Background Animation Layer (Applied exclusively outside; inner form stays 100% stable) */}
         {modalAnimation === 'golden-glow' && (
           <>
@@ -516,22 +536,24 @@ export default function BookingModal({ isOpen, onClose }) {
         )}
 
         {/* Modal Dialog Card (100% Solid & Stable — No scaling, jitter, or pulse!) */}
-        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full p-4 sm:p-8 shadow-2xl text-white max-h-[92vh] overflow-y-auto">
+        <div className="relative bg-[#121212] border border-zinc-800 rounded-3xl w-full shadow-2xl text-white max-h-[92vh] flex flex-col overflow-hidden overscroll-contain">
         
-        {/* Top Checker Pattern Accent */}
-        <div className="absolute top-0 left-6 right-6 sm:left-8 sm:right-8 h-1.5 taxi-checker rounded-t-full" />
+          {/* Top Checker Pattern Accent - Cleanly clipped inside rounded-3xl container */}
+          <div className="h-1.5 taxi-checker w-full flex-shrink-0" />
 
-        {/* Close Button */}
-        <button
-          onClick={handleReset}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-zinc-400 hover:text-white w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors z-20"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
+          {/* Close Button */}
+          <button
+            onClick={handleReset}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-zinc-400 hover:text-white w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-full hover:bg-zinc-800/80 transition-colors z-30"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        {!successResult ? (
-          <div>
+          {/* Scrollable Form Body with contained custom scrollbar */}
+          <div className="overflow-y-auto p-4 sm:p-8 flex-1 modal-custom-scrollbar overscroll-contain">
+            {!successResult ? (
+              <div>
             {/* Header */}
             <div className="flex items-center space-x-2.5 sm:space-x-3 mb-4 sm:mb-5 pr-8">
               <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-taxi-yellow flex items-center justify-center text-black shadow-md shadow-taxi-yellow/20 flex-shrink-0">
@@ -1405,6 +1427,7 @@ export default function BookingModal({ isOpen, onClose }) {
           </div>
         )}
 
+          </div>
         </div>
       </div>
     </div>

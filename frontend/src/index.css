@@ -54,6 +54,37 @@
   background: #FACC15;
 }
 
+/* ==========================================================================
+   BOOKING MODAL CONTAINED SLEEK SCROLLBAR
+   - Keeps scrollbar strictly inside rounded modal borders
+   - Inset, modern sleek thumb with smooth hover
+   - Prevents scrollbar from sticking out past the rounded corners
+   ========================================================================== */
+.modal-custom-scrollbar {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.modal-custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.modal-custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+  margin: 12px 0;
+}
+
+.modal-custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 9999px;
+}
+
+.modal-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(250, 204, 21, 0.65) !important;
+}
+
 /* Shimmer animation */
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
