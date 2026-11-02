@@ -16,7 +16,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Search,
   ArrowRight,
   Repeat
 } from 'lucide-react';
@@ -135,11 +134,65 @@ export default function BookingModal({ isOpen, onClose }) {
   const [successResult, setSuccessResult] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  // Fleet Cars selection & search state
+  // Fleet Cars selection state
   const [fleetCars, setFleetCars] = useState(DEFAULT_PRESET_CARS);
   const [loadingFleetCars, setLoadingFleetCars] = useState(false);
-  const [carSearchQuery, setCarSearchQuery] = useState('');
   const [isCarPickerOpen, setIsCarPickerOpen] = useState(false);
+  const [carPickerDirection, setCarPickerDirection] = useState('down'); // 'down' | 'up'
+  const carPickerRef = useRef(null);
+
+  // Dynamic direction detection: flips dropdown UP or DOWN based on available viewport/modal space
+  const updateCarPickerDirection = () => {
+    if (!carPickerRef.current) return;
+    const rect = carPickerRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Space below and above in the viewport
+    const spaceBelowViewport = viewportHeight - rect.bottom;
+    const spaceAboveViewport = rect.top;
+
+    // Space below and above inside the scrollable modal container if present
+    const scrollContainer = carPickerRef.current.closest('.overflow-y-auto');
+    let spaceBelowContainer = spaceBelowViewport;
+    let spaceAboveContainer = spaceAboveViewport;
+
+    if (scrollContainer) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      spaceBelowContainer = containerRect.bottom - rect.bottom;
+      spaceAboveContainer = rect.top - containerRect.top;
+    }
+
+    const effectiveSpaceBelow = Math.min(spaceBelowViewport, spaceBelowContainer);
+    const effectiveSpaceAbove = Math.min(spaceAboveViewport, spaceAboveContainer);
+
+    // If space below is less than 230px and there is more room above, flip dropdown UP
+    if (effectiveSpaceBelow < 230 && effectiveSpaceAbove > effectiveSpaceBelow) {
+      setCarPickerDirection('up');
+    } else {
+      setCarPickerDirection('down');
+    }
+  };
+
+  const toggleCarPicker = () => {
+    if (!isCarPickerOpen) {
+      updateCarPickerDirection();
+    }
+    setIsCarPickerOpen((prev) => !prev);
+  };
+
+  // Re-check dropdown direction on scroll or viewport resize while car picker is open
+  useEffect(() => {
+    if (!isCarPickerOpen) return;
+    const handleReposition = () => {
+      updateCarPickerDirection();
+    };
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [isCarPickerOpen]);
 
   // Custom Interactive Calendar States
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -182,7 +235,7 @@ export default function BookingModal({ isOpen, onClose }) {
     }
   }, [isTimePickerOpen]);
 
-  // Click outside to close custom calendar & time picker
+  // Click outside to close custom calendar, time picker & car dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (calendarRef.current && !calendarRef.current.contains(e.target)) {
@@ -191,8 +244,11 @@ export default function BookingModal({ isOpen, onClose }) {
       if (timePickerRef.current && !timePickerRef.current.contains(e.target)) {
         setIsTimePickerOpen(false);
       }
+      if (carPickerRef.current && !carPickerRef.current.contains(e.target)) {
+        setIsCarPickerOpen(false);
+      }
     };
-    if (isCalendarOpen || isTimePickerOpen) {
+    if (isCalendarOpen || isTimePickerOpen || isCarPickerOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
     }
@@ -200,7 +256,7 @@ export default function BookingModal({ isOpen, onClose }) {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isCalendarOpen, isTimePickerOpen]);
+  }, [isCalendarOpen, isTimePickerOpen, isCarPickerOpen]);
 
   const handleSelectHour = (h) => {
     const { minute, period } = getTimeParts(formData.pickup_time);
@@ -289,17 +345,25 @@ export default function BookingModal({ isOpen, onClose }) {
     };
   }, [isOpen]);
 
-  // Handle ESC key to dismiss modal
+  // Handle ESC key to dismiss dropdowns or modal
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        handleReset();
+        if (isCarPickerOpen) {
+          setIsCarPickerOpen(false);
+        } else if (isCalendarOpen) {
+          setIsCalendarOpen(false);
+        } else if (isTimePickerOpen) {
+          setIsTimePickerOpen(false);
+        } else {
+          handleReset();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, isCarPickerOpen, isCalendarOpen, isTimePickerOpen]);
 
   const calendarDays = useMemo(() => {
     const year = calendarViewDate.year;
@@ -478,7 +542,6 @@ export default function BookingModal({ isOpen, onClose }) {
       pickup_lng: null,
       marketing_consent: true,
     });
-    setCarSearchQuery('');
     setIsCarPickerOpen(false);
     setIsCalendarOpen(false);
     setIsTimePickerOpen(false);
@@ -1164,8 +1227,8 @@ export default function BookingModal({ isOpen, onClose }) {
                 allowGPS={false}
               />
 
-              {/* Select Car (Preferred Vehicle Model - Searchable by Car Name) */}
-              <div className="relative">
+              {/* Select Car (Preferred Vehicle Model - Direct Dropdown with Up/Down Dynamic Positioning) */}
+              <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center justify-between">
                   <span>
                     Select Car <span className="text-zinc-500 text-[10px] font-normal lowercase">(optional preferred vehicle)</span>
@@ -1175,7 +1238,6 @@ export default function BookingModal({ isOpen, onClose }) {
                       type="button"
                       onClick={() => {
                         setFormData((prev) => ({ ...prev, car_name: '' }));
-                        setCarSearchQuery('');
                       }}
                       className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1"
                     >
@@ -1184,110 +1246,104 @@ export default function BookingModal({ isOpen, onClose }) {
                   )}
                 </label>
 
-                {/* Car Selector Trigger */}
-                <div
-                  onClick={() => setIsCarPickerOpen(!isCarPickerOpen)}
-                  className="w-full h-11 sm:h-12 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus-within:border-taxi-yellow rounded-xl px-3.5 text-base sm:text-sm text-white flex items-center justify-between cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center space-x-2.5 truncate min-w-0">
-                    <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
-                    {formData.car_name ? (
-                      <span className="font-bold text-white truncate text-xs sm:text-sm">{formData.car_name}</span>
-                    ) : (
-                      <span className="text-zinc-400 text-xs sm:text-sm truncate">Any Available Cab (Optional)</span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
-                    <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isCarPickerOpen ? 'rotate-180' : ''}`} />
-                  </div>
-                </div>
-
-                {/* Dropdown with Live Search by Car Name */}
-                {isCarPickerOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2.5 max-h-60 overflow-hidden flex flex-col animate-scale-up">
-                    <div className="relative mb-2">
-                      <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        value={carSearchQuery}
-                        onChange={(e) => setCarSearchQuery(e.target.value)}
-                        placeholder="Search car by name (e.g. Dzire, Innova, Ertiga)..."
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-base sm:text-xs text-white placeholder-zinc-500 outline-none focus:border-taxi-yellow"
+                {/* Relative Wrapper for Trigger & Dynamic Dropdown */}
+                <div className="relative" ref={carPickerRef}>
+                  {/* Car Selector Trigger */}
+                  <div
+                    onClick={toggleCarPicker}
+                    className={`w-full h-11 sm:h-12 bg-zinc-900 border rounded-xl px-3.5 text-base sm:text-sm text-white flex items-center justify-between cursor-pointer transition-colors ${
+                      isCarPickerOpen ? 'border-taxi-yellow ring-1 ring-taxi-yellow/30' : 'border-zinc-800 hover:border-zinc-700'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5 truncate min-w-0">
+                      <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                      {formData.car_name ? (
+                        <span className="font-bold text-white truncate text-xs sm:text-sm">{formData.car_name}</span>
+                      ) : (
+                        <span className="text-zinc-400 text-xs sm:text-sm truncate">Any Available Cab (Optional)</span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1.5 flex-shrink-0">
+                      <ChevronDown
+                        className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${
+                          isCarPickerOpen
+                            ? carPickerDirection === 'up'
+                              ? '-rotate-180 text-taxi-yellow'
+                              : 'rotate-180 text-taxi-yellow'
+                            : ''
+                        }`}
                       />
                     </div>
+                  </div>
 
-                    <div className="overflow-y-auto space-y-1 flex-1 pr-1 max-h-44">
-                      {/* Default "Any Available" option */}
-                      <div
-                        onClick={() => {
-                          setFormData((prev) => ({ ...prev, car_name: '' }));
-                          setIsCarPickerOpen(false);
-                          setCarSearchQuery('');
-                        }}
-                        className={`p-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
-                          !formData.car_name
-                            ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30'
-                            : 'hover:bg-zinc-800 text-zinc-300'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Car className="w-3.5 h-3.5 text-taxi-yellow" />
-                          <span>Any Available Cab (Best Match)</span>
+                  {/* Direct Dropdown Menu (Opens Upward or Downward dynamically based on available screen space) */}
+                  {isCarPickerOpen && (
+                    <div
+                      className={`absolute left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-md border border-zinc-700/80 rounded-2xl shadow-2xl p-2 flex flex-col animate-scale-up ${
+                        carPickerDirection === 'up'
+                          ? 'bottom-full mb-2 origin-bottom'
+                          : 'top-full mt-2 origin-top'
+                      }`}
+                    >
+                      {/* Direct Cars Options List (No search input) */}
+                      <div className="max-h-56 sm:max-h-60 overflow-y-auto space-y-1 modal-custom-scrollbar pr-1 overscroll-contain">
+                        {/* Default "Any Available" option */}
+                        <div
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, car_name: '' }));
+                            setIsCarPickerOpen(false);
+                          }}
+                          className={`p-2.5 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                            !formData.car_name
+                              ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30 shadow-sm'
+                              : 'hover:bg-zinc-800/80 text-zinc-300'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <Car className="w-4 h-4 text-taxi-yellow flex-shrink-0" />
+                            <span className="font-medium">Any Available Cab (Best Match)</span>
+                          </div>
+                          {!formData.car_name && <Check className="w-4 h-4 text-taxi-yellow flex-shrink-0" />}
                         </div>
-                        {!formData.car_name && <Check className="w-3.5 h-3.5 text-taxi-yellow" />}
-                      </div>
 
-                      {/* Filtered Fleet Cars */}
-                      {fleetCars
-                        .filter((c) =>
-                          !carSearchQuery ||
-                          c.name.toLowerCase().includes(carSearchQuery.toLowerCase()) ||
-                          (c.category && c.category.toLowerCase().includes(carSearchQuery.toLowerCase()))
-                        )
-                        .map((car) => {
+                        {/* Fleet Cars List */}
+                        {fleetCars.map((car) => {
                           const isSelected = formData.car_name === car.name;
                           return (
                             <div
-                              key={car.id}
+                              key={car.id || car.name}
                               onClick={() => {
                                 setFormData((prev) => ({ ...prev, car_name: car.name }));
                                 setIsCarPickerOpen(false);
-                                setCarSearchQuery('');
                               }}
-                              className={`p-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                              className={`p-2.5 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors ${
                                 isSelected
-                                  ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30'
-                                  : 'hover:bg-zinc-800 text-zinc-200'
+                                  ? 'bg-taxi-yellow/15 text-taxi-yellow font-bold border border-taxi-yellow/30 shadow-sm'
+                                  : 'hover:bg-zinc-800/80 text-zinc-200'
                               }`}
                             >
-                              <div className="flex items-center space-x-2 truncate">
-                                <Car className={`w-3.5 h-3.5 ${isSelected ? 'text-taxi-yellow' : 'text-zinc-500'}`} />
-                                <span className="truncate">{car.name}</span>
+                              <div className="flex items-center space-x-2.5 truncate min-w-0 pr-2">
+                                <Car className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-taxi-yellow' : 'text-zinc-500'}`} />
+                                <span className="truncate font-medium">{car.name}</span>
                               </div>
-                              <div className="flex items-center space-x-2 text-[10px] text-zinc-500 flex-shrink-0">
-                                <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">{car.category || 'Sedan'}</span>
+                              <div className="flex items-center space-x-2 text-[10px] text-zinc-400 flex-shrink-0">
+                                <span className="bg-zinc-800/90 border border-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-300 font-mono">
+                                  {car.category || 'Sedan'}
+                                </span>
                                 {car.seating_capacity && (
-                                  <span className="hidden sm:inline">{car.seating_capacity}</span>
+                                  <span className="hidden sm:inline font-mono text-zinc-400">
+                                    {car.seating_capacity}
+                                  </span>
                                 )}
-                                {isSelected && <Check className="w-3.5 h-3.5 text-taxi-yellow" />}
+                                {isSelected && <Check className="w-4 h-4 text-taxi-yellow flex-shrink-0" />}
                               </div>
                             </div>
                           );
                         })}
-
-                      {fleetCars.filter((c) =>
-                        !carSearchQuery ||
-                        c.name.toLowerCase().includes(carSearchQuery.toLowerCase())
-                      ).length === 0 && (
-                        <div className="py-4 text-center text-xs text-zinc-500">
-                          No car found matching "{carSearchQuery}".
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Marketing Consent Checkbox */}
