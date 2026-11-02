@@ -10,22 +10,27 @@ def normalize_phone_with_plus(v: str) -> str:
     - If 11 digits starting with 0: '+91' + digits[1:] -> e.g. '+919876543210'
     - If 12 digits starting with 91: '+' + digits -> e.g. '+919876543210'
     - If already starts with '+': ensure clean digits after '+', e.g. '+919876543210'
-    - Otherwise, prepend '+' to all extracted digits if >= 8 digits.
+    - Otherwise, prepend '+' to all extracted digits if >= 7 digits.
+    - Resilient fallback for 4-6 digits: prepend '+91' to prevent unexpected crash.
     """
     if not v:
         raise ValueError("Phone number cannot be empty")
     cleaned = v.strip()
     digits = re.sub(r"\D", "", cleaned)
+    if not digits:
+        raise ValueError("Phone number must contain numeric digits")
     if len(digits) == 10:
         return f"+91{digits}"
     elif len(digits) == 11 and digits.startswith("0"):
         return f"+91{digits[1:]}"
     elif len(digits) == 12 and digits.startswith("91"):
         return f"+{digits}"
-    elif len(digits) >= 8:
+    elif len(digits) >= 7:
         return f"+{digits}"
+    elif len(digits) >= 4:
+        return f"+91{digits}"
     else:
-        raise ValueError("Invalid phone number: must be at least 8 digits")
+        raise ValueError("Invalid phone number: too short")
 
 def clean_phone(v: str) -> str:
     return normalize_phone_with_plus(v)
@@ -72,7 +77,8 @@ class CustomerOut(CustomerBase):
 
 class BookingCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=150)
-    whatsapp_number: str = Field(..., min_length=8, max_length=50)
+    whatsapp_number: str = Field(..., min_length=5, max_length=50)
+    trip_type: Optional[str] = Field("One Way Trip", max_length=50)
     car_name: Optional[str] = Field(None, max_length=100)
     pickup_location: Optional[str] = Field(None, max_length=255)
     destination: Optional[str] = Field(None, max_length=255)
@@ -172,6 +178,7 @@ class BookingOut(BaseModel):
     driver_taxi_registration: Optional[str] = None
     driver_contact: Optional[str] = None
     car_name: Optional[str] = None
+    trip_type: Optional[str] = "One Way Trip"
     pickup_location: Optional[str] = None
     destination: Optional[str] = None
     pickup_date: Optional[str] = None

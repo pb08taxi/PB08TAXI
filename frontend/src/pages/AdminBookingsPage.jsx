@@ -17,7 +17,9 @@ import {
   Car,
   UserCheck,
   Send,
-  ShieldCheck
+  ShieldCheck,
+  ArrowRight,
+  Repeat
 } from 'lucide-react';
 import { getBookings, updateBookingStatus, getDrivers } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
@@ -271,11 +273,24 @@ export default function AdminBookingsPage() {
               ) : (
                 bookings.map((b) => (
                   <tr key={b.id} className="hover:bg-zinc-900/40 transition-colors">
-                    {/* Reference */}
+                    {/* Reference & Trip Type */}
                     <td className="py-4 px-6 font-mono font-bold text-taxi-yellow">
                       <div>#{b.booking_reference}</div>
                       <div className="text-[10px] text-zinc-500 font-normal">
                         {formatISTDateTime(b.created_at)}
+                      </div>
+                      <div className="mt-1.5">
+                        {b.trip_type === 'Round Trip' ? (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                            <Repeat className="w-2.5 h-2.5 stroke-[2.5]" />
+                            <span>Round Trip</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-400/15 text-blue-300 border border-blue-400/30">
+                            <ArrowRight className="w-2.5 h-2.5 stroke-[2.5]" />
+                            <span>One Way Trip</span>
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -360,7 +375,7 @@ export default function AdminBookingsPage() {
                                   phone: b.driver_contact,
                                   taxiReg: b.driver_taxi_registration,
                                   bookingRef: b.booking_reference,
-                                  initialMessage: `Hi ${b.driver_name}, regarding assigned ride (#${b.booking_reference}): `
+                                  initialMessage: `Hi ${b.driver_name}, regarding assigned ${b.trip_type || 'One Way Trip'} ride (#${b.booking_reference}): `
                                 })}
                                 className="text-[10px] text-[#25D366] hover:underline flex items-center space-x-1 cursor-pointer"
                                 title={`Chat with Driver ${b.driver_name} via OpenWA`}
@@ -413,7 +428,7 @@ export default function AdminBookingsPage() {
                           role: 'Customer',
                           phone: b.whatsapp_number,
                           bookingRef: b.booking_reference,
-                          initialMessage: `Hi ${b.customer_name}, regarding your PB08 TAXI booking (#${b.booking_reference}): `
+                          initialMessage: `Hi ${b.customer_name}, regarding your PB08 TAXI ${b.trip_type || 'One Way Trip'} booking (#${b.booking_reference}): `
                         })}
                         className="inline-flex items-center space-x-1 text-xs text-[#25D366] hover:text-white bg-[#25D366]/10 hover:bg-[#25D366]/20 px-2.5 py-1.5 rounded-lg border border-[#25D366]/30 transition-colors cursor-pointer"
                         title={`Chat with Customer ${b.customer_name} via OpenWA`}
@@ -464,6 +479,26 @@ export default function AdminBookingsPage() {
               <div className="flex justify-between">
                 <span className="text-zinc-500">Customer:</span>
                 <span className="font-bold text-white">{selectedBooking.customer_name} ({selectedBooking.whatsapp_number})</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Trip Type:</span>
+                <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                  selectedBooking.trip_type === 'Round Trip'
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                    : 'bg-blue-400/20 text-blue-300 border border-blue-400/40'
+                }`}>
+                  {selectedBooking.trip_type === 'Round Trip' ? (
+                    <>
+                      <Repeat className="w-3 h-3 stroke-[2.5]" />
+                      <span>Round Trip</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                      <span>One Way Trip</span>
+                    </>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500">Pickup Date & Time:</span>

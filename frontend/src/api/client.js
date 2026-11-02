@@ -33,7 +33,20 @@ api.interceptors.response.use(
 
 // Public APIs
 export const fetchPublicSliders = () => api.get('/api/slider-images').then(r => r.data);
-export const createBooking = (payload) => api.post('/api/bookings', payload).then(r => r.data);
+export const createBooking = async (payload) => {
+  try {
+    const res = await api.post('/api/bookings', payload);
+    return res.data;
+  } catch (err) {
+    // If network error or transient 5xx server hiccup, auto-retry once after 1s before throwing
+    if (!err.response || err.response.status >= 500) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const retryRes = await api.post('/api/bookings', payload);
+      return retryRes.data;
+    }
+    throw err;
+  }
+};
 
 // Admin Auth APIs
 export const adminLogin = (username, password) => 

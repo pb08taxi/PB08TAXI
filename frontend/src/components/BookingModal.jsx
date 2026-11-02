@@ -16,7 +16,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Search
+  Search,
+  ArrowRight,
+  Repeat
 } from 'lucide-react';
 import { createBooking, getPublicFleetCars } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -112,6 +114,7 @@ export default function BookingModal({ isOpen, onClose }) {
   const modalAnimation = settings?.booking_modal_animation || 'golden-glow';
 
   const [formData, setFormData] = useState({
+    trip_type: 'One Way Trip',
     customer_name: '',
     pickup_location: '',
     destination: '',
@@ -401,6 +404,7 @@ export default function BookingModal({ isOpen, onClose }) {
     try {
       const payload = {
         ...formData,
+        trip_type: formData.trip_type || 'One Way Trip',
         car_name: formData.car_name ? formData.car_name.trim() : undefined,
         whatsapp_number: `${activeCode}${cleanDigits}`,
         pickup_lat: formData.pickup_lat || undefined,
@@ -438,6 +442,7 @@ export default function BookingModal({ isOpen, onClose }) {
     setCustomCountryCode('');
     setWhatsappDigits('');
     setFormData({
+      trip_type: 'One Way Trip',
       customer_name: '',
       pickup_location: '',
       destination: '',
@@ -546,6 +551,53 @@ export default function BookingModal({ isOpen, onClose }) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
+              {/* Trip Type Toggle: One Way Trip vs Round Trip (Positioned above Customer Name) */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span>
+                    Trip Type <span className="text-taxi-yellow">*</span>
+                  </span>
+                  <span className="text-[11px] font-semibold text-taxi-yellow/90">
+                    {formData.trip_type === 'Round Trip' ? '🔄 Return ride included' : '➡️ Single journey'}
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5 p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl">
+                  {/* Button 1: One Way Trip */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, trip_type: 'One Way Trip' }));
+                      setError('');
+                    }}
+                    className={`h-11 sm:h-12 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                      formData.trip_type === 'One Way Trip'
+                        ? 'bg-taxi-yellow text-black font-black shadow-lg shadow-taxi-yellow/25 ring-2 ring-taxi-yellow/60 scale-[1.01]'
+                        : 'bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white'
+                    }`}
+                  >
+                    <ArrowRight className={`w-4 h-4 ${formData.trip_type === 'One Way Trip' ? 'text-black stroke-[2.5]' : 'text-zinc-400'}`} />
+                    <span>One Way Trip</span>
+                  </button>
+
+                  {/* Button 2: Round Trip */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, trip_type: 'Round Trip' }));
+                      setError('');
+                    }}
+                    className={`h-11 sm:h-12 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                      formData.trip_type === 'Round Trip'
+                        ? 'bg-taxi-yellow text-black font-black shadow-lg shadow-taxi-yellow/25 ring-2 ring-taxi-yellow/60 scale-[1.01]'
+                        : 'bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white'
+                    }`}
+                  >
+                    <Repeat className={`w-4 h-4 ${formData.trip_type === 'Round Trip' ? 'text-black stroke-[2.5]' : 'text-zinc-400'}`} />
+                    <span>Round Trip</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Customer Name */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
@@ -1286,6 +1338,12 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
 
               <div className="pt-2 border-t border-zinc-800/80 text-xs text-zinc-400 space-y-1">
+                {successResult.trip_type && (
+                  <p>
+                    <span className="text-zinc-500 font-medium">Trip Type:</span>{' '}
+                    <span className="text-taxi-yellow font-bold">{successResult.trip_type}</span>
+                  </p>
+                )}
                 {(successResult.pickup_date || successResult.pickup_time) && (
                   <p>
                     <span className="text-zinc-500 font-medium">Pickup Schedule:</span>{' '}
@@ -1316,7 +1374,7 @@ export default function BookingModal({ isOpen, onClose }) {
               <div>
                 <p className="font-bold text-white mb-0.5">WhatsApp Confirmation Dispatched</p>
                 <p className="italic text-zinc-400">
-                  "Hi {successResult.customer_name}, our support team will contact you shortly. You will receive a call from us soon. Thank you for connecting with PB08 TAXI!"
+                  "Hi {successResult.customer_name}, thank you for choosing PB08 TAXI! Your {successResult.trip_type || 'One Way Trip'} booking request has been received (Ref: #{successResult.booking_reference}). Our support team will contact you shortly to confirm your ride."
                 </p>
               </div>
             </div>

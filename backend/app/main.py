@@ -47,6 +47,13 @@ def initialize_database():
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE drivers ADD COLUMN IF NOT EXISTS car_name VARCHAR(100);"))
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS car_name VARCHAR(100);"))
+            try:
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS trip_type VARCHAR(50) DEFAULT 'One Way Trip';"))
+            except Exception:
+                try:
+                    conn.execute(text("ALTER TABLE bookings ADD COLUMN trip_type VARCHAR(50) DEFAULT 'One Way Trip';"))
+                except Exception:
+                    pass
     except Exception as mig_err:
         print(f"[PB08 TAXI] Migration notice: {mig_err}")
 

@@ -59,6 +59,7 @@ class Booking(Base):
     customer_id = Column(Integer, ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
     driver_id = Column(Integer, ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True)
     car_name = Column(String(100), nullable=True)  # Preferred or assigned car name
+    trip_type = Column(String(50), default="One Way Trip", nullable=True)  # 'One Way Trip' or 'Round Trip'
     pickup_location = Column(String(255), nullable=True)
     destination = Column(String(255), nullable=True)
     pickup_date = Column(String(50), nullable=True)

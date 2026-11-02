@@ -1,6 +1,7 @@
 import re
 import random
 import string
+import time
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
@@ -126,49 +127,26 @@ async def create_booking(
     db: Session = Depends(get_db)
 ):
     """
-    One Click Book Your Ride endpoint:
-    1. Validate inputs.
-    2. Save or update customer in Neon PostgreSQL (prevent duplicates).
-    3. Create booking with unique reference.
-    4. Queue confirmation WhatsApp message in background (instant response!).
-    5. Queue admin alert WhatsApp notification in background.
+    One Click Book Your Ride endpoint (Zero-Failure Architecture):
+    1. Validate and normalize inputs.
+    2. Save or update customer in Neon PostgreSQL (deduplicated by phone).
+    3. Persist booking with trip_type ('One Way Trip' / 'Round Trip') and auto-retry on connection drops.
+    4. Queue confirmation WhatsApp message in background with clear trip type.
+    5. Queue admin alert WhatsApp notification with trip type.
     """
     clean_phone = booking_in.whatsapp_number.strip()
     customer_name = booking_in.customer_name.strip()
-
-    # 1. Customer deduplication: Check if customer already exists by phone
-    customer = db.query(Customer).filter(Customer.whatsapp_number == clean_phone).first()
-    if customer:
-        customer.name = customer_name
-        customer.marketing_consent = booking_in.marketing_consent
-        customer.updated_at = datetime.utcnow()
-    else:
-        customer = Customer(
-            name=customer_name,
-            whatsapp_number=clean_phone,
-            marketing_consent=booking_in.marketing_consent,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
-        )
-        db.add(customer)
     
-    db.commit()
-    db.refresh(customer)
+    # Standardize trip type to strictly 'One Way Trip' or 'Round Trip'
+    raw_trip = (booking_in.trip_type or "One Way Trip").strip()
+    if "round" in raw_trip.lower():
+        trip_type_val = "Round Trip"
+    else:
+        trip_type_val = "One Way Trip"
 
-    # 2. Record marketing consent entry
-    consent_record = MarketingConsent(
-        customer_id=customer.id,
-        phone=clean_phone,
-        consent_given=booking_in.marketing_consent,
-        source="booking_form"
-    )
-    db.add(consent_record)
-
-    # 3. Create booking record
-    ref_code = generate_booking_reference(db)
+    car_name_val = booking_in.car_name.strip() if (booking_in.car_name and booking_in.car_name.strip()) else None
     pickup_date_clean = booking_in.pickup_date.strip() if booking_in.pickup_date else None
     pickup_time_clean = booking_in.pickup_time.strip() if booking_in.pickup_time else None
-    car_name_val = booking_in.car_name.strip() if (booking_in.car_name and booking_in.car_name.strip()) else None
 
     # Resolve GPS coordinates if provided or if embedded in pickup_location text
     lat_val = booking_in.pickup_lat
@@ -178,25 +156,102 @@ async def create_booking(
         if coords:
             lat_val, lng_val = coords
 
-    booking = Booking(
-        booking_reference=ref_code,
-        customer_id=customer.id,
-        car_name=car_name_val,
-        pickup_location=booking_in.pickup_location.strip() if booking_in.pickup_location else None,
-        destination=booking_in.destination.strip() if booking_in.destination else None,
-        pickup_date=pickup_date_clean,
-        pickup_time=pickup_time_clean,
-        pickup_lat=lat_val,
-        pickup_lng=lng_val,
-        status="PENDING",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
-    )
-    db.add(booking)
-    db.commit()
-    db.refresh(booking)
+    customer = None
+    booking = None
 
-    # 4. Format WhatsApp Confirmation Message (Uses customizable template if configured)
+    # Bulletproof Database Commit Loop (handles serverless connection reconnects & on-the-fly column migrations)
+    for attempt in range(3):
+        try:
+            # 1. Customer deduplication
+            customer = db.query(Customer).filter(Customer.whatsapp_number == clean_phone).first()
+            if customer:
+                customer.name = customer_name
+                customer.marketing_consent = booking_in.marketing_consent
+                customer.updated_at = datetime.utcnow()
+            else:
+                customer = Customer(
+                    name=customer_name,
+                    whatsapp_number=clean_phone,
+                    marketing_consent=booking_in.marketing_consent,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+                db.add(customer)
+            
+            db.commit()
+            db.refresh(customer)
+
+            # 2. Record marketing consent entry
+            consent_record = MarketingConsent(
+                customer_id=customer.id,
+                phone=clean_phone,
+                consent_given=booking_in.marketing_consent,
+                source="booking_form"
+            )
+            db.add(consent_record)
+
+            # 3. Create booking record
+            ref_code = generate_booking_reference(db)
+            booking = Booking(
+                booking_reference=ref_code,
+                customer_id=customer.id,
+                car_name=car_name_val,
+                trip_type=trip_type_val,
+                pickup_location=booking_in.pickup_location.strip() if booking_in.pickup_location else None,
+                destination=booking_in.destination.strip() if booking_in.destination else None,
+                pickup_date=pickup_date_clean,
+                pickup_time=pickup_time_clean,
+                pickup_lat=lat_val,
+                pickup_lng=lng_val,
+                status="PENDING",
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.add(booking)
+            db.commit()
+            db.refresh(booking)
+            break
+        except Exception as exc:
+            db.rollback()
+            err_str = str(exc).lower()
+            # If trip_type column is missing on existing database, apply migration on the fly
+            if "trip_type" in err_str or "undefinedcolumn" in err_str:
+                try:
+                    db.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS trip_type VARCHAR(50) DEFAULT 'One Way Trip';"))
+                    db.commit()
+                except Exception:
+                    try:
+                        db.execute(text("ALTER TABLE bookings ADD COLUMN trip_type VARCHAR(50) DEFAULT 'One Way Trip';"))
+                        db.commit()
+                    except Exception:
+                        pass
+            if attempt == 2:
+                # Emergency fallback if all retries hit DB issue: create booking without trip_type to guarantee zero booking loss
+                try:
+                    booking = Booking(
+                        booking_reference=ref_code,
+                        customer_id=customer.id,
+                        car_name=car_name_val,
+                        pickup_location=booking_in.pickup_location.strip() if booking_in.pickup_location else None,
+                        destination=booking_in.destination.strip() if booking_in.destination else None,
+                        pickup_date=pickup_date_clean,
+                        pickup_time=pickup_time_clean,
+                        pickup_lat=lat_val,
+                        pickup_lng=lng_val,
+                        status="PENDING",
+                        created_at=datetime.utcnow(),
+                        updated_at=datetime.utcnow()
+                    )
+                    db.add(booking)
+                    db.commit()
+                    db.refresh(booking)
+                    break
+                except Exception as final_err:
+                    db.rollback()
+                    raise HTTPException(status_code=500, detail="Booking service busy. Please retry.")
+            time.sleep(0.3)
+
+    # 4. Format WhatsApp Confirmation Message (Customer)
     friendly_date = format_friendly_date(booking.pickup_date) if booking.pickup_date else "Immediate / Today"
     friendly_time = format_friendly_time(booking.pickup_time) if booking.pickup_date else "As soon as possible"
     
@@ -212,6 +267,7 @@ async def create_booking(
             "customer_name": customer.name,
             "customer_contact": customer.whatsapp_number,
             "booking_ref": booking.booking_reference,
+            "trip_type": trip_type_val,
             "car_name": car_name_val or "Dedicated Cab",
             "pickup_date": friendly_date,
             "pickup_time": friendly_time,
@@ -225,6 +281,20 @@ async def create_booking(
         confirmation_text = tpl.content
         for k, v in ctx.items():
             confirmation_text = confirmation_text.replace(f"{{{k}}}", str(v) if v is not None else "")
+
+        # If template didn't explicitly include trip_type, seamlessly inject it under Preferred Car or Booking Ref
+        if "Trip Type" not in confirmation_text:
+            if "Preferred Car:" in confirmation_text:
+                confirmation_text = confirmation_text.replace(
+                    "Preferred Car:",
+                    f"Trip Type:* {trip_type_val}\n🚘 *Preferred Car:"
+                )
+            elif f"#{booking.booking_reference}" in confirmation_text:
+                confirmation_text = confirmation_text.replace(
+                    f"#{booking.booking_reference}",
+                    f"#{booking.booking_reference} ({trip_type_val})"
+                )
+
         # If template didn't include {gps_location} or {google_maps_link}, seamlessly append GPS map link under pickup location
         if gps_line and maps_url and maps_url not in confirmation_text:
             if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in confirmation_text:
@@ -239,14 +309,13 @@ async def create_booking(
         vehicle_text = f" [Car: {car_name_val}]" if car_name_val else ""
         maps_clause = f"\n{gps_line}" if gps_line else ""
         confirmation_text = (
-            f"Hi {customer.name}, our support team will contact you shortly. "
-            f"You will receive a call from us soon. "
-            f"Thank you for connecting with PB08 TAXI! "
-            f"(Booking Ref: #{booking.booking_reference}{schedule_text}{vehicle_text})"
+            f"Hi {customer.name}, thank you for choosing PB08 TAXI! "
+            f"Your {trip_type_val} booking request has been received (Ref: #{booking.booking_reference}{vehicle_text}{schedule_text}). "
+            f"Our support team will contact you shortly to confirm your ride."
             f"{maps_clause}"
         )
 
-    # Dispatch to customer asynchronously in background task (Instant API response!)
+    # Dispatch to customer asynchronously in background task (Instant API response, never blocks or fails user booking!)
     background_tasks.add_task(
         send_background_message,
         phone=clean_phone,
@@ -281,6 +350,7 @@ async def create_booking(
                 f"🚖 *PB08 TAXI — New Booking Alert!*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                f"🛣️ *Trip Type:* {trip_type_val}\n"
                 f"👤 *Customer Name:* {customer.name}\n"
                 f"📞 *Contact Number:* {customer.whatsapp_number}\n"
                 f"🚘 *Selected Car:* {car_disp}\n"
@@ -311,7 +381,7 @@ async def create_booking(
                     latitude=lat_val,
                     longitude=lng_val,
                     address=booking.pickup_location or "Customer Pickup Location",
-                    description=f"Booking #{booking.booking_reference}: {customer.name}",
+                    description=f"Booking #{booking.booking_reference}: {customer.name} ({trip_type_val})",
                     customer_id=customer.id
                 )
     except Exception:
@@ -324,6 +394,8 @@ async def create_booking(
         customer_id=customer.id,
         customer_name=customer.name,
         whatsapp_number=customer.whatsapp_number,
+        car_name=booking.car_name,
+        trip_type=getattr(booking, 'trip_type', None) or trip_type_val,
         pickup_location=booking.pickup_location,
         destination=booking.destination,
         pickup_date=booking.pickup_date,

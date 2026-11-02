@@ -87,6 +87,7 @@ def list_bookings(
                 driver_taxi_registration=b.driver.taxi_registration if b.driver else None,
                 driver_contact=b.driver.contact_number if b.driver else None,
                 car_name=b.car_name or (b.driver.car_name if b.driver else None),
+                trip_type=getattr(b, 'trip_type', None) or 'One Way Trip',
                 pickup_location=b.pickup_location,
                 destination=b.destination,
                 pickup_date=b.pickup_date,
@@ -139,10 +140,12 @@ async def update_booking_status(
         maps_url = get_google_maps_url(booking.pickup_lat, booking.pickup_lng, booking.pickup_location)
         gps_line = f"🗺️ *GPS Navigation:* {maps_url}" if maps_url else ""
 
+        trip_type_disp = getattr(booking, 'trip_type', None) or 'One Way Trip'
         base_ctx = {
             "customer_name": booking.customer.name,
             "customer_contact": booking.customer.whatsapp_number,
             "booking_ref": booking.booking_reference,
+            "trip_type": trip_type_disp,
             "pickup_date": date_disp,
             "pickup_time": time_disp,
             "pickup_location": booking.pickup_location or "Not specified",
@@ -177,6 +180,7 @@ async def update_booking_status(
                 cust_msg = (
                     f"🚖 *PB08 TAXI — Ride Confirmed!*\n"
                     f"Hello {booking.customer.name}, your ride has been confirmed (Ref: #{booking.booking_reference})!\n"
+                    f"🛣️ *Trip Type:* {trip_type_disp}\n"
                     f"📅 *Pickup Date:* {date_disp} at {time_disp}\n"
                     f"📍 *Pickup:* {booking.pickup_location}{cust_maps_clause}\n"
                     f"🏁 *Destination:* {booking.destination}\n\n"
@@ -205,6 +209,7 @@ async def update_booking_status(
                     "car_name": car_name_val,
                     "taxi_number": driver.taxi_registration,
                     "booking_ref": booking.booking_reference,
+                    "trip_type": trip_type_disp,
                     "customer_name": booking.customer.name,
                     "customer_contact": booking.customer.whatsapp_number,
                     "pickup_date": date_disp,
@@ -228,6 +233,7 @@ async def update_booking_status(
                         f"🚖 *PB08 TAXI — New Duty Assigned!*\n"
                         f"Hello {driver.name}, a new ride has been assigned to your cab ({car_name_val} - {driver.taxi_registration}):\n"
                         f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                        f"🛣️ *Trip Type:* {trip_type_disp}\n"
                         f"👤 *Customer Name:* {booking.customer.name}\n"
                         f"📞 *Contact:* {booking.customer.whatsapp_number}\n"
                         f"📅 *Scheduled:* {date_disp} at {time_disp}\n"
@@ -310,6 +316,7 @@ async def update_booking_status(
         driver_taxi_registration=booking.driver.taxi_registration if booking.driver else None,
         driver_contact=booking.driver.contact_number if booking.driver else None,
         car_name=booking.car_name or (booking.driver.car_name if booking.driver else None),
+        trip_type=getattr(booking, 'trip_type', None) or 'One Way Trip',
         pickup_location=booking.pickup_location,
         destination=booking.destination,
         pickup_date=booking.pickup_date,
