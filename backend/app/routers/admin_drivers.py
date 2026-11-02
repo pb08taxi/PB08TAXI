@@ -14,6 +14,7 @@ from app.schemas import (
     FleetCarUpdate
 )
 from app.security import get_current_admin
+from app.services.cache_service import cache_service
 
 router = APIRouter(prefix="/admin/drivers", tags=["Admin Drivers"])
 
@@ -72,6 +73,7 @@ def create_fleet_car(
     db.add(car)
     db.commit()
     db.refresh(car)
+    cache_service.delete("fleet_cars:public")
 
     return FleetCarOut(
         id=car.id,
@@ -123,6 +125,7 @@ def update_fleet_car(
     car.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(car)
+    cache_service.delete("fleet_cars:public")
 
     drivers_cnt = db.query(Driver).filter(Driver.car_name == car.name).count()
     return FleetCarOut(
@@ -150,6 +153,7 @@ def delete_fleet_car(
     car_name = car.name
     db.delete(car)
     db.commit()
+    cache_service.delete("fleet_cars:public")
     return {"message": f"Car '{car_name}' removed from fleet successfully", "id": car_id}
 
 # ==============================================================================

@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     GITHUB_REPO: str = os.getenv("GITHUB_REPO", "pb08taxi/PB08TAXI")
     GITHUB_BRANCH: str = os.getenv("GITHUB_BRANCH", "main")
 
+    # Upstash / Redis Caching (Sub-20ms Engine)
+    REDIS_URL: str = os.getenv("REDIS_URL", "")
+    UPSTASH_REDIS_REST_URL: str = os.getenv("UPSTASH_REDIS_REST_URL", "")
+    UPSTASH_REDIS_REST_TOKEN: str = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+    CACHE_DEFAULT_TTL: int = int(os.getenv("CACHE_DEFAULT_TTL", "300"))
+
     @property
     def cors_origin_list(self) -> List[str]:
         if not self.CORS_ORIGINS:

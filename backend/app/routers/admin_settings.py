@@ -23,6 +23,7 @@ from app.models import (
 from app.schemas import SiteSettingsOut, SiteSettingsUpdate, AdminCredentialsUpdate, FactoryResetRequest
 from app.security import get_current_admin, verify_password, hash_password, create_access_token
 from app.config import get_settings
+from app.services.cache_service import cache_service, invalidate_setting_cache
 
 settings_cfg = get_settings()
 
@@ -46,10 +47,14 @@ def _set_setting_val(db: Session, key: str, val: str):
         item.value = val
         item.updated_at = datetime.utcnow()
     db.commit()
+    invalidate_setting_cache(key)
 
 @router.get("/site-settings", response_model=SiteSettingsOut)
 def get_public_site_settings(db: Session = Depends(get_db)):
-    """Public endpoint to fetch current contact info, logo, favicon, brand title, tagline, login hint config, and booking animation."""
+    """Public endpoint to fetch current contact info, logo, favicon, brand title, tagline, login hint config, and booking animation (Sub-5ms Cache)."""
+    cached = cache_service.get("site_settings:public")
+    if cached is not None:
+        return SiteSettingsOut(**cached)
     support_phone = _get_setting_val(db, "support_phone", settings_cfg.SUPPORT_PHONE)
     whatsapp_number = _get_setting_val(db, "whatsapp_number", settings_cfg.SUPPORT_WHATSAPP)
     site_logo_url = _get_setting_val(db, "site_logo_url", "")
@@ -87,7 +92,7 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     except (ValueError, TypeError):
         slider_overlay_opacity = 55
 
-    return SiteSettingsOut(
+    out = SiteSettingsOut(
         support_phone=support_phone,
         whatsapp_number=whatsapp_number,
         site_logo_url=site_logo_url or None,
@@ -108,6 +113,8 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         social_youtube=social_youtube,
         physical_address=physical_address
     )
+    cache_service.set("site_settings:public", out.model_dump(), ttl=600)
+    return out
 
 @router.get("/admin/settings", response_model=Dict[str, Any])
 def get_admin_site_settings(

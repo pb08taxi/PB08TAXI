@@ -18,6 +18,7 @@ from app.schemas import (
     MessageTemplateUpdate
 )
 from app.services.whatsapp_service import whatsapp_service
+from app.services.cache_service import invalidate_template_cache
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/admin/whatsapp", tags=["Admin WhatsApp"])
@@ -495,6 +496,7 @@ def update_message_template(
     tmpl.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(tmpl)
+    invalidate_template_cache(template_key)
     return tmpl
 
 @router.post("/templates/reset", response_model=List[MessageTemplateOut])
@@ -519,4 +521,5 @@ def reset_message_templates(
                 updated_at=datetime.utcnow()
             ))
     db.commit()
+    invalidate_template_cache()
     return db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()

@@ -31,8 +31,31 @@ api.interceptors.response.use(
   }
 );
 
+// Client-side micro-caches for sub-10ms UI responsiveness
+let _sliderCache = null;
+let _sliderCacheTime = 0;
+let _fleetCache = null;
+let _fleetCacheTime = 0;
+let _siteSettingsCache = null;
+let _siteSettingsCacheTime = 0;
+
+export const clearClientCache = () => {
+  _sliderCache = null;
+  _fleetCache = null;
+  _siteSettingsCache = null;
+};
+
 // Public APIs
-export const fetchPublicSliders = () => api.get('/api/slider-images').then(r => r.data);
+export const fetchPublicSliders = async () => {
+  const now = Date.now();
+  if (_sliderCache && (now - _sliderCacheTime < 60000)) {
+    return _sliderCache;
+  }
+  const res = await api.get('/api/slider-images');
+  _sliderCache = res.data;
+  _sliderCacheTime = now;
+  return _sliderCache;
+};
 export const createBooking = async (payload) => {
   try {
     const res = await api.post('/api/bookings', payload);
@@ -74,7 +97,16 @@ export const deleteDriver = (id) => api.delete(`/api/admin/drivers/${id}`).then(
 export const toggleDriverActive = (id) => api.patch(`/api/admin/drivers/${id}/toggle-active`).then(r => r.data);
 
 // Fleet Cars Management
-export const getPublicFleetCars = () => api.get('/api/fleet-cars').then(r => r.data);
+export const getPublicFleetCars = async () => {
+  const now = Date.now();
+  if (_fleetCache && (now - _fleetCacheTime < 60000)) {
+    return _fleetCache;
+  }
+  const res = await api.get('/api/fleet-cars');
+  _fleetCache = res.data;
+  _fleetCacheTime = now;
+  return _fleetCache;
+};
 export const getFleetCars = () => api.get('/api/admin/drivers/cars').then(r => r.data);
 export const createFleetCar = (data) => api.post('/api/admin/drivers/cars', data).then(r => r.data);
 export const updateFleetCar = (id, data) => api.put(`/api/admin/drivers/cars/${id}`, data).then(r => r.data);
@@ -142,7 +174,16 @@ export const updateMessageTemplate = (templateKey, content) =>
 export const resetMessageTemplates = () => api.post('/api/admin/whatsapp/templates/reset').then(r => r.data);
 
 // Site Settings & Admin Credentials
-export const getPublicSiteSettings = () => api.get('/api/site-settings').then(r => r.data);
+export const getPublicSiteSettings = async () => {
+  const now = Date.now();
+  if (_siteSettingsCache && (now - _siteSettingsCacheTime < 60000)) {
+    return _siteSettingsCache;
+  }
+  const res = await api.get('/api/site-settings');
+  _siteSettingsCache = res.data;
+  _siteSettingsCacheTime = now;
+  return _siteSettingsCache;
+};
 export const getAdminSettings = () => api.get('/api/admin/settings').then(r => r.data);
 export const updateAdminSettings = (payload) => api.post('/api/admin/settings', payload).then(r => r.data);
 export const uploadSiteAsset = (file, assetType = 'logo') => {

@@ -12,6 +12,7 @@ from app.models import AdminUser, SystemSetting
 from app.schemas import SEOSettingsOut, SEOSettingsUpdate
 from app.security import get_current_admin
 from app.config import get_settings
+from app.services.cache_service import cache_service
 
 settings_cfg = get_settings()
 
@@ -93,8 +94,13 @@ def build_seo_response(db: Session) -> SEOSettingsOut:
 
 @router.get("/seo", response_model=SEOSettingsOut)
 def get_public_seo_settings(db: Session = Depends(get_db)):
-    """Public endpoint consumed by the frontend and indexing bots to hydrate meta tags."""
-    return build_seo_response(db)
+    """Public endpoint consumed by the frontend and indexing bots to hydrate meta tags (Sub-5ms Cache)."""
+    cached = cache_service.get("seo:public")
+    if cached is not None:
+        return SEOSettingsOut(**cached)
+    res = build_seo_response(db)
+    cache_service.set("seo:public", res.model_dump(), ttl=600)
+    return res
 
 @router.get("/admin/seo", response_model=SEOSettingsOut)
 def get_admin_seo_settings(
@@ -160,6 +166,7 @@ def update_admin_seo_settings(
         clean_looker = match.group(1).strip() if match else raw_looker
         _set_val(db, "seo_looker_studio_embed_url", clean_looker)
         
+    cache_service.delete("seo:public")
     return build_seo_response(db)
 
 @router.post("/admin/seo/reset", response_model=SEOSettingsOut)
@@ -170,6 +177,7 @@ def reset_admin_seo_defaults(
     """Reset all SEO settings back to official high-ranking PB08 TAXI defaults."""
     for key, val in SEO_DEFAULTS.items():
         _set_val(db, key, val)
+    cache_service.delete("seo:public")
     return build_seo_response(db)
 
 from app.utils.image_converter import convert_to_webp

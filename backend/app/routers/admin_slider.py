@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import AdminUser, SliderImage
 from app.schemas import SliderImageCreate, SliderImageUpdate, SliderImageOut
 from app.security import get_current_admin
+from app.services.cache_service import cache_service
 
 router = APIRouter(prefix="/admin/slider-images", tags=["Admin Slider"])
 
@@ -42,6 +43,7 @@ def create_slider_image(
     db.add(slide)
     db.commit()
     db.refresh(slide)
+    cache_service.delete("slider_images:public")
     return slide
 
 @router.put("/{slide_id}", response_model=SliderImageOut)
@@ -69,6 +71,7 @@ def update_slider_image(
 
     db.commit()
     db.refresh(slide)
+    cache_service.delete("slider_images:public")
     return slide
 
 @router.delete("/{slide_id}", status_code=status.HTTP_200_OK)
@@ -84,6 +87,7 @@ def delete_slider_image(
 
     db.delete(slide)
     db.commit()
+    cache_service.delete("slider_images:public")
     return {"message": "Slide deleted successfully", "id": slide_id}
 
 from app.utils.image_converter import convert_to_webp
