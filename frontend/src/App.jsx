@@ -24,6 +24,7 @@ const EditorialPolicyPage = lazy(() => import('./pages/EditorialPolicyPage'));
 const JalandharTaxiPage = lazy(() => import('./pages/JalandharTaxiPage'));
 const OneWayTaxiPage = lazy(() => import('./pages/OneWayTaxiPage'));
 const AirportTaxiPage = lazy(() => import('./pages/AirportTaxiPage'));
+const NearMeTaxiPage = lazy(() => import('./pages/NearMeTaxiPage'));
 
 function PageLoader() {
   return (
@@ -57,11 +58,18 @@ export default function App() {
         <Route path="/popular-routes" element={<PopularRoutesPage />} />
         <Route path="/routes" element={<Navigate to="/popular-routes" replace />} />
 
-        {/* Dedicated Keyword Silo Landing Pages (Alternative Brand Names) */}
+        {/* Dedicated Keyword Silo Landing Pages (Alternative Brand Names & Near Me Searches) */}
         <Route path="/jalandhar-taxi-service" element={<JalandharTaxiPage />} />
-        <Route path="/jalandhar-taxi" element={<Navigate to="/jalandhar-taxi-service" replace />} />
+        <Route path="/jalandhar-taxi" element={<JalandharTaxiPage />} />
         <Route path="/jalandhar-cab-service" element={<Navigate to="/jalandhar-taxi-service" replace />} />
         <Route path="/taxi-service-jalandhar" element={<Navigate to="/jalandhar-taxi-service" replace />} />
+
+        {/* Near Me Taxi Searches (High Volume Local Mobile Queries) */}
+        <Route path="/near-me-taxi-service" element={<NearMeTaxiPage />} />
+        <Route path="/near-me-taxi" element={<NearMeTaxiPage />} />
+        <Route path="/taxi-near-me" element={<NearMeTaxiPage />} />
+        <Route path="/cab-near-me" element={<Navigate to="/near-me-taxi-service" replace />} />
+        <Route path="/taxi-service-near-me" element={<Navigate to="/near-me-taxi-service" replace />} />
 
         <Route path="/one-way-taxi-service" element={<OneWayTaxiPage />} />
         <Route path="/one-way-taxi" element={<Navigate to="/one-way-taxi-service" replace />} />

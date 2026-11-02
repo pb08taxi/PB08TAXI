@@ -100,6 +100,7 @@ export default function Footer({ onOpenBooking }) {
               <li><a href="/#home" className="hover:text-taxi-yellow transition-colors">Home.</a></li>
               <li><Link to="/about" className="hover:text-taxi-yellow transition-colors font-medium">About Us.</Link></li>
               <li><a href="/#services" className="hover:text-taxi-yellow transition-colors">Our Services.</a></li>
+              <li><Link to="/near-me-taxi-service" className="hover:text-taxi-yellow text-zinc-300 font-medium transition-colors">Taxi Near Me (15-Min Pickup).</Link></li>
               <li><Link to="/jalandhar-taxi-service" className="hover:text-taxi-yellow text-zinc-300 font-medium transition-colors">Jalandhar Taxi Service.</Link></li>
               <li><Link to="/one-way-taxi-service" className="hover:text-taxi-yellow text-zinc-300 font-medium transition-colors">One Way Taxi Service.</Link></li>
               <li><Link to="/airport-taxi-jalandhar" className="hover:text-taxi-yellow text-zinc-300 font-medium transition-colors">Airport Taxi Jalandhar.</Link></li>
@@ -119,7 +120,8 @@ export default function Footer({ onOpenBooking }) {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Popular Taxi Routes.</h4>
             <ul className="space-y-2 text-xs">
-              <li><Link to="/jalandhar-taxi-service" className="hover:text-taxi-yellow transition-colors">Jalandhar Taxi Service (Local &amp; Outstation).</Link></li>
+              <li><Link to="/near-me-taxi-service" className="hover:text-taxi-yellow transition-colors">Taxi Near Me (Local Doorstep Dispatch).</Link></li>
+              <li><Link to="/jalandhar-taxi" className="hover:text-taxi-yellow transition-colors">Jalandhar Taxi (24/7 City Cabs).</Link></li>
               <li><Link to="/one-way-taxi-service" className="hover:text-taxi-yellow transition-colors">One Way Taxi Jalandhar (Zero Return Fare).</Link></li>
               <li><Link to="/airport-taxi-jalandhar" className="hover:text-taxi-yellow transition-colors">Airport Taxi: Delhi (DEL) &amp; Amritsar (ATQ).</Link></li>
               <li><a href="/#routes" className="hover:text-taxi-yellow transition-colors">Jalandhar ⇄ Delhi Highway Cab.</a></li>

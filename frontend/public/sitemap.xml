@@ -31,6 +31,38 @@
     <priority>0.95</priority>
   </url>
 
+  <!-- Jalandhar Taxi Exact Match -->
+  <url>
+    <loc>https://www.pb08taxi.com/jalandhar-taxi</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Near Me Taxi Service (High-Volume Local Search) -->
+  <url>
+    <loc>https://www.pb08taxi.com/near-me-taxi-service</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Near Me Taxi -->
+  <url>
+    <loc>https://www.pb08taxi.com/near-me-taxi</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Taxi Near Me -->
+  <url>
+    <loc>https://www.pb08taxi.com/taxi-near-me</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
   <!-- One Way Taxi Service Jalandhar (Targets: One Way Taxi Service, One Way Jalandhar) -->
   <url>
     <loc>https://www.pb08taxi.com/one-way-taxi-service</loc>
