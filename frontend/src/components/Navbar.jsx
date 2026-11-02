@@ -65,7 +65,14 @@ export default function Navbar({ onOpenBooking }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-zinc-800">
+    <header 
+      className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-zinc-800 transition-all"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
+      }}
+    >
       {/* Accessibility Skip to Main Content Link */}
       <a 
         href="#main-content" 

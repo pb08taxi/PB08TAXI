@@ -50,7 +50,10 @@ export default function CookieConsent() {
     <div
       role="region"
       aria-label="Cookie consent banner"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom duration-300"
+      className="fixed left-4 right-4 sm:left-6 sm:right-auto sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom duration-300"
+      style={{
+        bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
+      }}
     >
       <div className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-black/80 flex flex-col gap-3">
         <div className="flex items-start gap-3">

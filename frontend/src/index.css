@@ -210,5 +210,50 @@ input[type="time"]::-webkit-date-and-time-value {
   }
 }
 
+/* ==========================================================================
+   MOBILE SAFE AREA & STANDALONE PWA AUTO-DETECTION
+   Supports iOS notch, Dynamic Island, Android edge-to-edge cutouts & gesture navigation bars
+   ========================================================================== */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .safe-area-y {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Standalone PWA (Add to Home Screen) adjustments */
+@media all and (display-mode: standalone), (display-mode: fullscreen) {
+  :root {
+    --is-standalone: 1;
+  }
+  body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 
 
