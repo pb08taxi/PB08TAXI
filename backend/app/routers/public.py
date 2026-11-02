@@ -2,6 +2,7 @@ import re
 import random
 import string
 import time
+import urllib.parse
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
@@ -48,16 +49,42 @@ def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]
 
 def get_google_maps_url(lat: Optional[float], lng: Optional[float], location_text: Optional[str] = None) -> Optional[str]:
     """
-    Generate official Google Maps Directions URL (https://www.google.com/maps/dir/?api=1&destination=lat,lng&travelmode=driving).
+    Generate official Google Maps Directions URL (https://www.google.com/maps/dir/?api=1&destination=...&travelmode=driving).
     When opened on mobile (WhatsApp) or desktop, Google Maps immediately locks destination to the passenger pickup point
     and computes turn-by-turn driving directions from the user/chauffeur's current location.
+    Supports exact numeric coordinates or clean URL-encoded location names.
     """
     if lat is not None and lng is not None and (abs(lat) > 0.0001 or abs(lng) > 0.0001):
         return f"https://www.google.com/maps/dir/?api=1&destination={lat:.6f},{lng:.6f}&travelmode=driving"
     coords = extract_gps_coordinates(location_text)
     if coords and (abs(coords[0]) > 0.0001 or abs(coords[1]) > 0.0001):
         return f"https://www.google.com/maps/dir/?api=1&destination={coords[0]:.6f},{coords[1]:.6f}&travelmode=driving"
+    if location_text and location_text.strip():
+        clean_text = location_text.strip()
+        clean_text = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_text, flags=re.IGNORECASE).strip(" ,-")
+        if clean_text:
+            encoded_dest = urllib.parse.quote_plus(clean_text)
+            return f"https://www.google.com/maps/dir/?api=1&destination={encoded_dest}&travelmode=driving"
     return None
+
+def clean_location_address(address: Optional[str], lat: Optional[float] = None, lng: Optional[float] = None) -> str:
+    """
+    Clean address string so WhatsApp and Google Maps never query invalid 'GPS Location (...)' text.
+    If only coordinates or 'GPS Location (...)' was provided, returns clean '{lat:.6f}, {lng:.6f}'.
+    Otherwise returns the clean human-readable place name (e.g. 'Model Town, Jalandhar').
+    """
+    clean_addr = (address or "").strip()
+    if not clean_addr or "gps location" in clean_addr.lower():
+        stripped = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
+        if stripped:
+            return stripped
+        if lat is not None and lng is not None:
+            return f"{lat:.6f}, {lng:.6f}"
+        return "Passenger Pickup Location"
+    clean_addr = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
+    if not clean_addr and lat is not None and lng is not None:
+        return f"{lat:.6f}, {lng:.6f}"
+    return clean_addr or "Passenger Pickup Location"
 
 def generate_booking_reference(db: Session) -> str:
     """Generate a unique human-friendly booking reference like PB08-26-8942."""
@@ -410,13 +437,37 @@ async def create_booking(
 
             # If GPS coordinates exist, ALSO dispatch native WhatsApp location pin card to admin!
             if lat_val is not None and lng_val is not None:
+                clean_admin_addr = clean_location_address(booking.pickup_location, lat_val, lng_val)
                 background_tasks.add_task(
                     send_background_location_message,
                     phone=admin_target_phone,
                     latitude=lat_val,
                     longitude=lng_val,
-                    address=booking.pickup_location or "Customer Pickup Location",
+                    address=clean_admin_addr,
                     description=f"Booking #{booking.booking_reference}: {customer.name} ({trip_type_val})",
+                    customer_id=customer.id
+                )
+            elif maps_url and booking.pickup_location:
+                # If no numeric GPS, dispatch navigation card text message so admin always gets working map directions
+                nav_msg = (
+                    f"🗺️ *PB08 TAXI — Passenger Pickup Navigation*\n"
+                    f"━━━━━━━━━━━━━━━━━━━━\n"
+                    f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                    f"👤 *Passenger:* {customer.name} ({customer.whatsapp_number})\n"
+                    f"🛣️ *Trip Type:* {trip_type_val}\n"
+                    f"🚘 *Selected Car:* {car_disp}\n"
+                    f"📍 *Pickup Location:* {booking.pickup_location}\n"
+                    f"🏁 *Destination:* {booking.destination or 'Not specified'}\n\n"
+                    f"🚗 *Tap to Start Google Maps Driving Directions:*\n"
+                    f"{maps_url}\n\n"
+                    f"👉 _Click the link above to immediately start turn-by-turn navigation directly to the passenger!_\n"
+                    f"━━━━━━━━━━━━━━━━━━━━"
+                )
+                background_tasks.add_task(
+                    send_background_message,
+                    phone=admin_target_phone,
+                    message=nav_msg,
+                    message_type="NAVIGATION_LINK",
                     customer_id=customer.id
                 )
     except Exception:

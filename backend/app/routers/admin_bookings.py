@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models import AdminUser, Booking, Customer, WhatsAppMessage, Driver, MessageTemplate, SystemSetting
 from app.schemas import BookingOut, BookingStatusUpdate
 from app.services.whatsapp_service import whatsapp_service, send_background_message, send_background_location_message
-from app.routers.public import get_google_maps_url
+from app.routers.public import get_google_maps_url, clean_location_address
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/admin/bookings", tags=["Admin Bookings"])
@@ -250,13 +250,36 @@ async def update_booking_status(
 
                 # Also dispatch native WhatsApp location pin card to driver if GPS coordinates exist!
                 if booking.pickup_lat and booking.pickup_lng:
+                    clean_driver_addr = clean_location_address(booking.pickup_location, booking.pickup_lat, booking.pickup_lng)
                     background_tasks.add_task(
                         send_background_location_message,
                         phone=driver.contact_number,
                         latitude=booking.pickup_lat,
                         longitude=booking.pickup_lng,
-                        address=booking.pickup_location or "Passenger Pickup Location",
-                        description=f"Duty: {booking.customer.name} (Ref #{booking.booking_reference})"
+                        address=clean_driver_addr,
+                        description=f"Duty #{booking.booking_reference}: {booking.customer.name} ({trip_type_disp})"
+                    )
+                elif maps_url and booking.pickup_location:
+                    # If no numeric GPS, dispatch navigation card text message so driver always gets working map directions
+                    driver_nav_msg = (
+                        f"🗺️ *PB08 TAXI — Driver Duty Navigation*\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📌 *Duty Ref:* #{booking.booking_reference}\n"
+                        f"👤 *Passenger:* {booking.customer.name} ({booking.customer.whatsapp_number})\n"
+                        f"🛣️ *Trip Type:* {trip_type_disp}\n"
+                        f"🚘 *Car Assigned:* {car_name_val} ({driver.taxi_registration})\n"
+                        f"📍 *Pickup Location:* {booking.pickup_location}\n"
+                        f"🏁 *Destination:* {booking.destination or 'Not specified'}\n\n"
+                        f"🚗 *Tap to Start Google Maps Driving Directions:*\n"
+                        f"{maps_url}\n\n"
+                        f"👉 _Click the link above to immediately start turn-by-turn navigation directly to the passenger!_\n"
+                        f"━━━━━━━━━━━━━━━━━━━━"
+                    )
+                    background_tasks.add_task(
+                        send_background_message,
+                        phone=driver.contact_number,
+                        message=driver_nav_msg,
+                        message_type="DRIVER_NAVIGATION_LINK"
                     )
 
         # 2. Status COMPLETED

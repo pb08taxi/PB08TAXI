@@ -516,12 +516,22 @@ class WhatsAppService:
             elif digits:
                 norm_phone = f"+{digits}"
 
+        # Clean address so WhatsApp and Google Maps never query 'GPS Location (...)' text
+        clean_addr = (address or "").strip()
+        if not clean_addr or "gps location" in clean_addr.lower():
+            stripped = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
+            clean_addr = stripped if stripped else f"{latitude:.6f}, {longitude:.6f}"
+        else:
+            clean_addr = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
+            if not clean_addr:
+                clean_addr = f"{latitude:.6f}, {longitude:.6f}"
+
         maps_link = f"https://www.google.com/maps/dir/?api=1&destination={latitude:.6f},{longitude:.6f}&travelmode=driving"
         log_entry = WhatsAppMessage(
             customer_id=customer_id,
             phone=norm_phone,
             message_type=message_type,
-            content=f"📍 GPS Location Navigation: {latitude:.6f}, {longitude:.6f} ({address}) — {maps_link}",
+            content=f"📍 GPS Location Navigation: {latitude:.6f}, {longitude:.6f} ({clean_addr}) — {maps_link}",
             status="PENDING"
         )
         db.add(log_entry)
@@ -534,6 +544,17 @@ class WhatsAppService:
             db.commit()
             return True, None
 
+        fallback_nav_msg = (
+            f"🗺️ *PB08 TAXI — Passenger Pickup Navigation*\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📌 *{description}*\n"
+            f"📍 *Pickup Location:* {clean_addr}\n\n"
+            f"🚗 *Tap to Start Google Maps Driving Directions:*\n"
+            f"{maps_link}\n\n"
+            f"👉 _Click the link above to immediately start turn-by-turn navigation directly to the passenger!_\n"
+            f"━━━━━━━━━━━━━━━━━━━━"
+        )
+
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
                 session_id = await self._resolve_session_id(client, db)
@@ -542,6 +563,14 @@ class WhatsAppService:
                     log_entry.status = "FAILED"
                     log_entry.error_detail = err
                     db.commit()
+                    # Fallback to text message
+                    await self.send_text_message(
+                        db=db,
+                        phone=phone,
+                        message=fallback_nav_msg,
+                        message_type="NAVIGATION_LINK",
+                        customer_id=customer_id
+                    )
                     return False, err
 
                 endpoint = f"{self.base_url}/sessions/{session_id}/messages/send-location"
@@ -549,8 +578,9 @@ class WhatsAppService:
                     "chatId": chat_id,
                     "latitude": latitude,
                     "longitude": longitude,
-                    "address": address or "Pickup Location",
-                    "description": description or "PB08 TAXI"
+                    "address": clean_addr,
+                    "description": description or "PB08 TAXI",
+                    "url": maps_link
                 }
                 res = await client.post(
                     endpoint,
@@ -578,12 +608,33 @@ class WhatsAppService:
                     log_entry.status = "FAILED"
                     log_entry.error_detail = error_msg
                     db.commit()
+                    # Automatic text message fallback so admin/driver is never left without map link
+                    try:
+                        await self.send_text_message(
+                            db=db,
+                            phone=phone,
+                            message=fallback_nav_msg,
+                            message_type="NAVIGATION_LINK",
+                            customer_id=customer_id
+                        )
+                    except Exception:
+                        pass
                     return False, error_msg
         except Exception as e:
             error_msg = f"Location delivery error: {str(e) or type(e).__name__}"
             log_entry.status = "FAILED"
             log_entry.error_detail = error_msg
             db.commit()
+            try:
+                await self.send_text_message(
+                    db=db,
+                    phone=phone,
+                    message=fallback_nav_msg,
+                    message_type="NAVIGATION_LINK",
+                    customer_id=customer_id
+                )
+            except Exception:
+                pass
             return False, error_msg
 
 whatsapp_service = WhatsAppService()
