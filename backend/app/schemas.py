@@ -78,7 +78,7 @@ class CustomerOut(CustomerBase):
 class BookingCreate(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=150)
     whatsapp_number: str = Field(..., min_length=5, max_length=50)
-    trip_type: Optional[str] = Field("One Way Trip", max_length=50)
+    trip_type: Optional[str] = Field(None, max_length=50)
     car_name: Optional[str] = Field(None, max_length=100)
     pickup_location: Optional[str] = Field(None, max_length=255)
     destination: Optional[str] = Field(None, max_length=255)

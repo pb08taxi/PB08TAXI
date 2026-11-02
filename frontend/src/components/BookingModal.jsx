@@ -114,7 +114,7 @@ export default function BookingModal({ isOpen, onClose }) {
   const modalAnimation = settings?.booking_modal_animation || 'golden-glow';
 
   const [formData, setFormData] = useState({
-    trip_type: 'One Way Trip',
+    trip_type: '',
     customer_name: '',
     pickup_location: '',
     destination: '',
@@ -363,6 +363,11 @@ export default function BookingModal({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.trip_type) {
+      setError('Please select your trip type (One Way Trip or Round Trip).');
+      return;
+    }
+
     if (!formData.customer_name.trim()) {
       setError('Please provide your name.');
       return;
@@ -404,7 +409,7 @@ export default function BookingModal({ isOpen, onClose }) {
     try {
       const payload = {
         ...formData,
-        trip_type: formData.trip_type || 'One Way Trip',
+        trip_type: formData.trip_type,
         car_name: formData.car_name ? formData.car_name.trim() : undefined,
         whatsapp_number: `${activeCode}${cleanDigits}`,
         pickup_lat: formData.pickup_lat || undefined,
@@ -442,7 +447,7 @@ export default function BookingModal({ isOpen, onClose }) {
     setCustomCountryCode('');
     setWhatsappDigits('');
     setFormData({
-      trip_type: 'One Way Trip',
+      trip_type: '',
       customer_name: '',
       pickup_location: '',
       destination: '',
@@ -551,17 +556,29 @@ export default function BookingModal({ isOpen, onClose }) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* Trip Type Toggle: One Way Trip vs Round Trip (Positioned above Customer Name) */}
+              {/* Trip Type Toggle: One Way Trip vs Round Trip (No default selection - user must select) */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
                   <span>
                     Trip Type <span className="text-taxi-yellow">*</span>
                   </span>
-                  <span className="text-[11px] font-semibold text-taxi-yellow/90">
-                    {formData.trip_type === 'Round Trip' ? '🔄 Return ride included' : '➡️ Single journey'}
+                  <span className={`text-[11px] font-semibold transition-colors ${
+                    formData.trip_type
+                      ? 'text-taxi-yellow/90'
+                      : (error && !formData.trip_type ? 'text-red-400 font-bold animate-pulse' : 'text-zinc-500')
+                  }`}>
+                    {formData.trip_type === 'Round Trip'
+                      ? '🔄 Return ride included'
+                      : formData.trip_type === 'One Way Trip'
+                      ? '➡️ Single journey'
+                      : (error && !formData.trip_type ? '⚠️ Please select an option' : 'Select an option')}
                   </span>
                 </label>
-                <div className="grid grid-cols-2 gap-2 sm:gap-2.5 p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl">
+                <div className={`grid grid-cols-2 gap-2 sm:gap-2.5 p-1 bg-zinc-900/90 border rounded-2xl transition-all ${
+                  error && !formData.trip_type
+                    ? 'border-red-500/90 ring-2 ring-red-500/40 bg-red-950/20'
+                    : 'border-zinc-800'
+                }`}>
                   {/* Button 1: One Way Trip */}
                   <button
                     type="button"
@@ -572,7 +589,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     className={`h-11 sm:h-12 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                       formData.trip_type === 'One Way Trip'
                         ? 'bg-taxi-yellow text-black font-black shadow-lg shadow-taxi-yellow/25 ring-2 ring-taxi-yellow/60 scale-[1.01]'
-                        : 'bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white'
+                        : 'bg-zinc-850/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-750/70'
                     }`}
                   >
                     <ArrowRight className={`w-4 h-4 ${formData.trip_type === 'One Way Trip' ? 'text-black stroke-[2.5]' : 'text-zinc-400'}`} />
@@ -589,7 +606,7 @@ export default function BookingModal({ isOpen, onClose }) {
                     className={`h-11 sm:h-12 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                       formData.trip_type === 'Round Trip'
                         ? 'bg-taxi-yellow text-black font-black shadow-lg shadow-taxi-yellow/25 ring-2 ring-taxi-yellow/60 scale-[1.01]'
-                        : 'bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white'
+                        : 'bg-zinc-850/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-750/70'
                     }`}
                   >
                     <Repeat className={`w-4 h-4 ${formData.trip_type === 'Round Trip' ? 'text-black stroke-[2.5]' : 'text-zinc-400'}`} />

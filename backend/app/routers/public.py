@@ -137,8 +137,13 @@ async def create_booking(
     clean_phone = booking_in.whatsapp_number.strip()
     customer_name = booking_in.customer_name.strip()
     
-    # Standardize trip type to strictly 'One Way Trip' or 'Round Trip'
-    raw_trip = (booking_in.trip_type or "One Way Trip").strip()
+    # Validate trip type is explicitly selected
+    raw_trip = (booking_in.trip_type or "").strip()
+    if not raw_trip:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please select your trip type (One Way Trip or Round Trip)."
+        )
     if "round" in raw_trip.lower():
         trip_type_val = "Round Trip"
     else:
