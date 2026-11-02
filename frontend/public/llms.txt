@@ -64,9 +64,12 @@ PB08 TAXI is a premier taxi and car rental service operating across Punjab, Hary
 
 ## Core Landing Pages & URLs
 - **Homepage:** https://www.pb08taxi.com/
+- **Jalandhar Taxi Service (Local & Outstation):** https://www.pb08taxi.com/jalandhar-taxi-service
+- **One Way Taxi Service (Zero Return Fare):** https://www.pb08taxi.com/one-way-taxi-service
+- **Airport Taxi Jalandhar (Delhi DEL & Amritsar ATQ):** https://www.pb08taxi.com/airport-taxi-jalandhar
+- **Popular Routes Across India:** https://www.pb08taxi.com/popular-routes
 - **About Us:** https://www.pb08taxi.com/about
 - **Contact Us:** https://www.pb08taxi.com/contact
-- **Popular Routes Across India:** https://www.pb08taxi.com/popular-routes
 - **Safe Travel Guidelines:** https://www.pb08taxi.com/safe-travel-guidelines
 - **Editorial Policy & Standards:** https://www.pb08taxi.com/editorial-policy
 - **Privacy Policy:** https://www.pb08taxi.com/privacy-policy

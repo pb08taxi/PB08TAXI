@@ -23,6 +23,30 @@
     <priority>0.95</priority>
   </url>
 
+  <!-- Jalandhar Taxi Service (Targets: Jalandhar Taxi, Jalandhar Taxi Service) -->
+  <url>
+    <loc>https://www.pb08taxi.com/jalandhar-taxi-service</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- One Way Taxi Service Jalandhar (Targets: One Way Taxi Service, One Way Jalandhar) -->
+  <url>
+    <loc>https://www.pb08taxi.com/one-way-taxi-service</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Airport Taxi Jalandhar (Targets: Airport Taxi Jalandhar, Delhi & Amritsar Airport Cabs) -->
+  <url>
+    <loc>https://www.pb08taxi.com/airport-taxi-jalandhar</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
   <!-- Safe Travel Guidelines Trust Page -->
   <url>
     <loc>https://www.pb08taxi.com/safe-travel-guidelines</loc>

@@ -21,6 +21,9 @@ const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 const PopularRoutesPage = lazy(() => import('./pages/PopularRoutesPage'));
 const SafeTravelGuidelinesPage = lazy(() => import('./pages/SafeTravelGuidelinesPage'));
 const EditorialPolicyPage = lazy(() => import('./pages/EditorialPolicyPage'));
+const JalandharTaxiPage = lazy(() => import('./pages/JalandharTaxiPage'));
+const OneWayTaxiPage = lazy(() => import('./pages/OneWayTaxiPage'));
+const AirportTaxiPage = lazy(() => import('./pages/AirportTaxiPage'));
 
 function PageLoader() {
   return (
@@ -53,6 +56,23 @@ export default function App() {
         {/* Popular Routes Across India SEO Landing Page */}
         <Route path="/popular-routes" element={<PopularRoutesPage />} />
         <Route path="/routes" element={<Navigate to="/popular-routes" replace />} />
+
+        {/* Dedicated Keyword Silo Landing Pages (Alternative Brand Names) */}
+        <Route path="/jalandhar-taxi-service" element={<JalandharTaxiPage />} />
+        <Route path="/jalandhar-taxi" element={<Navigate to="/jalandhar-taxi-service" replace />} />
+        <Route path="/jalandhar-cab-service" element={<Navigate to="/jalandhar-taxi-service" replace />} />
+        <Route path="/taxi-service-jalandhar" element={<Navigate to="/jalandhar-taxi-service" replace />} />
+
+        <Route path="/one-way-taxi-service" element={<OneWayTaxiPage />} />
+        <Route path="/one-way-taxi" element={<Navigate to="/one-way-taxi-service" replace />} />
+        <Route path="/one-way-cab" element={<Navigate to="/one-way-taxi-service" replace />} />
+        <Route path="/one-way-taxi-jalandhar" element={<Navigate to="/one-way-taxi-service" replace />} />
+        <Route path="/one-way-jalandhar" element={<Navigate to="/one-way-taxi-service" replace />} />
+
+        <Route path="/airport-taxi-jalandhar" element={<AirportTaxiPage />} />
+        <Route path="/airport-taxi" element={<Navigate to="/airport-taxi-jalandhar" replace />} />
+        <Route path="/airport-cabs" element={<Navigate to="/airport-taxi-jalandhar" replace />} />
+        <Route path="/delhi-airport-taxi" element={<Navigate to="/airport-taxi-jalandhar" replace />} />
 
         {/* Legal, Safety & Trust Pages */}
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
