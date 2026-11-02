@@ -349,25 +349,55 @@ async def create_booking(
             date_disp = format_friendly_date(booking.pickup_date)
             time_disp = format_friendly_time(booking.pickup_time)
             car_disp = car_name_val if car_name_val else "Any Available Cab"
-            admin_maps_clause = f"\n🗺️ *GPS Live Navigation:* {maps_url}" if maps_url else ""
+            admin_maps_clause = f"🗺️ *GPS Live Navigation:* {maps_url}" if maps_url else ""
 
-            admin_alert_text = (
-                f"🚖 *PB08 TAXI — New Booking Alert!*\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"📌 *Booking Ref:* #{booking.booking_reference}\n"
-                f"🛣️ *Trip Type:* {trip_type_val}\n"
-                f"👤 *Customer Name:* {customer.name}\n"
-                f"📞 *Contact Number:* {customer.whatsapp_number}\n"
-                f"🚘 *Selected Car:* {car_disp}\n"
-                f"📅 *Pickup Date:* {date_disp}\n"
-                f"⏰ *Pickup Time:* {time_disp}\n"
-                f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}"
-                f"{admin_maps_clause}\n"
-                f"🏁 *Destination:* {booking.destination or 'Not specified'}\n"
-                f"🕒 *Booked At (IST):* {booked_at_ist}\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"👉 _Please contact customer promptly to confirm the ride._"
-            )
+            admin_tpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "admin_booking_alert").first()
+            if admin_tpl and admin_tpl.content:
+                admin_ctx = {
+                    "booking_ref": booking.booking_reference,
+                    "trip_type": trip_type_val,
+                    "customer_name": customer.name,
+                    "customer_contact": customer.whatsapp_number,
+                    "car_name": car_disp,
+                    "pickup_date": date_disp,
+                    "pickup_time": time_disp,
+                    "pickup_location": booking.pickup_location or "Not specified",
+                    "gps_location": admin_maps_clause,
+                    "google_maps_link": maps_url or "",
+                    "destination": booking.destination or "Not specified",
+                    "booked_at": booked_at_ist,
+                    "notes": booking.notes or ""
+                }
+                admin_alert_text = admin_tpl.content
+                for k, v in admin_ctx.items():
+                    admin_alert_text = admin_alert_text.replace(f"{{{k}}}", str(v) if v is not None else "")
+
+                # If template didn't explicitly include trip_type, seamlessly inject it
+                if "Trip Type" not in admin_alert_text:
+                    if f"#{booking.booking_reference}" in admin_alert_text:
+                        admin_alert_text = admin_alert_text.replace(
+                            f"#{booking.booking_reference}",
+                            f"#{booking.booking_reference}\n🛣️ *Trip Type:* {trip_type_val}"
+                        )
+            else:
+                admin_maps_clause_formatted = f"\n{admin_maps_clause}" if admin_maps_clause else ""
+                admin_alert_text = (
+                    f"🚖 *PB08 TAXI — New Booking Alert!*\n"
+                    f"━━━━━━━━━━━━━━━━━━━━\n"
+                    f"📌 *Booking Ref:* #{booking.booking_reference}\n"
+                    f"🛣️ *Trip Type:* {trip_type_val}\n"
+                    f"👤 *Customer Name:* {customer.name}\n"
+                    f"📞 *Contact Number:* {customer.whatsapp_number}\n"
+                    f"🚘 *Selected Car:* {car_disp}\n"
+                    f"📅 *Pickup Date:* {date_disp}\n"
+                    f"⏰ *Pickup Time:* {time_disp}\n"
+                    f"📍 *Pickup Location:* {booking.pickup_location or 'Not specified'}"
+                    f"{admin_maps_clause_formatted}\n"
+                    f"🏁 *Destination:* {booking.destination or 'Not specified'}\n"
+                    f"🕒 *Booked At (IST):* {booked_at_ist}\n"
+                    f"━━━━━━━━━━━━━━━━━━━━\n"
+                    f"👉 _Please contact customer promptly to confirm the ride._"
+                )
 
             # Dispatch text message alert to admin
             background_tasks.add_task(

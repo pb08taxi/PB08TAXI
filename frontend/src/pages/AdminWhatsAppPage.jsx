@@ -49,13 +49,18 @@ const SAMPLE_PREVIEW_DATA = {
   customer_name: 'Rahul Sharma',
   customer_contact: '+919876543210',
   booking_ref: 'PB08-26-8942',
+  trip_type: 'One Way Trip',
+  car_name: 'Toyota Innova Crysta',
   pickup_date: '12-Oct-2026',
   pickup_time: '10:30 AM',
   pickup_location: 'Model Town, Jalandhar',
+  gps_location: '🗺️ *GPS Live Navigation:* https://maps.google.com/?q=31.3260,75.5762',
+  google_maps_link: 'https://maps.google.com/?q=31.3260,75.5762',
   destination: 'Sri Guru Ram Dass Jee Airport, Amritsar',
   driver_name: 'Gurpreet Singh',
   taxi_number: 'PB01CC1372',
   driver_contact: '+919162841982',
+  booked_at: '12-Oct-2026, 09:15 AM',
   support_phone: '+919876543210',
   notes: 'AC Sedan, Flight departure at 2:30 PM'
 };
@@ -66,6 +71,7 @@ const TEMPLATE_TABS = [
   { key: 'booking_completed', label: '3. Ride Completed', recipient: 'Customer' },
   { key: 'booking_cancelled', label: '4. Ride Cancelled', recipient: 'Customer' },
   { key: 'driver_assignment', label: '5. Driver Duty Alert', recipient: 'Driver' },
+  { key: 'admin_booking_alert', label: '6. Admin Booking Alert', recipient: 'Admin' },
 ];
 
 export default function AdminWhatsAppPage() {
@@ -111,6 +117,15 @@ export default function AdminWhatsAppPage() {
   const [templateError, setTemplateError] = useState('');
   const [resettingTemplates, setResettingTemplates] = useState(false);
 
+  // Trip type preview toggle state ('One Way Trip' vs 'Round Trip')
+  const [sampleTripType, setSampleTripType] = useState('One Way Trip');
+
+  // Dedicated Admin Alert Template states
+  const [adminAlertTemplateContent, setAdminAlertTemplateContent] = useState('');
+  const [savingAdminAlertTemplate, setSavingAdminAlertTemplate] = useState(false);
+  const [adminAlertTemplateSuccess, setAdminAlertTemplateSuccess] = useState('');
+  const [adminAlertTemplateError, setAdminAlertTemplateError] = useState('');
+
   // Sync settings and templates when data changes
   useEffect(() => {
     if (data?.settings) {
@@ -125,6 +140,10 @@ export default function AdminWhatsAppPage() {
       if (active) {
         setSelectedTemplateKey(active.template_key);
         setTemplateContent(active.content);
+      }
+      const adminAlert = data.templates.find(t => t.template_key === 'admin_booking_alert');
+      if (adminAlert) {
+        setAdminAlertTemplateContent(adminAlert.content);
       }
     }
   }, [data]);
@@ -251,6 +270,9 @@ export default function AdminWhatsAppPage() {
     try {
       const updated = await updateMessageTemplate(selectedTemplateKey, templateContent);
       setTemplatesList(prev => prev.map(t => t.template_key === selectedTemplateKey ? updated : t));
+      if (selectedTemplateKey === 'admin_booking_alert') {
+        setAdminAlertTemplateContent(updated.content);
+      }
       mutate((prev) => ({
         ...prev,
         templates: prev.templates.map(t => t.template_key === selectedTemplateKey ? updated : t)
@@ -268,14 +290,48 @@ export default function AdminWhatsAppPage() {
     }
   };
 
+  const handleSaveAdminAlertTemplate = async () => {
+    if (!adminAlertTemplateContent.trim()) {
+      setAdminAlertTemplateError('Alert template content cannot be empty.');
+      showError('Alert template content cannot be empty.', 'Validation Error');
+      return;
+    }
+    setSavingAdminAlertTemplate(true);
+    setAdminAlertTemplateSuccess('');
+    setAdminAlertTemplateError('');
+    try {
+      const updated = await updateMessageTemplate('admin_booking_alert', adminAlertTemplateContent);
+      setTemplatesList(prev => prev.map(t => t.template_key === 'admin_booking_alert' ? updated : t));
+      if (selectedTemplateKey === 'admin_booking_alert') {
+        setTemplateContent(updated.content);
+      }
+      mutate((prev) => ({
+        ...prev,
+        templates: prev.templates.map(t => t.template_key === 'admin_booking_alert' ? updated : t)
+      }));
+      const msg = 'Admin WhatsApp alert message template saved successfully! Live new booking alerts will use this format.';
+      setAdminAlertTemplateSuccess(msg);
+      showSuccess(msg, 'Admin Alert Saved');
+      setTimeout(() => setAdminAlertTemplateSuccess(''), 5000);
+    } catch (err) {
+      const errMsg = err.response?.data?.detail || 'Failed to update admin alert template.';
+      setAdminAlertTemplateError(errMsg);
+      showError(errMsg, 'Save Error');
+    } finally {
+      setSavingAdminAlertTemplate(false);
+    }
+  };
+
   const handleResetTemplates = async () => {
-    if (!window.confirm("Reset all 5 message templates back to PB08 TAXI default formats? Any custom edits will be restored.")) return;
+    if (!window.confirm("Reset all message templates back to PB08 TAXI default formats? Any custom edits will be restored.")) return;
     setResettingTemplates(true);
     try {
       const res = await resetMessageTemplates();
       setTemplatesList(res);
       const active = res.find(t => t.template_key === selectedTemplateKey) || res[0];
       if (active) setTemplateContent(active.content);
+      const adminAlert = res.find(t => t.template_key === 'admin_booking_alert');
+      if (adminAlert) setAdminAlertTemplateContent(adminAlert.content);
       mutate((prev) => ({ ...prev, templates: res }));
       const msg = 'All templates have been reset to official PB08 TAXI defaults.';
       setTemplateSuccess(msg);
@@ -294,10 +350,14 @@ export default function AdminWhatsAppPage() {
   };
 
   // Helper to render live WhatsApp bubble preview
-  const getRenderedPreview = () => {
-    if (!templateContent) return '';
-    let rendered = templateContent;
-    Object.entries(SAMPLE_PREVIEW_DATA).forEach(([k, v]) => {
+  const getRenderedPreview = (content = templateContent) => {
+    if (!content) return '';
+    let rendered = content;
+    const currentSample = {
+      ...SAMPLE_PREVIEW_DATA,
+      trip_type: sampleTripType
+    };
+    Object.entries(currentSample).forEach(([k, v]) => {
       rendered = rendered.split(`{${k}}`).join(v);
     });
     return rendered;
@@ -693,7 +753,7 @@ export default function AdminWhatsAppPage() {
       </div>
 
       {/* WHATSAPP MESSAGE TEMPLATES SECTION (PREVIEW & EDIT) */}
-      <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      <div id="whatsapp-templates-section" className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-zinc-850 gap-4">
           <div className="flex items-center space-x-3.5">
             <div className="w-12 h-12 rounded-2xl bg-taxi-yellow/10 text-taxi-yellow flex items-center justify-center">
@@ -707,7 +767,7 @@ export default function AdminWhatsAppPage() {
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Customize automated messages sent to customers and drivers with live WhatsApp chat bubble preview.
+                Customize automated messages sent to customers, drivers, and admin with live WhatsApp chat bubble preview.
               </p>
             </div>
           </div>
@@ -785,9 +845,11 @@ export default function AdminWhatsAppPage() {
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
+                    'trip_type',
+                    'booking_ref',
                     'customer_name',
                     'customer_contact',
-                    'booking_ref',
+                    'car_name',
                     'pickup_date',
                     'pickup_time',
                     'pickup_location',
@@ -795,6 +857,9 @@ export default function AdminWhatsAppPage() {
                     'driver_name',
                     'taxi_number',
                     'driver_contact',
+                    'booked_at',
+                    'gps_location',
+                    'google_maps_link',
                     'support_phone',
                     'notes'
                   ].map((tag) => (
@@ -802,7 +867,11 @@ export default function AdminWhatsAppPage() {
                       key={tag}
                       type="button"
                       onClick={() => handleInsertVariable(tag)}
-                      className="px-2 py-1 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-amber-300 hover:text-taxi-yellow text-[11px] font-mono border border-zinc-800 hover:border-amber-400/40 transition-colors"
+                      className={`px-2 py-1 rounded-lg text-[11px] font-mono border transition-colors ${
+                        tag === 'trip_type'
+                          ? 'bg-amber-400/20 text-taxi-yellow border-amber-400/50 font-bold hover:bg-amber-400/30'
+                          : 'bg-zinc-850 hover:bg-zinc-800 text-amber-300 hover:text-taxi-yellow border-zinc-800 hover:border-amber-400/40'
+                      }`}
                       title={`Insert {${tag}}`}
                     >
                       + {`{${tag}}`}
@@ -815,7 +884,7 @@ export default function AdminWhatsAppPage() {
                 rows={11}
                 value={templateContent}
                 onChange={(e) => setTemplateContent(e.target.value)}
-                placeholder="Type your WhatsApp template here. Use {customer_name}, {booking_ref}, etc..."
+                placeholder="Type your WhatsApp template here. Use {customer_name}, {booking_ref}, {trip_type}, etc..."
                 className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-2xl p-4 text-xs sm:text-sm text-white font-mono leading-relaxed outline-none transition-colors"
               />
               <p className="text-[11px] text-zinc-500 mt-1">
@@ -839,14 +908,39 @@ export default function AdminWhatsAppPage() {
 
           {/* Right Column: Simulated WhatsApp Mobile Preview */}
           <div className="lg:col-span-6 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 Live WhatsApp Message Preview
               </span>
-              <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Simulated live recipient view</span>
-              </span>
+              
+              {/* Trip Type Live Switcher for Preview */}
+              <div className="flex items-center space-x-1 bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
+                <span className="text-[10px] text-zinc-400 font-bold px-1.5 uppercase tracking-wider">Preview Trip:</span>
+                <button
+                  type="button"
+                  onClick={() => setSampleTripType('One Way Trip')}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all flex items-center space-x-1 ${
+                    sampleTripType === 'One Way Trip'
+                      ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-850'
+                  }`}
+                >
+                  <span>🛣️</span>
+                  <span>One Way Trip</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSampleTripType('Round Trip')}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all flex items-center space-x-1 ${
+                    sampleTripType === 'Round Trip'
+                      ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-850'
+                  }`}
+                >
+                  <span>🔄</span>
+                  <span>Round Trip</span>
+                </button>
+              </div>
             </div>
 
             {/* Simulated Phone Shell */}
@@ -894,10 +988,12 @@ export default function AdminWhatsAppPage() {
               <div className="mt-5 pt-3 border-t border-zinc-850 text-[11px] text-zinc-400 space-y-1">
                 <div className="font-bold text-zinc-300">Simulated Variables Applied:</div>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono text-zinc-500">
+                  <div>Trip Type: <span className="text-taxi-yellow font-bold">{sampleTripType}</span></div>
                   <div>Customer: <span className="text-zinc-300">Rahul Sharma</span></div>
+                  <div>Booking Ref: <span className="text-zinc-300">PB08-26-8942</span></div>
+                  <div>Car Model: <span className="text-zinc-300">Toyota Innova Crysta</span></div>
                   <div>Driver: <span className="text-zinc-300">Gurpreet Singh</span></div>
                   <div>Taxi No: <span className="text-amber-400">PB01CC1372</span></div>
-                  <div>Ref: <span className="text-zinc-300">PB08-26-8942</span></div>
                 </div>
               </div>
 
@@ -932,7 +1028,7 @@ export default function AdminWhatsAppPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Form Settings */}
+          {/* Form Settings & Customizable Alert Template */}
           <div className="lg:col-span-6 space-y-5">
             {alertSettingsSuccess && (
               <div className="p-4 rounded-xl text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-200 flex items-center space-x-2">
@@ -1017,59 +1113,236 @@ export default function AdminWhatsAppPage() {
                 <span>{savingAlertSettings ? 'Saving Settings...' : 'Save Alert Settings'}</span>
               </button>
             </form>
+
+            {/* Dedicated Admin Alert Message Template Editor */}
+            <div className="pt-6 border-t border-zinc-850 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                    <span>Admin Alert Message Template (Customizable)</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-taxi-yellow/20 text-taxi-yellow border border-taxi-yellow/30">
+                      Editable
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Customize the automated WhatsApp alert sent to admin when a customer books a ride.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectTab('admin_booking_alert');
+                    const el = document.getElementById('whatsapp-templates-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-[11px] text-taxi-yellow hover:underline flex items-center space-x-1 font-bold self-start sm:self-auto"
+                  title="Open in Full Template Editor (Tab 6)"
+                >
+                  <span>Open in Full Editor</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {adminAlertTemplateSuccess && (
+                <div className="p-3.5 rounded-xl text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-200 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>{adminAlertTemplateSuccess}</span>
+                </div>
+              )}
+
+              {adminAlertTemplateError && (
+                <div className="p-3.5 rounded-xl text-xs bg-red-950/60 border border-red-800 text-red-200 flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span>{adminAlertTemplateError}</span>
+                </div>
+              )}
+
+              {/* Variable Chips for Admin Alert */}
+              <div className="p-3 bg-zinc-900/50 border border-zinc-850 rounded-xl space-y-2">
+                <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider block">
+                  Click to insert variables:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'trip_type',
+                    'booking_ref',
+                    'customer_name',
+                    'customer_contact',
+                    'car_name',
+                    'pickup_date',
+                    'pickup_time',
+                    'pickup_location',
+                    'gps_location',
+                    'google_maps_link',
+                    'destination',
+                    'booked_at'
+                  ].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        const placeholder = `{${tag}}`;
+                        setAdminAlertTemplateContent(prev => prev + ' ' + placeholder);
+                        if (selectedTemplateKey === 'admin_booking_alert') {
+                          setTemplateContent(prev => prev + ' ' + placeholder);
+                        }
+                      }}
+                      className={`px-2 py-1 rounded-lg text-[11px] font-mono border transition-colors ${
+                        tag === 'trip_type'
+                          ? 'bg-amber-400/20 text-taxi-yellow border-amber-400/50 font-bold hover:bg-amber-400/30'
+                          : 'bg-zinc-850 hover:bg-zinc-800 text-amber-300 hover:text-taxi-yellow border-zinc-800 hover:border-amber-400/40'
+                      }`}
+                      title={`Insert {${tag}}`}
+                    >
+                      + {`{${tag}}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <textarea
+                rows={11}
+                value={adminAlertTemplateContent || templatesList.find(t => t.template_key === 'admin_booking_alert')?.content || ''}
+                onChange={(e) => {
+                  setAdminAlertTemplateContent(e.target.value);
+                  if (selectedTemplateKey === 'admin_booking_alert') {
+                    setTemplateContent(e.target.value);
+                  }
+                }}
+                placeholder="Type admin WhatsApp alert template format. Use {trip_type}, {booking_ref}, {customer_name}, etc..."
+                className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-2xl p-4 text-xs sm:text-sm text-white font-mono leading-relaxed outline-none transition-colors"
+              />
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Supports WhatsApp markdown formatting: *bold*, _italics_, and emojis.
+              </p>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleSaveAdminAlertTemplate}
+                  disabled={savingAdminAlertTemplate}
+                  className="bg-taxi-yellow hover:bg-yellow-400 text-black font-extrabold px-6 py-3 rounded-xl text-xs transition-transform hover:scale-105 active:scale-95 flex items-center space-x-2 shadow-md shadow-taxi-yellow/20"
+                >
+                  {savingAdminAlertTemplate ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>{savingAdminAlertTemplate ? 'Saving Alert Template...' : 'Save Alert Message Template'}</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
           {/* Live Alert Message Preview */}
           <div className="lg:col-span-6 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 WhatsApp Alert Message Preview
               </span>
-              <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
-                <Sparkles className="w-3 h-3" />
-                <span>Real-time format</span>
-              </span>
+
+              {/* Trip Type Live Switcher for Admin Alert Preview */}
+              <div className="flex items-center space-x-1 bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
+                <span className="text-[10px] text-zinc-400 font-bold px-1.5 uppercase tracking-wider">Preview Trip:</span>
+                <button
+                  type="button"
+                  onClick={() => setSampleTripType('One Way Trip')}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all flex items-center space-x-1 ${
+                    sampleTripType === 'One Way Trip'
+                      ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-850'
+                  }`}
+                >
+                  <span>🛣️</span>
+                  <span>One Way Trip</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSampleTripType('Round Trip')}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all flex items-center space-x-1 ${
+                    sampleTripType === 'Round Trip'
+                      ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-850'
+                  }`}
+                >
+                  <span>🔄</span>
+                  <span>Round Trip</span>
+                </button>
+              </div>
             </div>
 
-            {/* Simulated WhatsApp Chat Bubble */}
-            <div className="bg-[#0b141a] border border-zinc-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+            {/* Simulated WhatsApp Phone Shell */}
+            <div className="bg-[#0b141a] border border-zinc-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+              
+              {/* WhatsApp Chat Header */}
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/80">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-taxi-yellow text-black font-black flex items-center justify-center text-xs">
+                    PB
+                  </div>
+                  <div>
+                    <div className="text-white font-bold text-xs">PB08 TAXI 🚖</div>
+                    <div className="text-[10px] text-emerald-400">Automated Dispatch Gateway</div>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-amber-400/20 text-taxi-yellow border border-amber-400/30 px-2.5 py-0.5 rounded-full font-bold">
+                  Target: Admin Alert
+                </span>
+              </div>
+
               <div className="text-[11px] text-zinc-400 mb-3 text-center">
                 <span className="bg-[#182229] px-2.5 py-1 rounded-md text-[10px] text-zinc-400">
                   TODAY
                 </span>
               </div>
 
-              <div className="max-w-[90%] bg-[#005c4b] text-white p-3.5 rounded-2xl rounded-tl-sm text-xs space-y-2 shadow-md font-sans">
-                <p className="font-bold text-taxi-yellow text-[13px]">
-                  🚖 PB08 TAXI — New Booking Alert!
-                </p>
-                <div className="border-b border-emerald-600/50 pb-1.5 text-[11px] space-y-1">
-                  <p>📌 <strong>Booking Ref:</strong> #PB08-26-8942</p>
-                  <p>👤 <strong>Customer Name:</strong> Rahul Sharma</p>
-                  <p>📞 <strong>Contact Number:</strong> +919876543210</p>
-                  <p>📅 <strong>Pickup Date:</strong> 12-Oct-2026</p>
-                  <p>⏰ <strong>Pickup Time:</strong> 10:30 AM</p>
-                  <p>📍 <strong>Pickup:</strong> Amritsar Railway Station</p>
-                  <p>🏁 <strong>Destination:</strong> Jalandhar City Center</p>
-                  <p>🕒 <strong>Booked At (IST):</strong> 11-Oct-2026, 10:15 PM</p>
+              {/* Chat Bubble with formatted message */}
+              <div className="max-w-[95%] bg-[#005c4b] text-white p-4 rounded-2xl rounded-tl-sm text-xs shadow-lg space-y-2">
+                <div className="whitespace-pre-wrap font-sans text-xs sm:text-[13px] leading-relaxed text-zinc-100">
+                  {getRenderedPreview(
+                    adminAlertTemplateContent || 
+                    templatesList.find(t => t.template_key === 'admin_booking_alert')?.content ||
+                    (
+                      `🚖 *PB08 TAXI — New Booking Alert!*\n` +
+                      `━━━━━━━━━━━━━━━━━━━━\n` +
+                      `📌 *Booking Ref:* #PB08-26-8942\n` +
+                      `🛣️ *Trip Type:* {trip_type}\n` +
+                      `👤 *Customer Name:* Rahul Sharma\n` +
+                      `📞 *Contact Number:* +919876543210\n` +
+                      `🚘 *Selected Car:* Toyota Innova Crysta\n` +
+                      `📅 *Pickup Date:* 12-Oct-2026\n` +
+                      `⏰ *Pickup Time:* 10:30 AM\n` +
+                      `📍 *Pickup Location:* Model Town, Jalandhar\n` +
+                      `🗺️ *GPS Live Navigation:* https://maps.google.com/?q=31.3260,75.5762\n` +
+                      `🏁 *Destination:* Sri Guru Ram Dass Jee Airport, Amritsar\n` +
+                      `🕒 *Booked At (IST):* 12-Oct-2026, 09:15 AM\n` +
+                      `━━━━━━━━━━━━━━━━━━━━\n` +
+                      `👉 _Please contact customer promptly to confirm the ride._`
+                    )
+                  )}
                 </div>
-                <div className="flex items-center justify-between pt-1">
-                  <p className="text-[10px] text-emerald-200 italic">
-                    👉 Please contact customer promptly to confirm the booking.
-                  </p>
-                  <div className="flex items-center space-x-1 text-[9px] text-emerald-300">
-                    <span>09:30 PM</span>
-                    <Check className="w-3 h-3 text-cyan-300 inline" />
-                  </div>
+
+                {/* Bubble Footer */}
+                <div className="flex items-center justify-end space-x-1 pt-1 text-[10px] text-emerald-200">
+                  <span>09:15 AM</span>
+                  <CheckCheck className="w-3.5 h-3.5 text-cyan-300 inline" />
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-zinc-850 text-[11px] text-zinc-400 flex items-center justify-between">
-                <span>Destination:</span>
-                <span className="text-taxi-yellow font-mono font-bold">
-                  {adminAlertPhone ? (adminAlertPhone.startsWith('+') ? adminAlertPhone : `+91${adminAlertPhone}`) : 'No alert number configured yet'}
-                </span>
+              {/* Sample Context Legend */}
+              <div className="mt-5 pt-3 border-t border-zinc-850 text-[11px] text-zinc-400 space-y-2">
+                <div className="flex items-center justify-between text-[11px] pb-1 border-b border-zinc-900">
+                  <span className="font-bold text-zinc-300">Recipient Admin Mobile:</span>
+                  <span className="text-taxi-yellow font-mono font-bold">
+                    {adminAlertPhone ? (adminAlertPhone.startsWith('+') ? adminAlertPhone : `+91${adminAlertPhone}`) : 'No alert number configured yet'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-mono text-zinc-500">
+                  <div>Trip Type: <span className="text-taxi-yellow font-bold">{sampleTripType}</span></div>
+                  <div>Booking Ref: <span className="text-zinc-300">PB08-26-8942</span></div>
+                  <div>Customer: <span className="text-zinc-300">Rahul Sharma</span></div>
+                  <div>Car Model: <span className="text-zinc-300">Toyota Innova Crysta</span></div>
+                </div>
               </div>
+
             </div>
           </div>
 

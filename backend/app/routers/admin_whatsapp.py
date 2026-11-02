@@ -382,6 +382,28 @@ DEFAULT_TEMPLATES = [
             "If you have any questions or wish to book again, please call {support_phone}."
         ),
         "variables_hint": "{customer_name}, {booking_ref}, {notes}, {support_phone}"
+    },
+    {
+        "template_key": "admin_booking_alert",
+        "title": "New Booking Alert (To Admin)",
+        "content": (
+            "🚖 *PB08 TAXI — New Booking Alert!*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📌 *Booking Ref:* #{booking_ref}\n"
+            "🛣️ *Trip Type:* {trip_type}\n"
+            "👤 *Customer Name:* {customer_name}\n"
+            "📞 *Contact Number:* {customer_contact}\n"
+            "🚘 *Selected Car:* {car_name}\n"
+            "📅 *Pickup Date:* {pickup_date}\n"
+            "⏰ *Pickup Time:* {pickup_time}\n"
+            "📍 *Pickup Location:* {pickup_location}\n"
+            "{gps_location}\n"
+            "🏁 *Destination:* {destination}\n"
+            "🕒 *Booked At (IST):* {booked_at}\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👉 _Please contact customer promptly to confirm the ride._"
+        ),
+        "variables_hint": "{booking_ref}, {trip_type}, {customer_name}, {customer_contact}, {car_name}, {pickup_date}, {pickup_time}, {pickup_location}, {gps_location}, {destination}, {booked_at}"
     }
 ]
 
@@ -405,6 +427,57 @@ def get_message_templates(
             db.add(new_t)
         db.commit()
         templates = db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()
+        return templates
+
+    # Sync any newly introduced default templates (e.g. admin_booking_alert) or missing {trip_type}
+    existing_map = {t.template_key: t for t in templates}
+    needs_commit = False
+
+    for default_item in DEFAULT_TEMPLATES:
+        d_key = default_item["template_key"]
+        if d_key not in existing_map:
+            new_t = MessageTemplate(
+                template_key=d_key,
+                title=default_item["title"],
+                content=default_item["content"],
+                variables_hint=default_item.get("variables_hint"),
+                updated_at=datetime.utcnow()
+            )
+            db.add(new_t)
+            needs_commit = True
+        else:
+            stored_t = existing_map[d_key]
+            # Ensure trip_type is in content if default includes it
+            if "{trip_type}" in default_item["content"] and "{trip_type}" not in (stored_t.content or ""):
+                if "📌 *Booking Ref:* #{booking_ref}\n" in stored_t.content:
+                    stored_t.content = stored_t.content.replace(
+                        "📌 *Booking Ref:* #{booking_ref}\n",
+                        "📌 *Booking Ref:* #{booking_ref}\n🛣️ *Trip Type:* {trip_type}\n"
+                    )
+                    needs_commit = True
+                elif "(Ref: #{booking_ref}).\n" in stored_t.content:
+                    stored_t.content = stored_t.content.replace(
+                        "(Ref: #{booking_ref}).\n",
+                        "(Ref: #{booking_ref}).\n🛣️ *Trip Type:* {trip_type}\n"
+                    )
+                    needs_commit = True
+                elif "#{booking_ref}" in stored_t.content:
+                    stored_t.content = stored_t.content.replace(
+                        "#{booking_ref}",
+                        "#{booking_ref}\n🛣️ *Trip Type:* {trip_type}"
+                    )
+                    needs_commit = True
+            
+            # Ensure {trip_type} is in variables_hint
+            if "{trip_type}" in (default_item.get("variables_hint") or ""):
+                if stored_t.variables_hint and "{trip_type}" not in stored_t.variables_hint:
+                    stored_t.variables_hint = f"{stored_t.variables_hint}, {{trip_type}}"
+                    needs_commit = True
+
+    if needs_commit:
+        db.commit()
+        templates = db.query(MessageTemplate).order_by(MessageTemplate.id.asc()).all()
+
     return templates
 
 @router.put("/templates/{template_key}", response_model=MessageTemplateOut)
