@@ -9,9 +9,18 @@ Allow: /terms-of-service
 Allow: /about
 Allow: /contact
 Allow: /llms.txt
+# Allow public rendering API endpoints for search crawlers & Googlebot
+Allow: /api/site-settings
+Allow: /api/seo
+Allow: /api/slider-images
+Allow: /api/public/*
+
+# Disallow private Admin & Auth endpoints
 Disallow: /admin
 Disallow: /admin/*
-Disallow: /api/*
+Disallow: /api/admin/*
+Disallow: /api/auth/*
+Disallow: /api/logs/*
 
 # XML Sitemap Location
 Sitemap: https://www.pb08taxi.com/sitemap.xml
