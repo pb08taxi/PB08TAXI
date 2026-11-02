@@ -8,14 +8,49 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * 3. Cache miss: fetches over network, stores in cache.
  */
 
+const STORAGE_PREFIX = 'pb08_cache_';
+
 class SmartCacheStore {
   constructor() {
     this.cache = new Map();
     this.subscribers = new Map();
+    this.inflight = new Map();
+    this.loadFromStorage();
+  }
+
+  loadFromStorage() {
+    try {
+      if (typeof window === 'undefined' || !window.sessionStorage) return;
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const fullKey = sessionStorage.key(i);
+        if (fullKey && fullKey.startsWith(STORAGE_PREFIX)) {
+          const raw = sessionStorage.getItem(fullKey);
+          if (raw) {
+            const entry = JSON.parse(raw);
+            const actualKey = fullKey.slice(STORAGE_PREFIX.length);
+            // Retain entries unless expired by over 15 minutes
+            if (Date.now() - entry.timestamp < (entry.ttl || 180000) + 15 * 60 * 1000) {
+              this.cache.set(actualKey, entry);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Storage unavailable or disabled
+    }
   }
 
   get(key) {
-    const entry = this.cache.get(key);
+    let entry = this.cache.get(key);
+    if (!entry) {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_PREFIX + key);
+        if (raw) {
+          entry = JSON.parse(raw);
+          this.cache.set(key, entry);
+        }
+      } catch (e) {}
+    }
     if (!entry) return null;
     const now = Date.now();
     const isStale = now - entry.timestamp > entry.ttl;
@@ -27,16 +62,44 @@ class SmartCacheStore {
   }
 
   set(key, data, ttl = 3 * 60 * 1000) {
-    this.cache.set(key, {
+    const entry = {
       data,
       timestamp: Date.now(),
       ttl,
-    });
+    };
+    this.cache.set(key, entry);
+    try {
+      sessionStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(entry));
+    } catch (e) {}
     this.notify(key, data);
   }
 
+  async prefetch(key, fetcher, ttl = 3 * 60 * 1000) {
+    const cached = this.get(key);
+    if (cached && !cached.isStale) return cached.data;
+
+    if (this.inflight.has(key)) {
+      return this.inflight.get(key);
+    }
+
+    const promise = (async () => {
+      try {
+        const freshData = await fetcher();
+        this.set(key, freshData, ttl);
+        return freshData;
+      } catch (err) {
+        return cached ? cached.data : null;
+      } finally {
+        this.inflight.delete(key);
+      }
+    })();
+
+    this.inflight.set(key, promise);
+    return promise;
+  }
+
   mutate(key, updater) {
-    const entry = this.cache.get(key);
+    const entry = this.get(key);
     let newData;
     if (typeof updater === 'function') {
       newData = updater(entry ? entry.data : undefined);
@@ -49,14 +112,25 @@ class SmartCacheStore {
 
   invalidate(keyPattern) {
     if (!keyPattern) {
-      this.cache.clear();
+      this.clear();
       return;
     }
     for (const key of this.cache.keys()) {
       if (key.startsWith(keyPattern) || key.includes(keyPattern)) {
         this.cache.delete(key);
+        try {
+          sessionStorage.removeItem(STORAGE_PREFIX + key);
+        } catch (e) {}
       }
     }
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX) && k.includes(keyPattern)) {
+          sessionStorage.removeItem(k);
+        }
+      }
+    } catch (e) {}
   }
 
   subscribe(key, callback) {
@@ -84,6 +158,15 @@ class SmartCacheStore {
 
   clear() {
     this.cache.clear();
+    this.inflight.clear();
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX)) {
+          sessionStorage.removeItem(k);
+        }
+      }
+    } catch (e) {}
   }
 }
 
@@ -140,7 +223,19 @@ export function useAdminQuery(key, fetcher, options = {}) {
       setError(null);
 
       try {
-        const freshData = await fetcherRef.current();
+        let freshData;
+        if (adminCache.inflight.has(key)) {
+          freshData = await adminCache.inflight.get(key);
+        } else {
+          const fetchPromise = fetcherRef.current();
+          adminCache.inflight.set(key, fetchPromise);
+          try {
+            freshData = await fetchPromise;
+          } finally {
+            adminCache.inflight.delete(key);
+          }
+        }
+
         adminCache.set(key, freshData, ttl);
         setData(freshData);
         if (onSuccessRef.current) onSuccessRef.current(freshData);

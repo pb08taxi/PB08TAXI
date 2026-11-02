@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -18,10 +18,109 @@ import {
   Globe,
   BarChart3
 } from 'lucide-react';
-import { getWhatsAppStatus } from '../api/client';
+import { 
+  getWhatsAppStatus,
+  getAdminStats,
+  getBookings,
+  getCustomers,
+  getDrivers,
+  getAdminSliders,
+  getWhatsAppAdminSettings,
+  getMessageTemplates,
+  getEligibleOffersCount,
+  getWhatsAppLogs,
+  getAdminSEOSettings,
+  getAdminSettings,
+  getAdminAnalyticsStats
+} from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { adminCache } from '../utils/adminCache';
 import OpenWAChatModal from './OpenWAChatModal';
+
+// Zero-delay route chunk preloading & SWR data warm-up map
+const ADMIN_PREFETCH_CONFIG = {
+  '/admin': {
+    loadComponent: () => import('../pages/AdminDashboardPage'),
+    prefetchData: () => adminCache.prefetch('admin_dashboard', async () => {
+      const [statsData, bookingsData] = await Promise.all([
+        getAdminStats(),
+        getBookings('', '')
+      ]);
+      return { stats: statsData, recentBookings: bookingsData.slice(0, 5) };
+    })
+  },
+  '/admin/analytics': {
+    loadComponent: () => import('../pages/AdminAnalyticsPage'),
+    prefetchData: () => adminCache.prefetch('admin_analytics_inhouse_7', () => getAdminAnalyticsStats(7))
+  },
+  '/admin/customers': {
+    loadComponent: () => import('../pages/AdminCustomersPage'),
+    prefetchData: () => adminCache.prefetch('admin_customers_', () => getCustomers(''))
+  },
+  '/admin/bookings': {
+    loadComponent: () => import('../pages/AdminBookingsPage'),
+    prefetchData: () => adminCache.prefetch('admin_bookings__', () => getBookings('', ''))
+  },
+  '/admin/drivers': {
+    loadComponent: () => import('../pages/AdminDriversPage'),
+    prefetchData: () => adminCache.prefetch('admin_drivers_', () => getDrivers(''))
+  },
+  '/admin/slider': {
+    loadComponent: () => import('../pages/AdminSliderPage'),
+    prefetchData: () => adminCache.prefetch('admin_sliders', () => getAdminSliders())
+  },
+  '/admin/whatsapp': {
+    loadComponent: () => import('../pages/AdminWhatsAppPage'),
+    prefetchData: () => adminCache.prefetch('admin_whatsapp_info', async () => {
+      const [status, settings, templates] = await Promise.all([
+        getWhatsAppStatus().catch(() => ({ connected: false, status: 'offline' })),
+        getWhatsAppAdminSettings().catch(() => null),
+        getMessageTemplates().catch(() => [])
+      ]);
+      return { status, settings, templates };
+    })
+  },
+  '/admin/offers': {
+    loadComponent: () => import('../pages/AdminOffersPage'),
+    prefetchData: () => adminCache.prefetch('admin_offers_count', () => getEligibleOffersCount())
+  },
+  '/admin/logs': {
+    loadComponent: () => import('../pages/AdminLogsPage'),
+    prefetchData: () => adminCache.prefetch('admin_logs_', () => getWhatsAppLogs(100, ''))
+  },
+  '/admin/seo': {
+    loadComponent: () => import('../pages/AdminSEOPage'),
+    prefetchData: () => adminCache.prefetch('admin_seo_settings', () => getAdminSEOSettings())
+  },
+  '/admin/settings': {
+    loadComponent: () => import('../pages/AdminSettingsPage'),
+    prefetchData: () => adminCache.prefetch('admin_site_settings', () => getAdminSettings())
+  }
+};
+
+// Sleek dark content skeleton so layout stays intact during any lazy transition
+function AdminContentSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse" role="status" aria-label="Loading page content">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-850">
+        <div className="space-y-2">
+          <div className="h-8 w-56 bg-zinc-900 rounded-2xl" />
+          <div className="h-4 w-72 bg-zinc-900/60 rounded-xl" />
+        </div>
+        <div className="h-10 w-28 bg-zinc-900 rounded-xl" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-28 bg-zinc-950 border border-zinc-850 rounded-3xl p-5 space-y-3">
+            <div className="h-3 w-20 bg-zinc-900 rounded" />
+            <div className="h-8 w-16 bg-zinc-900 rounded-xl" />
+          </div>
+        ))}
+      </div>
+      <div className="h-72 bg-zinc-950 border border-zinc-850 rounded-3xl" />
+    </div>
+  );
+}
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
@@ -46,8 +145,62 @@ export default function AdminLayout({ children }) {
 
   const adminUser = localStorage.getItem('pb08_admin_user') || 'Admin';
 
+  // 1. Proactively preload all route JS chunks & warm up primary data in background
   useEffect(() => {
-    // Quick polling of WhatsApp connection status
+    const preloadAllChunks = () => {
+      Object.values(ADMIN_PREFETCH_CONFIG).forEach((item) => {
+        try {
+          item.loadComponent();
+        } catch (e) {}
+      });
+    };
+
+    const warmupDataQueue = () => {
+      const paths = [
+        '/admin',
+        '/admin/bookings',
+        '/admin/customers',
+        '/admin/drivers',
+        '/admin/settings',
+        '/admin/seo',
+        '/admin/slider',
+        '/admin/analytics',
+        '/admin/whatsapp',
+        '/admin/offers',
+        '/admin/logs'
+      ];
+
+      paths.forEach((path, index) => {
+        setTimeout(() => {
+          try {
+            const config = ADMIN_PREFETCH_CONFIG[path];
+            if (config && config.prefetchData) {
+              config.prefetchData();
+            }
+          } catch (e) {}
+        }, 80 + index * 100);
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        const idleId = window.requestIdleCallback(() => {
+          preloadAllChunks();
+          warmupDataQueue();
+        }, { timeout: 2000 });
+        return () => window.cancelIdleCallback(idleId);
+      } else {
+        const timer = setTimeout(() => {
+          preloadAllChunks();
+          warmupDataQueue();
+        }, 200);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  // Quick polling of WhatsApp connection status
+  useEffect(() => {
     const checkStatus = () => {
       getWhatsAppStatus()
         .then(setWaStatus)
@@ -57,6 +210,16 @@ export default function AdminLayout({ children }) {
     const interval = setInterval(checkStatus, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const handlePrefetch = (path) => {
+    const config = ADMIN_PREFETCH_CONFIG[path];
+    if (config) {
+      try {
+        config.loadComponent();
+        config.prefetchData();
+      } catch (e) {}
+    }
+  };
 
   const handleLogout = () => {
     adminCache.clear();
@@ -186,7 +349,7 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
 
-          {/* Navigation Links with smooth scroll */}
+          {/* Navigation Links with smooth scroll & instant prefetch */}
           <nav className="p-3 sm:p-4 space-y-1.5 overflow-y-auto flex-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -196,7 +359,9 @@ export default function AdminLayout({ children }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  onMouseEnter={() => handlePrefetch(item.path)}
+                  onTouchStart={() => handlePrefetch(item.path)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                     isActive
                       ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
                       : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
@@ -236,7 +401,7 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main Content Area with Safe Area Padding */}
+      {/* Main Content Area with Safe Area Padding & Zero-Flicker Internal Suspense */}
       <main 
         className="flex-1 bg-black min-h-screen p-4 sm:p-6 lg:p-8 overflow-x-hidden"
         style={{
@@ -246,7 +411,9 @@ export default function AdminLayout({ children }) {
         }}
       >
         <div className="max-w-7xl mx-auto">
-          {children || <Outlet />}
+          <Suspense fallback={<AdminContentSkeleton />}>
+            {children || <Outlet />}
+          </Suspense>
         </div>
       </main>
 

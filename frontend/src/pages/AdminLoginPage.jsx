@@ -13,6 +13,14 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Pre-load Admin Layout & Dashboard chunks as soon as login page mounts for instant entry
+  useEffect(() => {
+    try {
+      import('../components/AdminLayout');
+      import('../pages/AdminDashboardPage');
+    } catch (e) {}
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {

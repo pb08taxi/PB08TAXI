@@ -19,34 +19,19 @@ import {
   Zap
 } from 'lucide-react';
 import { getAdminAnalyticsStats } from '../api/client';
+import { useAdminQuery } from '../utils/adminCache';
 import AdminGA4NativeAnalytics from './AdminGA4NativeAnalytics';
 import { formatISTTime, formatISTDate, formatISTDateTime, formatISTTimeAgo } from '../utils/dateTime';
 
 export default function AdminVisitorAnalytics() {
   const [activeTab, setActiveTab] = useState('inhouse');
   const [days, setDays] = useState(7);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchStats = async (period = days, isManual = false) => {
-    if (isManual) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const res = await getAdminAnalyticsStats(period);
-      setData(res);
-    } catch (err) {
-      console.warn("Could not load analytics stats:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats(days);
-  }, [days]);
+  const { data, loading, isRevalidating, refresh } = useAdminQuery(
+    `admin_analytics_inhouse_${days}`,
+    () => getAdminAnalyticsStats(days),
+    { ttl: 3 * 60 * 1000 }
+  );
 
   // Parse UTC date string safely ensuring UTC interpretation
   const parseUtcDate = (dateStr) => {
@@ -177,12 +162,12 @@ export default function AdminVisitorAnalytics() {
           </div>
 
           <button
-            onClick={() => fetchStats(days, true)}
-            disabled={loading || refreshing}
-            className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 p-2.5 rounded-xl border border-zinc-800 transition-colors"
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
+            className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 p-2.5 rounded-xl border border-zinc-800 transition-colors cursor-pointer"
             title="Refresh Analytics"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-taxi-yellow' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isRevalidating ? 'animate-spin text-taxi-yellow' : ''}`} />
           </button>
         </div>
       </div>
