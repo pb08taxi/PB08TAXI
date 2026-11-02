@@ -61,11 +61,6 @@ export default function JalandharTaxiPage() {
         "addressRegion": "Punjab",
         "postalCode": "144001",
         "addressCountry": "IN"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "487"
       }
     };
 

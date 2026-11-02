@@ -63,12 +63,7 @@ export default function OneWayTaxiPage() {
         "Hoshiarpur",
         "Punjab"
       ],
-      "description": "Book 24/7 one-way taxi service from Jalandhar to Delhi, Chandigarh, Amritsar, and all North India with zero return dead-mileage charges.",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "487"
-      }
+      "description": "Book 24/7 one-way taxi service from Jalandhar to Delhi, Chandigarh, Amritsar, and all North India with zero return dead-mileage charges."
     };
 
     let scriptTag = document.getElementById('schema-oneway-taxi');

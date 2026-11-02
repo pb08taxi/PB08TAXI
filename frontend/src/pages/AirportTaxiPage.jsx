@@ -60,12 +60,7 @@ export default function AirportTaxiPage() {
         "Chandigarh Airport (IXC)",
         "Punjab"
       ],
-      "description": "24/7 dedicated airport taxi service connecting Jalandhar with Delhi IGI Airport, Amritsar ATQ, and Chandigarh IXC with guaranteed flight delay tracking.",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "487"
-      }
+      "description": "24/7 dedicated airport taxi service connecting Jalandhar with Delhi IGI Airport, Amritsar ATQ, and Chandigarh IXC with guaranteed flight delay tracking."
     };
 
     let scriptTag = document.getElementById('schema-airport-taxi');
