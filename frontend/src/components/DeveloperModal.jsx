@@ -240,16 +240,16 @@ export default function DeveloperModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Section: Aap Kya Banwana Chahte Hain? */}
+          {/* Section: What would you like to build? */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm sm:text-base font-bold text-white flex items-center space-x-2">
-                  <span>Aap kya banwana chahte hain?</span>
+                  <span>What would you like to build?</span>
                   <span className="text-xs text-taxi-yellow font-normal">(Select Requirement)</span>
                 </h4>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Neeche diye gaye option par click karein, WhatsApp message automatically generate ho jayega:
+                  Select an option below to auto-generate a custom WhatsApp inquiry:
                 </p>
               </div>
             </div>
@@ -332,14 +332,14 @@ export default function DeveloperModal({ isOpen, onClose }) {
 
             <div>
               <label htmlFor="dev-custom-note" className="text-[11px] font-medium text-zinc-400 block mb-1">
-                Kuch khas requirement ya budget add karna chahte hain? (Optional):
+                Add specific requirements, budget, or timeline (Optional):
               </label>
               <input
                 id="dev-custom-note"
                 type="text"
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
-                placeholder="e.g. Budget, timeline, ya specific features..."
+                placeholder="e.g. Estimated budget, deadline, or required features..."
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow focus:ring-1 focus:ring-taxi-yellow"
               />
             </div>
