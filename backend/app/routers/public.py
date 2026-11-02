@@ -103,7 +103,7 @@ def generate_booking_reference(db: Session) -> str:
     # Fallback with timestamp
     return f"PB08-{int(datetime.utcnow().timestamp())}"
 
-@router.get("/health")
+@router.api_route("/health", methods=["GET", "HEAD"])
 def health_check(db: Session = Depends(get_db)):
     """Health check endpoint for Render and uptime monitoring."""
     try:

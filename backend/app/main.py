@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 from app.config import get_settings
 from app.database import engine, Base, SessionLocal
-from app.models import AdminUser, SliderImage, FleetCar
+from app.models import AdminUser, SliderImage, FleetCar, SystemSetting
 from app.security import hash_password
 from app.routers import (
     public,
@@ -237,7 +237,7 @@ app.include_router(admin_settings.router, prefix="/api")
 app.include_router(admin_seo.router, prefix="/api")
 app.include_router(admin_analytics.router, prefix="/api")
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {
         "message": "Welcome to PB08 TAXI API Gateway",
@@ -245,6 +245,10 @@ def root():
         "health": "/api/health",
         "keepalive": "/api/keepalive"
     }
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+def health():
+    return {"status": "ok", "service": "PB08 TAXI API"}
 
 @app.get("/api/keepalive")
 async def keepalive():
