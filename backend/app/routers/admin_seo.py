@@ -22,7 +22,7 @@ DEFAULT_OG_BANNER_URL = "https://www.pb08taxi.com/Logo/pb08taxi-banner-default.w
 SEO_DEFAULTS = {
     "seo_meta_title": "PB08 TAXI — 24/7 Jalandhar Taxi & Airport Cabs Punjab",
     "seo_meta_description": "Book 24/7 taxi in Jalandhar with PB08 TAXI. Safe airport cabs, outstation travel & local city rides with verified drivers and fixed fares.",
-    "seo_meta_keywords": "Jalandhar Taxi, One Way Jalandhar, PB08 TAXI, Delhi to Jalandhar, Jalandhar to Delhi, Amritsar to Jalandhar, Jalandhar to Amritsar, Ludhiana to Jalandhar, Jalandhar to Ludhiana, Chandigarh to Jalandhar, Jalandhar to Chandigarh, Hoshiarpur to Jalandhar, Jalandhar to Hoshiarpur, Airport taxi",
+    "seo_meta_keywords": "PB08 Taxi, Jalandhar Taxi, One Way Taxi Service, Jalandhar Taxi Service, Jalndhar Taxi Service, pb08 taxi Service, PB08 TAXI, One Way Jalandhar, Delhi to Jalandhar, Jalandhar to Delhi, Amritsar to Jalandhar, Jalandhar to Amritsar, Ludhiana to Jalandhar, Jalandhar to Ludhiana, Chandigarh to Jalandhar, Jalandhar to Chandigarh, Hoshiarpur to Jalandhar, Jalandhar to Hoshiarpur, Airport taxi",
     "seo_canonical_url": "https://www.pb08taxi.com/",
     "seo_robots_directive": "index, follow, max-image-preview:large",
     

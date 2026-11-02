@@ -101,12 +101,24 @@ export default function SEOHead() {
           : ['Jalandhar', 'Punjab', 'Delhi Airport', 'Amritsar Airport', 'Chandigarh', 'Ludhiana', 'Phagwara', 'Himachal Pradesh'];
 
         const socialLinks = [
-          settings?.social_facebook,
-          settings?.social_instagram,
-          settings?.social_twitter,
-          settings?.social_youtube,
+          settings?.social_instagram || 'https://instagram.com/pb08taxi',
+          settings?.social_facebook || 'https://facebook.com/pb08taxi',
+          settings?.social_twitter || 'https://twitter.com/pb08taxi',
+          settings?.social_youtube || 'https://youtube.com/@pb08taxi',
           `https://wa.me/${(settings?.whatsapp_number || seo.support_phone || '+919888079736').replace(/\D/g, '')}`
         ].filter(Boolean);
+
+        const brandAlternateNames = [
+          'PB08 Taxi',
+          'Jalandhar Taxi',
+          'One Way Taxi Service',
+          'Jalandhar Taxi Service',
+          'Jalndhar Taxi Service',
+          'pb08 taxi Service',
+          'PB08 TAXI Jalandhar',
+          'One Way Jalandhar',
+          'Airport Taxi Jalandhar'
+        ];
 
         // Entity 1: Organization Schema
         updateOrCreateSchema('schema-organization', {
@@ -114,6 +126,7 @@ export default function SEOHead() {
           '@type': 'Organization',
           '@id': `${canonicalUrl}/#organization`,
           name: seo.business_name || 'PB08 TAXI',
+          alternateName: brandAlternateNames,
           url: canonicalUrl,
           logo: {
             '@type': 'ImageObject',
@@ -148,7 +161,7 @@ export default function SEOHead() {
           additionalType: 'https://schema.org/LocalBusiness',
           '@id': `${canonicalUrl}/#taxiservice`,
           name: seo.business_name || 'PB08 TAXI',
-          alternateName: ['Jalandhar Taxi', 'One Way Jalandhar', 'PB08 TAXI', 'Airport taxi'],
+          alternateName: brandAlternateNames,
           url: canonicalUrl,
           telephone: seo.support_phone || '+919888079736',
           sameAs: socialLinks,

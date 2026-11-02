@@ -13,13 +13,28 @@
 - **SUVs:** Maruti Ertiga, Kia Carens (6 Seats)
 - **Luxury SUVs:** Toyota Innova Crysta (7 Seats)
 
+## Brand Aliases & Recognized Search Queries
+- PB08 Taxi
+- Jalandhar Taxi
+- One Way Taxi Service
+- Jalandhar Taxi Service
+- Jalndhar Taxi Service
+- pb08 taxi Service
+- One Way Jalandhar Cabs
+
 ## Leadership & Development
 - **Owner & Founder:** Pawan Kumar
 - **Platform Developer:** Deepak
 
-## Contact & Booking
+## Contact & Booking (Verified Official Channels)
 - **Website:** https://www.pb08taxi.com/
 - **WhatsApp Reservation:** https://wa.me/919888079736
 - **Helpline Phone:** +91 98880 79736
 - **Central Office:** Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India
 - **Email:** pb08taxi@gmail.com
+- **Instagram:** https://instagram.com/pb08taxi (@pb08taxi)
+- **Facebook:** https://facebook.com/pb08taxi
+- **Twitter / X:** https://twitter.com/pb08taxi
+- **YouTube:** https://youtube.com/@pb08taxi
+
+> **Notice:** PB08 TAXI operates exclusively under the verified phone number **+91 98880 79736**. Any other telephone numbers or external third-party agencies are strictly unauthorized.
