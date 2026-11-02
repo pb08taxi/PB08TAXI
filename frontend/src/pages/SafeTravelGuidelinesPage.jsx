@@ -23,6 +23,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { updatePageMeta } from '../utils/seo';
+import { trackPageView } from '../utils/analytics';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -38,7 +40,13 @@ export default function SafeTravelGuidelinesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Safe Travel Guidelines — ${brandTitle} | Passenger Safety & Driver Verification`;
+    trackPageView('/safe-travel-guidelines');
+    updatePageMeta({
+      title: `Safe Travel Guidelines — ${brandTitle} | Passenger Safety & Driver Verification`,
+      description: `Read official passenger safety standards, driver background checks, and highway travel protocols for ${brandTitle} across Punjab and North India.`,
+      canonicalUrl: 'https://www.pb08taxi.com/safe-travel-guidelines',
+      keywords: 'safe taxi punjab, driver verification jalandhar, commercial taxi safety, safe travel guidelines pb08 taxi'
+    });
   }, [brandTitle]);
 
   const handleOpenBooking = () => setIsBookingOpen(true);

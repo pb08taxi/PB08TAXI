@@ -8,6 +8,10 @@ Allow: /privacy-policy
 Allow: /terms-of-service
 Allow: /about
 Allow: /contact
+Allow: /jalandhar-taxi-service
+Allow: /near-me-taxi-service
+Allow: /one-way-taxi-service
+Allow: /airport-taxi-jalandhar
 Allow: /llms.txt
 # Allow public rendering API endpoints for search crawlers & Googlebot
 Allow: /api/site-settings

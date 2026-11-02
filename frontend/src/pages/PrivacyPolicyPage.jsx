@@ -22,6 +22,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { updatePageMeta } from '../utils/seo';
+import { trackPageView } from '../utils/analytics';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -37,7 +39,13 @@ export default function PrivacyPolicyPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Privacy Policy — ${brandTitle} | Fast & Trusted 24/7 Cab Service`;
+    trackPageView('/privacy-policy');
+    updatePageMeta({
+      title: `Privacy Policy — ${brandTitle} | Passenger Data Protection (DPDP Act 2023)`,
+      description: `Official Privacy Policy for ${brandTitle}. Learn how we protect passenger booking data, ride details, and privacy under India's DPDP Act 2023.`,
+      canonicalUrl: 'https://www.pb08taxi.com/privacy-policy',
+      keywords: 'privacy policy pb08 taxi, passenger data privacy, taxi service data protection'
+    });
   }, [brandTitle]);
 
   const handleOpenBooking = () => setIsBookingOpen(true);

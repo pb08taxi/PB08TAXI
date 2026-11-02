@@ -21,6 +21,8 @@ const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 const PopularRoutesPage = lazy(() => import('./pages/PopularRoutesPage'));
 const SafeTravelGuidelinesPage = lazy(() => import('./pages/SafeTravelGuidelinesPage'));
 const EditorialPolicyPage = lazy(() => import('./pages/EditorialPolicyPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 const JalandharTaxiPage = lazy(() => import('./pages/JalandharTaxiPage'));
 const OneWayTaxiPage = lazy(() => import('./pages/OneWayTaxiPage'));
 const AirportTaxiPage = lazy(() => import('./pages/AirportTaxiPage'));
@@ -49,9 +51,9 @@ export default function App() {
       <Routes>
         {/* Public Taxi Homepage */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/about-us" element={<Navigate to="/about" replace />} />
-        <Route path="/contact" element={<HomePage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
 
         {/* Popular Routes Across India SEO Landing Page */}

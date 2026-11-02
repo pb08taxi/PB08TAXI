@@ -21,6 +21,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
+import { updatePageMeta } from '../utils/seo';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -35,8 +36,13 @@ export default function AirportTaxiPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Airport Taxi Jalandhar — 24/7 Delhi IGI & Amritsar Airport Cabs | ${brandTitle}`;
     trackPageView('/airport-taxi-jalandhar');
+    updatePageMeta({
+      title: `Airport Taxi Jalandhar — 24/7 Delhi IGI & Amritsar Airport Cabs | ${brandTitle}`,
+      description: `Reliable 24/7 airport taxi from Jalandhar to Delhi IGI Airport, Amritsar ATQ & Chandigarh IXC with ${brandTitle}. Flight delay monitoring & verified chauffeurs.`,
+      canonicalUrl: 'https://www.pb08taxi.com/airport-taxi-jalandhar',
+      keywords: 'airport taxi jalandhar, delhi airport taxi from jalandhar, amritsar airport cab, chandigarh airport taxi'
+    });
 
     // Dynamic Schema Injection for Airport Taxi Service
     const schemaData = {

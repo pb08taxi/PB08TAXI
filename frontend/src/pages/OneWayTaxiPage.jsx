@@ -21,6 +21,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
+import { updatePageMeta } from '../utils/seo';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -35,8 +36,13 @@ export default function OneWayTaxiPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `One Way Taxi Service Jalandhar — Zero Return Fare Cab Drops | ${brandTitle}`;
     trackPageView('/one-way-taxi-service');
+    updatePageMeta({
+      title: `One Way Taxi Service Jalandhar — Zero Return Fare Cab Drops | ${brandTitle}`,
+      description: `Book 24/7 one-way outstation taxi from Jalandhar to Delhi, Chandigarh, Amritsar, Ludhiana & Himachal with ${brandTitle}. Pay only for one side with zero return dead-mileage.`,
+      canonicalUrl: 'https://www.pb08taxi.com/one-way-taxi-service',
+      keywords: 'one way taxi service, one way cab jalandhar, one way taxi punjab, outstation drop taxi'
+    });
 
     // Dynamic Schema Injection for One Way Taxi Service
     const schemaData = {

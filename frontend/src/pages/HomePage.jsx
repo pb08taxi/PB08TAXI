@@ -31,19 +31,7 @@ export default function HomePage() {
     }
 
     trackPageView(location.pathname);
-    if (location.pathname === '/about') {
-      const timer = setTimeout(() => {
-        const el = document.getElementById('why-us') || document.getElementById('about');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 150);
-      return () => clearTimeout(timer);
-    } else if (location.pathname === '/contact') {
-      const timer = setTimeout(() => {
-        const el = document.getElementById('contact');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 150);
-      return () => clearTimeout(timer);
-    } else if (location.hash) {
+    if (location.hash) {
       const targetId = location.hash.replace('#', '');
       const timer = setTimeout(() => {
         const el = document.getElementById(targetId);

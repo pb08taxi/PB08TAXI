@@ -7,7 +7,7 @@ import { trackCallClick, trackBookRideClick } from '../utils/analytics';
 const NAV_ITEMS = [
   { id: 'home', label: 'Home', path: '/' },
   { id: 'services', label: 'Our Services', path: '/#services' },
-  { id: 'routes', label: 'Popular Routes', path: '/#routes' },
+  { id: 'routes', label: 'Popular Routes', path: '/popular-routes' },
   { id: 'why-us', label: 'About Us', path: '/about' },
   { id: 'faq', label: 'FAQs', path: '/#faq' },
   { id: 'contact', label: 'Contact Us', path: '/contact' },
@@ -29,11 +29,18 @@ export default function Navbar({ onOpenBooking }) {
     e.preventDefault();
     setMobileMenuOpen(false);
 
+    if (item.path === '/popular-routes' || item.id === 'routes') {
+      if (location.pathname === '/popular-routes') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/popular-routes');
+      }
+      return;
+    }
+
     if (item.path === '/about' || item.id === 'why-us') {
-      if (location.pathname === '/' || location.pathname === '/about') {
-        const el = document.getElementById('why-us') || document.getElementById('about');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-        window.history.pushState(null, '', '/about');
+      if (location.pathname === '/about') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigate('/about');
       }
@@ -41,12 +48,19 @@ export default function Navbar({ onOpenBooking }) {
     }
 
     if (item.path === '/contact' || item.id === 'contact') {
-      if (location.pathname === '/' || location.pathname === '/contact') {
-        const el = document.getElementById('contact');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-        window.history.pushState(null, '', '/contact');
+      if (location.pathname === '/contact') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigate('/contact');
+      }
+      return;
+    }
+
+    if (item.path === '/' || item.id === 'home') {
+      if (location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/');
       }
       return;
     }

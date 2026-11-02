@@ -22,6 +22,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackRouteClick } from '../utils/analytics';
+import { updatePageMeta } from '../utils/seo';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -533,8 +534,13 @@ export default function PopularRoutesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Popular Taxi & Cab Routes in India — ${brandTitle} | One Way & Airport Cabs`;
     trackPageView('/popular-routes');
+    updatePageMeta({
+      title: `Popular Taxi & Cab Routes in India — ${brandTitle} | One Way & Airport Cabs`,
+      description: `Explore top outstation and airport taxi routes across Punjab, Delhi NCR, Himachal Pradesh, and Jammu with ${brandTitle}. Fixed upfront fares with verified chauffeurs.`,
+      canonicalUrl: 'https://www.pb08taxi.com/popular-routes',
+      keywords: 'popular taxi routes punjab, jalandhar to delhi taxi, amritsar airport cab, outstation taxi service punjab'
+    });
   }, [brandTitle]);
 
   const handleOpenBooking = (routeTitle = 'Popular Route') => {

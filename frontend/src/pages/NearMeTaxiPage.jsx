@@ -22,6 +22,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
+import { updatePageMeta } from '../utils/seo';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -37,8 +38,13 @@ export default function NearMeTaxiPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Taxi Near Me — 24/7 Instant Doorstep Cab Service in Jalandhar | ${brandTitle}`;
     trackPageView('/near-me-taxi-service');
+    updatePageMeta({
+      title: `Taxi Near Me — 24/7 Instant Doorstep Cab Service in Jalandhar | ${brandTitle}`,
+      description: `Need a taxi near me right now? ${brandTitle} delivers 24/7 doorstep cab pickups across Jalandhar and Punjab in under 15 minutes. Verified drivers, GPS tracking & clean cars.`,
+      canonicalUrl: 'https://www.pb08taxi.com/near-me-taxi-service',
+      keywords: 'taxi near me, cab near me, taxi service near me, nearby cab jalandhar, 24/7 taxi near me'
+    });
 
     // Dynamic Schema Injection for Taxi Near Me / LocalBusiness
     const schemaData = {

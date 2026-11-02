@@ -19,6 +19,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
+import { updatePageMeta } from '../utils/seo';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -33,8 +34,13 @@ export default function JalandharTaxiPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Jalandhar Taxi Service — 24/7 Verified Cabs & Local Drops | ${brandTitle}`;
     trackPageView('/jalandhar-taxi-service');
+    updatePageMeta({
+      title: `Jalandhar Taxi Service — 24/7 Verified Cabs & Local Drops | ${brandTitle}`,
+      description: `Book 24/7 taxi service in Jalandhar with ${brandTitle}. Model Town, BMC Chowk, Rama Mandi & Cantonment pickups with verified drivers and fixed transparent fares.`,
+      canonicalUrl: 'https://www.pb08taxi.com/jalandhar-taxi-service',
+      keywords: 'jalandhar taxi, jalandhar taxi service, jalndhar taxi, cab service jalandhar, best taxi service in jalandhar'
+    });
 
     // Dynamic Schema Injection for Jalandhar Taxi Service
     const schemaData = {

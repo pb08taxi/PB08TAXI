@@ -22,6 +22,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { updatePageMeta } from '../utils/seo';
+import { trackPageView } from '../utils/analytics';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -37,7 +39,13 @@ export default function TermsOfServicePage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Terms of Service — ${brandTitle} | Fair & Transparent Cab Guidelines`;
+    trackPageView('/terms-of-service');
+    updatePageMeta({
+      title: `Terms of Service — ${brandTitle} | Booking Conditions & Fare Policies`,
+      description: `Review the official terms of service, cancellation policy, baggage allowances, and passenger guidelines for ${brandTitle} cab services.`,
+      canonicalUrl: 'https://www.pb08taxi.com/terms-of-service',
+      keywords: 'terms of service pb08 taxi, taxi booking terms punjab, cab cancellation policy'
+    });
   }, [brandTitle]);
 
   const handleOpenBooking = () => setIsBookingOpen(true);

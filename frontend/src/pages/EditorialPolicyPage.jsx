@@ -19,6 +19,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { updatePageMeta } from '../utils/seo';
+import { trackPageView } from '../utils/analytics';
 
 const BookingModal = React.lazy(() => import('../components/BookingModal'));
 
@@ -34,7 +36,13 @@ export default function EditorialPolicyPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `Editorial Policy & Publishing Standards — ${brandTitle}`;
+    trackPageView('/editorial-policy');
+    updatePageMeta({
+      title: `Editorial Policy & Content Standards — ${brandTitle}`,
+      description: `Read the editorial guidelines, fact-checking processes, and route accuracy standards maintained by ${brandTitle} in Punjab.`,
+      canonicalUrl: 'https://www.pb08taxi.com/editorial-policy',
+      keywords: 'editorial policy, content standards, pb08 taxi editorial guidelines'
+    });
   }, [brandTitle]);
 
   return (
