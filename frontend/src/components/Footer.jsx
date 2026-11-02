@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Car, Heart, Shield, Lock, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import DeveloperModal from './DeveloperModal';
 
 export default function Footer({ onOpenBooking }) {
+  const [isDeveloperModalOpen, setIsDeveloperModalOpen] = useState(false);
   const { settings } = useSiteSettings();
   const phone = settings?.support_phone || '+91 98765 43210';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
@@ -223,10 +225,30 @@ export default function Footer({ onOpenBooking }) {
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-2 gap-y-1 text-zinc-400 text-xs">
             <span>Owner: <strong className="text-zinc-200">Pawan Kumar</strong></span>
             <span className="text-zinc-600">•</span>
-            <span>Developed by <strong className="text-taxi-yellow font-semibold">Deepak</strong></span>
+            <span>
+              Developed by{' '}
+              <button
+                type="button"
+                onClick={() => setIsDeveloperModalOpen(true)}
+                className="text-taxi-yellow hover:text-yellow-300 font-bold hover:underline transition-all inline-flex items-center space-x-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-taxi-yellow rounded px-1 group"
+                title="Click to view Developer contact & software portfolio"
+                aria-label="View Developer Deepak Contact & Software Details"
+              >
+                <span className="font-semibold underline decoration-dotted underline-offset-4 group-hover:decoration-solid">Deepak</span>
+                <span className="text-[10px] bg-taxi-yellow/15 text-taxi-yellow border border-taxi-yellow/30 rounded px-1.5 py-0.5 font-mono ml-0.5 group-hover:bg-taxi-yellow group-hover:text-black transition-colors">
+                  Contact Dev
+                </span>
+              </button>
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Interactive Developer Portfolio & Contact Modal */}
+      <DeveloperModal
+        isOpen={isDeveloperModalOpen}
+        onClose={() => setIsDeveloperModalOpen(false)}
+      />
     </footer>
   );
 }
