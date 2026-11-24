@@ -355,6 +355,10 @@ class SiteSettingsOut(BaseModel):
     social_twitter: Optional[str] = "https://twitter.com/pb08taxi"
     social_youtube: Optional[str] = "https://youtube.com/@pb08taxi"
     physical_address: str = "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India"
+    fleet_sedan_image: Optional[str] = "/cars/sedan-dzire.webp"
+    fleet_innova_image: Optional[str] = "/cars/innova-crysta.webp"
+    fleet_ertiga_image: Optional[str] = "/cars/ertiga-muv.webp"
+    fleet_traveller_image: Optional[str] = "/cars/tempo-traveller.webp"
 
 class SiteSettingsUpdate(BaseModel):
     support_phone: Optional[str] = None
@@ -376,6 +380,10 @@ class SiteSettingsUpdate(BaseModel):
     social_twitter: Optional[str] = None
     social_youtube: Optional[str] = None
     physical_address: Optional[str] = None
+    fleet_sedan_image: Optional[str] = None
+    fleet_innova_image: Optional[str] = None
+    fleet_ertiga_image: Optional[str] = None
+    fleet_traveller_image: Optional[str] = None
 
     @field_validator("support_phone", "whatsapp_number")
     @classmethod

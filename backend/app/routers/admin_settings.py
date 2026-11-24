@@ -79,6 +79,10 @@ def get_public_site_settings(db: Session = Depends(get_db)):
     social_twitter = _get_setting_val(db, "social_twitter", "https://twitter.com/pb08taxi")
     social_youtube = _get_setting_val(db, "social_youtube", "https://youtube.com/@pb08taxi")
     physical_address = _get_setting_val(db, "physical_address", "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India")
+    fleet_sedan_image = _get_setting_val(db, "fleet_sedan_image", "/cars/sedan-dzire.webp")
+    fleet_innova_image = _get_setting_val(db, "fleet_innova_image", "/cars/innova-crysta.webp")
+    fleet_ertiga_image = _get_setting_val(db, "fleet_ertiga_image", "/cars/ertiga-muv.webp")
+    fleet_traveller_image = _get_setting_val(db, "fleet_traveller_image", "/cars/tempo-traveller.webp")
     try:
         slider_fade_duration = int(slider_fade_duration_raw)
     except (ValueError, TypeError):
@@ -111,7 +115,11 @@ def get_public_site_settings(db: Session = Depends(get_db)):
         social_instagram=social_instagram,
         social_twitter=social_twitter,
         social_youtube=social_youtube,
-        physical_address=physical_address
+        physical_address=physical_address,
+        fleet_sedan_image=fleet_sedan_image,
+        fleet_innova_image=fleet_innova_image,
+        fleet_ertiga_image=fleet_ertiga_image,
+        fleet_traveller_image=fleet_traveller_image
     )
     cache_service.set("site_settings:public", out.model_dump(), ttl=600)
     return out
@@ -199,6 +207,18 @@ def update_admin_site_settings(
 
     if payload.physical_address is not None:
         _set_setting_val(db, "physical_address", payload.physical_address.strip() or "Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India")
+
+    if payload.fleet_sedan_image is not None:
+        _set_setting_val(db, "fleet_sedan_image", payload.fleet_sedan_image.strip())
+
+    if payload.fleet_innova_image is not None:
+        _set_setting_val(db, "fleet_innova_image", payload.fleet_innova_image.strip())
+
+    if payload.fleet_ertiga_image is not None:
+        _set_setting_val(db, "fleet_ertiga_image", payload.fleet_ertiga_image.strip())
+
+    if payload.fleet_traveller_image is not None:
+        _set_setting_val(db, "fleet_traveller_image", payload.fleet_traveller_image.strip())
 
     return get_public_site_settings(db)
 

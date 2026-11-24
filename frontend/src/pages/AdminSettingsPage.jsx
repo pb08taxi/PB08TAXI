@@ -96,6 +96,11 @@ export default function AdminSettingsPage() {
   const [supportPhone, setSupportPhone] = useState('+919888079736');
   const [whatsappNumber, setWhatsappNumber] = useState('+919888079736');
   const [physicalAddress, setPhysicalAddress] = useState('Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
+  const [fleetSedanImage, setFleetSedanImage] = useState('/cars/sedan-dzire.webp');
+  const [fleetInnovaImage, setFleetInnovaImage] = useState('/cars/innova-crysta.webp');
+  const [fleetErtigaImage, setFleetErtigaImage] = useState('/cars/ertiga-muv.webp');
+  const [fleetTravellerImage, setFleetTravellerImage] = useState('/cars/tempo-traveller.webp');
+  const [uploadingCar, setUploadingCar] = useState('');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
   const [siteLogoSize, setSiteLogoSize] = useState(48);
@@ -242,6 +247,10 @@ export default function AdminSettingsPage() {
       setSupportPhone(data.support_phone || '+919888079736');
       setWhatsappNumber(data.whatsapp_number || '+919888079736');
       setPhysicalAddress(data.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
+      setFleetSedanImage(data.fleet_sedan_image || '/cars/sedan-dzire.webp');
+      setFleetInnovaImage(data.fleet_innova_image || '/cars/innova-crysta.webp');
+      setFleetErtigaImage(data.fleet_ertiga_image || '/cars/ertiga-muv.webp');
+      setFleetTravellerImage(data.fleet_traveller_image || '/cars/tempo-traveller.webp');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
       setSiteLogoSize(data.site_logo_size || 48);
@@ -256,6 +265,25 @@ export default function AdminSettingsPage() {
       setCurrentUsername(data.admin_username || 'admin');
     }
   }, [data]);
+
+  const handleCarUpload = async (carType, file) => {
+    if (!file) return;
+    setUploadingCar(carType);
+    try {
+      const res = await uploadSiteAsset(file, 'car');
+      if (res && res.url) {
+        if (carType === 'sedan') setFleetSedanImage(res.url);
+        if (carType === 'innova') setFleetInnovaImage(res.url);
+        if (carType === 'ertiga') setFleetErtigaImage(res.url);
+        if (carType === 'traveller') setFleetTravellerImage(res.url);
+        showSuccess(`Car image for ${carType} uploaded successfully! Remember to click Save Site Settings.`, 'Uploaded');
+      }
+    } catch (err) {
+      showError('Failed to upload image: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setUploadingCar('');
+    }
+  };
 
   // Handle saving general site settings (phone, whatsapp, logo, favicon, brand text, hint, animation)
   const handleSaveSiteSettings = async (e) => {
@@ -288,7 +316,11 @@ export default function AdminSettingsPage() {
         social_instagram: socialInstagram.trim(),
         social_twitter: socialTwitter.trim(),
         social_youtube: socialYoutube.trim(),
-        physical_address: physicalAddress.trim() || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India'
+        physical_address: physicalAddress.trim() || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India',
+        fleet_sedan_image: fleetSedanImage.trim(),
+        fleet_innova_image: fleetInnovaImage.trim(),
+        fleet_ertiga_image: fleetErtigaImage.trim(),
+        fleet_traveller_image: fleetTravellerImage.trim()
       };
       await updateAdminSettings(payload);
       mutate((prev) => ({ ...prev, ...payload }));
@@ -1200,6 +1232,214 @@ export default function AdminSettingsPage() {
                   </span>
                 </div>
               </label>
+            </div>
+          </div>
+
+          {/* Fleet Showcase Vehicle Images & Links Management */}
+          <div className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center space-x-3 pb-4 border-b border-zinc-850">
+              <div className="w-10 h-10 rounded-xl bg-taxi-yellow text-black flex items-center justify-center font-bold">
+                <Car className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">Fleet Showcase Car Images &amp; Links</h2>
+                <p className="text-xs text-zinc-400">
+                  Manage the high-definition photos displayed in the Homepage Fleet Showcase. You can paste any image URL (GitHub raw link, Imgur, Cloudinary) or upload files directly.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* 1. Sedan Class */}
+              <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-taxi-yellow">Sedan Class</span>
+                  <span className="text-[11px] text-zinc-400">Dzire / Etios</span>
+                </div>
+                <div className="relative aspect-[16/10] bg-black rounded-xl overflow-hidden border border-zinc-800">
+                  <img
+                    src={fleetSedanImage || '/cars/sedan-dzire.webp'}
+                    alt="Sedan Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Suzuki_Dzire_II_1.2_GLX_Hybrid_Arctic_White_Pearl.jpg'; }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-300">Image URL or GitHub Link</label>
+                  <input
+                    type="text"
+                    value={fleetSedanImage}
+                    onChange={(e) => setFleetSedanImage(e.target.value)}
+                    placeholder="https://... or /cars/sedan-dzire.webp"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-taxi-yellow focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <label className="cursor-pointer text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingCar === 'sedan' ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleCarUpload('sedan', e.target.files?.[0])}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFleetSedanImage('/cars/sedan-dzire.webp')}
+                    className="text-[11px] text-zinc-400 hover:text-taxi-yellow underline"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Innova Crysta */}
+              <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-taxi-yellow">Luxury SUV</span>
+                  <span className="text-[11px] text-zinc-400">Innova Crysta</span>
+                </div>
+                <div className="relative aspect-[16/10] bg-black rounded-xl overflow-hidden border border-zinc-800">
+                  <img
+                    src={fleetInnovaImage || '/cars/innova-crysta.webp'}
+                    alt="Innova Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = 'https://upload.wikimedia.org/wikipedia/commons/8/87/Toyota_Innova_Crysta_2.4_Z_front_right.jpg'; }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-300">Image URL or GitHub Link</label>
+                  <input
+                    type="text"
+                    value={fleetInnovaImage}
+                    onChange={(e) => setFleetInnovaImage(e.target.value)}
+                    placeholder="https://... or /cars/innova-crysta.webp"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-taxi-yellow focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <label className="cursor-pointer text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingCar === 'innova' ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleCarUpload('innova', e.target.files?.[0])}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFleetInnovaImage('/cars/innova-crysta.webp')}
+                    className="text-[11px] text-zinc-400 hover:text-taxi-yellow underline"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Ertiga MUV */}
+              <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-taxi-yellow">Family MUV</span>
+                  <span className="text-[11px] text-zinc-400">Ertiga / Carens</span>
+                </div>
+                <div className="relative aspect-[16/10] bg-black rounded-xl overflow-hidden border border-zinc-800">
+                  <img
+                    src={fleetErtigaImage || '/cars/ertiga-muv.webp'}
+                    alt="Ertiga Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = 'https://upload.wikimedia.org/wikipedia/commons/0/01/Maruti_Suzuki_Ertiga%281%29.jpg'; }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-300">Image URL or GitHub Link</label>
+                  <input
+                    type="text"
+                    value={fleetErtigaImage}
+                    onChange={(e) => setFleetErtigaImage(e.target.value)}
+                    placeholder="https://... or /cars/ertiga-muv.webp"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-taxi-yellow focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <label className="cursor-pointer text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingCar === 'ertiga' ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleCarUpload('ertiga', e.target.files?.[0])}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFleetErtigaImage('/cars/ertiga-muv.webp')}
+                    className="text-[11px] text-zinc-400 hover:text-taxi-yellow underline"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. Tempo Traveller */}
+              <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-taxi-yellow">Tempo Traveller</span>
+                  <span className="text-[11px] text-zinc-400">12-17 Seater</span>
+                </div>
+                <div className="relative aspect-[16/10] bg-black rounded-xl overflow-hidden border border-zinc-800">
+                  <img
+                    src={fleetTravellerImage || '/cars/tempo-traveller.webp'}
+                    alt="Traveller Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = 'https://upload.wikimedia.org/wikipedia/commons/4/43/Force_Traveller_Luxury.jpg'; }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-300">Image URL or GitHub Link</label>
+                  <input
+                    type="text"
+                    value={fleetTravellerImage}
+                    onChange={(e) => setFleetTravellerImage(e.target.value)}
+                    placeholder="https://... or /cars/tempo-traveller.webp"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-taxi-yellow focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <label className="cursor-pointer text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{uploadingCar === 'traveller' ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleCarUpload('traveller', e.target.files?.[0])}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFleetTravellerImage('/cars/tempo-traveller.webp')}
+                    className="text-[11px] text-zinc-400 hover:text-taxi-yellow underline"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Pro-Tip Box */}
+            <div className="bg-zinc-900/80 border border-zinc-800 p-4 rounded-2xl flex items-start space-x-3 text-xs text-zinc-300">
+              <Sparkles className="w-4 h-4 text-taxi-yellow flex-shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-white block font-bold">Pro-Tip for GitHub Image Hosting:</strong>
+                <span>You can store car photos directly in the repository inside <code className="text-taxi-yellow">frontend/public/cars/</code> (e.g. <code className="text-zinc-200">/cars/sedan-dzire.webp</code>) or paste any raw GitHub URL like <code className="text-zinc-200">https://raw.githubusercontent.com/pb08taxi/PB08TAXI/main/frontend/public/cars/...</code></span>
+              </div>
             </div>
           </div>
 

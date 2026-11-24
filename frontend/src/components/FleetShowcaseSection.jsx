@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Car, Users, Luggage, Wind, ShieldCheck, Check, ArrowRight, Sparkles, Fuel } from 'lucide-react';
+import { Car, Users, Luggage, Wind, ShieldCheck, Check, ArrowRight, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
-const VEHICLES = [
+const DEFAULT_FLEET = [
   {
     id: 'sedan',
     name: 'Sedan Class',
@@ -10,9 +11,11 @@ const VEHICLES = [
     capacity: '4 Passengers',
     luggage: '2 Large + 2 Small Bags',
     ac: 'Chilled Dual AC',
-    features: ['High Fuel Economy', 'Smooth Highway Ride', 'FastTag Enabled', 'Bottled Water & Clean Tissue'],
+    features: ['High Fuel Economy', 'Smooth Highway Ride', 'FastTag Enabled', 'Bottled Water & Clean Tissues'],
     idealFor: 'Solo travelers, couples, city transit, and fast airport drops.',
-    imagePlaceholder: 'Dzire / Etios'
+    defaultImage: '/cars/sedan-dzire.webp',
+    fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Suzuki_Dzire_II_1.2_GLX_Hybrid_Arctic_White_Pearl.jpg',
+    settingKey: 'fleet_sedan_image'
   },
   {
     id: 'innova',
@@ -24,7 +27,9 @@ const VEHICLES = [
     ac: 'Dual AC with Individual Vents',
     features: ['Plush Captain Recliners', 'Superior Highway Suspension', 'Extra Legroom & Recline', 'Mobile Fast Charging'],
     idealFor: 'Family airport transit (Delhi/Amritsar), mountain roads (Shimla/Manali), and VIP travels.',
-    imagePlaceholder: 'Innova Crysta'
+    defaultImage: '/cars/innova-crysta.webp',
+    fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/87/Toyota_Innova_Crysta_2.4_Z_front_right.jpg',
+    settingKey: 'fleet_innova_image'
   },
   {
     id: 'ertiga',
@@ -36,7 +41,9 @@ const VEHICLES = [
     ac: 'Roof-Mounted AC',
     features: ['Flexible 3-Row Seating', 'Economical Group Fare', 'Spacious Cabin', 'Smooth City Drive'],
     idealFor: 'Budget family outstation trips, shopping tours, and wedding transfers.',
-    imagePlaceholder: 'Ertiga / Carens'
+    defaultImage: '/cars/ertiga-muv.webp',
+    fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/01/Maruti_Suzuki_Ertiga%281%29.jpg',
+    settingKey: 'fleet_ertiga_image'
   },
   {
     id: 'traveller',
@@ -48,13 +55,24 @@ const VEHICLES = [
     ac: 'Full Cabin Powerful Cooling',
     features: ['Push-back Pushpit Seats', 'High Ceiling & Wide Aisle', 'Stereo Music System', 'Ample Boot Space'],
     idealFor: 'Pilgrimage to Golden Temple & Vaishno Devi, wedding barat convoys, and corporate tours.',
-    imagePlaceholder: 'Tempo Traveller'
+    defaultImage: '/cars/tempo-traveller.webp',
+    fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/43/Force_Traveller_Luxury.jpg',
+    settingKey: 'fleet_traveller_image'
   }
 ];
 
 export default function FleetShowcaseSection({ onOpenBooking }) {
+  const { settings } = useSiteSettings();
   const [activeTab, setActiveTab] = useState('sedan');
-  const selectedVehicle = VEHICLES.find(v => v.id === activeTab) || VEHICLES[0];
+  const [imgError, setImgError] = useState({});
+
+  const selectedVehicle = DEFAULT_FLEET.find(v => v.id === activeTab) || DEFAULT_FLEET[0];
+
+  // Resolve image from Admin settings override -> local webp -> fallback Wikimedia CDN
+  const configuredImg = settings?.[selectedVehicle.settingKey];
+  const activeImgSrc = imgError[selectedVehicle.id]
+    ? selectedVehicle.fallbackUrl
+    : (configuredImg && configuredImg.trim() ? configuredImg.trim() : selectedVehicle.defaultImage);
 
   return (
     <section id="fleet" className="py-24 bg-[#0A0A0A] border-t border-zinc-900 relative overflow-hidden">
@@ -64,7 +82,7 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
+        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-taxi-yellow/15 border border-taxi-yellow/30 px-3.5 py-1.5 rounded-full text-taxi-yellow text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             <span>PB08 Premium Fleet Lineup</span>
@@ -79,13 +97,13 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
 
         {/* Category Tabs */}
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10">
-          {VEHICLES.map((v) => (
+          {DEFAULT_FLEET.map((v) => (
             <button
               key={v.id}
               onClick={() => setActiveTab(v.id)}
               className={`px-4 sm:px-6 py-3 rounded-2xl text-xs sm:text-sm font-black transition-all duration-300 flex items-center space-x-2.5 ${
                 activeTab === v.id
-                  ? 'bg-taxi-yellow text-black shadow-lg shadow-taxi-yellow/30 scale-105'
+                  ? 'bg-taxi-yellow text-black shadow-lg shadow-taxi-yellow/30 scale-105 ring-2 ring-yellow-300'
                   : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white border border-zinc-800'
               }`}
             >
@@ -95,15 +113,52 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
           ))}
         </div>
 
-        {/* Selected Vehicle Card */}
+        {/* Selected Vehicle Showcase Container */}
         <div className="glass-card-luxury rounded-3xl p-6 sm:p-10 border border-zinc-800 relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Left Info Column */}
+            {/* Visual Vehicle Image Display (Left / Top) */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+              <div className="relative w-full aspect-[16/10] sm:aspect-[16/11] rounded-2xl overflow-hidden bg-gradient-to-b from-zinc-900 to-zinc-950 border border-zinc-800/80 group">
+                
+                {/* Background ambient lighting behind vehicle */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.18),transparent_70%)] pointer-events-none" />
+
+                {/* Car Photo */}
+                <img
+                  src={activeImgSrc}
+                  alt={selectedVehicle.name}
+                  loading="eager"
+                  decoding="async"
+                  onError={() => {
+                    setImgError(prev => ({ ...prev, [selectedVehicle.id]: true }));
+                  }}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 filter brightness-100 contrast-105 drop-shadow-2xl"
+                />
+
+                {/* Badge Overlay */}
+                <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[11px] font-extrabold text-taxi-yellow flex items-center space-x-1.5 shadow-md">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Sanitized &amp; Verified</span>
+                </div>
+
+                {/* Model Name Caption Pill */}
+                <div className="absolute bottom-3 inset-x-3 bg-zinc-950/85 backdrop-blur-md border border-zinc-800 px-3 py-1.5 rounded-xl flex items-center justify-between text-xs">
+                  <span className="font-extrabold text-white truncate">{selectedVehicle.models}</span>
+                  <span className="text-[10px] text-zinc-400 font-semibold uppercase">{selectedVehicle.tag.split(' ')[0]}</span>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-zinc-500 mt-2 text-center flex items-center justify-center space-x-1">
+                <span>* Actual vehicle model or equivalent premium commercial fleet provided.</span>
+              </div>
+            </div>
+
+            {/* Vehicle Details & Specifications (Right) */}
             <div className="lg:col-span-7 space-y-6">
               
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-extrabold uppercase tracking-wider bg-taxi-yellow text-black px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold uppercase tracking-wider bg-taxi-yellow text-black px-3.5 py-1 rounded-full shadow-sm">
                   {selectedVehicle.tag}
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
@@ -111,7 +166,7 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
                 </span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
                 {selectedVehicle.name}
               </h3>
 
@@ -119,9 +174,9 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
                 {selectedVehicle.idealFor}
               </p>
 
-              {/* Specs Pills */}
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl">
+              {/* Specs Grid */}
+              <div className="grid grid-cols-3 gap-3 pt-1">
+                <div className="bg-zinc-900/90 border border-zinc-800 p-3 sm:p-3.5 rounded-2xl">
                   <div className="flex items-center space-x-2 text-taxi-yellow mb-1">
                     <Users className="w-4 h-4" />
                     <span className="text-[11px] font-bold uppercase text-zinc-400">Seating</span>
@@ -131,7 +186,7 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl">
+                <div className="bg-zinc-900/90 border border-zinc-800 p-3 sm:p-3.5 rounded-2xl">
                   <div className="flex items-center space-x-2 text-taxi-yellow mb-1">
                     <Luggage className="w-4 h-4" />
                     <span className="text-[11px] font-bold uppercase text-zinc-400">Boot Space</span>
@@ -141,7 +196,7 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl">
+                <div className="bg-zinc-900/90 border border-zinc-800 p-3 sm:p-3.5 rounded-2xl">
                   <div className="flex items-center space-x-2 text-taxi-yellow mb-1">
                     <Wind className="w-4 h-4" />
                     <span className="text-[11px] font-bold uppercase text-zinc-400">Climate</span>
@@ -153,7 +208,7 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
               </div>
 
               {/* Feature Checklist */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 {selectedVehicle.features.map((feature, fIdx) => (
                   <div key={fIdx} className="flex items-center space-x-2 text-xs font-semibold text-zinc-300">
                     <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
@@ -164,43 +219,23 @@ export default function FleetShowcaseSection({ onOpenBooking }) {
                 ))}
               </div>
 
-            </div>
-
-            {/* Right Booking Card / CTA */}
-            <div className="lg:col-span-5 bg-zinc-950/90 border border-zinc-800/90 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    Pricing Guarantee
-                  </span>
-                  <span className="text-[11px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 rounded-full">
-                    No Surge Charge
-                  </span>
-                </div>
-
-                <div className="text-2xl sm:text-3xl font-black text-white">
-                  Transparent <span className="text-taxi-yellow">Fixed Fare</span>
-                </div>
-
-                <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                  Pay only for what you ride with zero hidden return fees on one-way trips. Includes verified driver, toll assistance, and fuel charges.
-                </p>
-              </div>
-
-              <div className="space-y-3">
+              {/* Action Button & Fixed Fare Guarantee */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
                   type="button"
                   onClick={() => onOpenBooking && onOpenBooking(`Selected Vehicle: ${selectedVehicle.name}`)}
-                  className="w-full animate-luxury-streak bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-black text-base py-4 rounded-2xl shadow-xl shadow-taxi-yellow/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+                  className="animate-luxury-streak bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-black text-base px-8 py-4 rounded-2xl shadow-xl shadow-taxi-yellow/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 flex-shrink-0"
                 >
                   <span>Book {selectedVehicle.name}</span>
                   <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                 </button>
 
-                <div className="text-center text-[11px] text-zinc-500 font-medium">
-                  Instant WhatsApp confirmation • No advance payment for local cabs
+                <div className="text-xs text-zinc-400 leading-snug">
+                  <strong className="text-white block font-bold">100% Upfront Fixed Pricing</strong>
+                  <span>Zero hidden return fees on one-way drops • Instant WhatsApp confirmation</span>
                 </div>
               </div>
+
             </div>
 
           </div>
