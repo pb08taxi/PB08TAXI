@@ -1215,8 +1215,8 @@ export default function BookingModal({ isOpen, onClose }) {
                   setFormData((prev) => ({
                     ...prev,
                     pickup_location: val,
-                    pickup_lat: coords?.lat !== undefined ? coords.lat : (val ? prev.pickup_lat : null),
-                    pickup_lng: coords?.lng !== undefined ? coords.lng : (val ? prev.pickup_lng : null),
+                    pickup_lat: (coords && coords.lat !== undefined && coords.lat !== null) ? coords.lat : null,
+                    pickup_lng: (coords && coords.lng !== undefined && coords.lng !== null) ? coords.lng : null,
                   }));
                   setError('');
                 }}

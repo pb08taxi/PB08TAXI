@@ -168,7 +168,10 @@ async def update_booking_status(
 
             tmpl = db.query(MessageTemplate).filter(MessageTemplate.template_key == "booking_confirmed").first()
             if tmpl:
-                cust_msg = render_template(tmpl.content, cust_ctx)
+                cust_tmpl_content = tmpl.content
+                if not gps_line:
+                    cust_tmpl_content = cust_tmpl_content.replace("\n{gps_location}", "").replace("{gps_location}\n", "").replace("{gps_location}", "")
+                cust_msg = render_template(cust_tmpl_content, cust_ctx)
                 if gps_line and maps_url and maps_url not in cust_msg:
                     if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in cust_msg:
                         cust_msg = cust_msg.replace(
@@ -220,7 +223,10 @@ async def update_booking_status(
                     "destination": booking.destination or "Not specified",
                 }
                 if driver_tmpl:
-                    driver_msg = render_template(driver_tmpl.content, driver_ctx)
+                    driver_tmpl_content = driver_tmpl.content
+                    if not gps_line:
+                        driver_tmpl_content = driver_tmpl_content.replace("\n{gps_location}", "").replace("{gps_location}\n", "").replace("{gps_location}", "")
+                    driver_msg = render_template(driver_tmpl_content, driver_ctx)
                     if gps_line and maps_url and maps_url not in driver_msg:
                         if booking.pickup_location and f"📍 *Pickup Location:* {booking.pickup_location}" in driver_msg:
                             driver_msg = driver_msg.replace(
@@ -259,28 +265,7 @@ async def update_booking_status(
                         address=clean_driver_addr,
                         description=f"Duty #{booking.booking_reference}: {booking.customer.name} ({trip_type_disp})"
                     )
-                elif maps_url and booking.pickup_location:
-                    # If no numeric GPS, dispatch navigation card text message so driver always gets working map directions
-                    driver_nav_msg = (
-                        f"🗺️ *PB08 TAXI — Driver Duty Navigation*\n"
-                        f"━━━━━━━━━━━━━━━━━━━━\n"
-                        f"📌 *Duty Ref:* #{booking.booking_reference}\n"
-                        f"👤 *Passenger:* {booking.customer.name} ({booking.customer.whatsapp_number})\n"
-                        f"🛣️ *Trip Type:* {trip_type_disp}\n"
-                        f"🚘 *Car Assigned:* {car_name_val} ({driver.taxi_registration})\n"
-                        f"📍 *Pickup Location:* {booking.pickup_location}\n"
-                        f"🏁 *Destination:* {booking.destination or 'Not specified'}\n\n"
-                        f"🚗 *Tap to Start Google Maps Driving Directions:*\n"
-                        f"{maps_url}\n\n"
-                        f"👉 _Click the link above to immediately start turn-by-turn navigation directly to the passenger!_\n"
-                        f"━━━━━━━━━━━━━━━━━━━━"
-                    )
-                    background_tasks.add_task(
-                        send_background_message,
-                        phone=driver.contact_number,
-                        message=driver_nav_msg,
-                        message_type="DRIVER_NAVIGATION_LINK"
-                    )
+
 
         # 2. Status COMPLETED
         elif payload.status == "COMPLETED":

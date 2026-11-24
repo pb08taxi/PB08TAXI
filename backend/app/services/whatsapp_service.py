@@ -755,6 +755,8 @@ async def dispatch_booking_lifecycle_notifications(
                 "notes": booking.notes or ""
             }
             confirmation_text = tpl_content
+            if not gps_line:
+                confirmation_text = confirmation_text.replace("\n{gps_location}", "").replace("{gps_location}\n", "").replace("{gps_location}", "")
             for k, v in ctx.items():
                 confirmation_text = confirmation_text.replace(f"{{{k}}}", str(v) if v is not None else "")
 
@@ -829,6 +831,8 @@ async def dispatch_booking_lifecycle_notifications(
                     "notes": booking.notes or ""
                 }
                 admin_alert_text = admin_tpl
+                if not admin_maps_clause:
+                    admin_alert_text = admin_alert_text.replace("\n{gps_location}", "").replace("{gps_location}\n", "").replace("{gps_location}", "")
                 for k, v in admin_ctx.items():
                     admin_alert_text = admin_alert_text.replace(f"{{{k}}}", str(v) if v is not None else "")
 
@@ -881,28 +885,7 @@ async def dispatch_booking_lifecycle_notifications(
                     description=f"Booking #{booking.booking_reference}: {customer.name} ({trip_type_val})",
                     customer_id=customer.id
                 )
-            elif maps_url and booking.pickup_location:
-                nav_msg = (
-                    f"🗺️ *PB08 TAXI — Passenger Pickup Navigation*\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📌 *Booking Ref:* #{booking.booking_reference}\n"
-                    f"👤 *Passenger:* {customer.name} ({customer.whatsapp_number})\n"
-                    f"🛣️ *Trip Type:* {trip_type_val}\n"
-                    f"🚘 *Selected Car:* {car_disp}\n"
-                    f"📍 *Pickup Location:* {booking.pickup_location}\n"
-                    f"🏁 *Destination:* {booking.destination or 'Not specified'}\n\n"
-                    f"🚗 *Tap to Start Google Maps Driving Directions:*\n"
-                    f"{maps_url}\n\n"
-                    f"👉 _Click the link above to immediately start turn-by-turn navigation directly to the passenger!_\n"
-                    f"━━━━━━━━━━━━━━━━━━━━"
-                )
-                await whatsapp_service.send_text_message(
-                    db=db,
-                    phone=admin_target_phone,
-                    message=nav_msg,
-                    message_type="NAVIGATION_LINK",
-                    customer_id=customer.id
-                )
+
     except Exception as e:
         print(f"[PB08 TAXI Background Dispatch Error] {e}")
     finally:

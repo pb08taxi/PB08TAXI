@@ -533,10 +533,10 @@ export async function reverseGeocodeGPS(lat, lon) {
       // Remove duplicate consecutive words
       const unique = parts.filter((val, idx, arr) => arr.indexOf(val) === idx);
       const addr = unique.join(', ');
-      return `${addr} (GPS: ${coordText})`;
+      return addr || `Current Location (${coordText})`;
     }
   } catch (err) {
     console.warn('Reverse geocode error:', err);
   }
-  return `GPS Location (${coordText})`;
+  return `Current Location (${coordText})`;
 }

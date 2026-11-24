@@ -42,10 +42,10 @@ def format_friendly_time(time_str: Optional[str]) -> str:
         return time_str.strip()
 
 def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]]:
-    """Extract latitude and longitude from location text like 'GPS Location (28.6139, 77.2090)'."""
-    if not text:
+    """Extract latitude and longitude from location text ONLY if explicitly tagged as GPS Location."""
+    if not text or ("gps" not in text.lower() and "coordinates" not in text.lower()):
         return None
-    match = re.search(r"(-?\d+\.\d{3,}),\s*(-?\d+\.\d{3,})", text)
+    match = re.search(r"(-?\d{1,3}\.\d{3,}),\s*(-?\d{1,3}\.\d{3,})", text)
     if match:
         try:
             return float(match.group(1).strip()), float(match.group(2).strip())
@@ -56,21 +56,17 @@ def extract_gps_coordinates(text: Optional[str]) -> Optional[Tuple[float, float]
 def get_google_maps_url(lat: Optional[float], lng: Optional[float], location_text: Optional[str] = None) -> Optional[str]:
     """
     Generate official Google Maps Directions URL (https://www.google.com/maps/dir/?api=1&destination=...&travelmode=driving).
-    When opened on mobile (WhatsApp) or desktop, Google Maps immediately locks destination to the passenger pickup point
-    and computes turn-by-turn driving directions from the user/chauffeur's current location.
-    Supports exact numeric coordinates or clean URL-encoded location names.
+    
+    CRITICAL RULE (User Requirement):
+    Returns Google Maps URL ONLY when real GPS coordinates exist (e.g. from 'Use Current Location').
+    If the passenger manually selected or typed a location name, returns None so that NO GPS link
+    is sent in WhatsApp messages (only the location name is included).
     """
     if lat is not None and lng is not None and (abs(lat) > 0.0001 or abs(lng) > 0.0001):
         return f"https://www.google.com/maps/dir/?api=1&destination={lat:.6f},{lng:.6f}&travelmode=driving"
     coords = extract_gps_coordinates(location_text)
     if coords and (abs(coords[0]) > 0.0001 or abs(coords[1]) > 0.0001):
         return f"https://www.google.com/maps/dir/?api=1&destination={coords[0]:.6f},{coords[1]:.6f}&travelmode=driving"
-    if location_text and location_text.strip():
-        clean_text = location_text.strip()
-        clean_text = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_text, flags=re.IGNORECASE).strip(" ,-")
-        if clean_text:
-            encoded_dest = urllib.parse.quote_plus(clean_text)
-            return f"https://www.google.com/maps/dir/?api=1&destination={encoded_dest}&travelmode=driving"
     return None
 
 def clean_location_address(address: Optional[str], lat: Optional[float] = None, lng: Optional[float] = None) -> str:
@@ -80,14 +76,7 @@ def clean_location_address(address: Optional[str], lat: Optional[float] = None, 
     Otherwise returns the clean human-readable place name (e.g. 'Model Town, Jalandhar').
     """
     clean_addr = (address or "").strip()
-    if not clean_addr or "gps location" in clean_addr.lower():
-        stripped = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
-        if stripped:
-            return stripped
-        if lat is not None and lng is not None:
-            return f"{lat:.6f}, {lng:.6f}"
-        return "Passenger Pickup Location"
-    clean_addr = re.sub(r"GPS\s*Location\s*\([^\)]*\)", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
+    clean_addr = re.sub(r"\(?\s*GPS(?:\s*Location)?\s*[:(][^)]*\)?", "", clean_addr, flags=re.IGNORECASE).strip(" ,-")
     if not clean_addr and lat is not None and lng is not None:
         return f"{lat:.6f}, {lng:.6f}"
     return clean_addr or "Passenger Pickup Location"
