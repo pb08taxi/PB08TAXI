@@ -221,6 +221,14 @@ export default function NearMeTaxiPage() {
                   </button>
 
                   <a
+                    href={`tel:${cleanPhone}`}
+                    className="px-6 py-4 bg-zinc-900 border-2 border-taxi-yellow/60 hover:border-taxi-yellow text-white hover:text-taxi-yellow font-black text-base rounded-2xl hover:bg-zinc-850 transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-lg"
+                  >
+                    <Phone className="w-5 h-5 text-taxi-yellow fill-taxi-yellow animate-pulse" />
+                    <span>Call 24/7: {supportPhone}</span>
+                  </a>
+
+                  <a
                     href={`https://wa.me/${cleanPhone}?text=Hi%20PB08%20TAXI,%20I%20need%20a%20taxi%20near%20me%20in%20Jalandhar`}
                     target="_blank"
                     rel="noopener noreferrer"

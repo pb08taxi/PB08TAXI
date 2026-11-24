@@ -32,8 +32,8 @@ export default function TermsOfServicePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const brandTitle = settings?.brand_title || 'PB08 TAXI';
-  const supportPhone = settings?.support_phone || '+919876543210';
-  const whatsappNumber = settings?.whatsapp_number || '+919876543210';
+  const supportPhone = settings?.support_phone || '+919888079736';
+  const whatsappNumber = settings?.whatsapp_number || '+919888079736';
   const cleanPhone = supportPhone.replace(/\D/g, '');
   const cleanWa = whatsappNumber.replace(/\D/g, '');
 

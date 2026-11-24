@@ -254,7 +254,7 @@ export default function AdminDriversPage() {
     }
     const cleanDigits = phone10.replace(/\D/g, '');
     if (cleanDigits.length !== 10) {
-      setFormError('Please enter a valid 10-digit mobile number for driver (e.g., 98765 43210).');
+      setFormError('Please enter a valid 10-digit mobile number for driver (e.g., 98880 79736).');
       return;
     }
 
@@ -847,7 +847,7 @@ export default function AdminDriversPage() {
                       setPhone10(digits);
                       setFormError('');
                     }}
-                    placeholder="98765 43210"
+                    placeholder="98880 79736"
                     className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
                   {phone10.length === 10 && (

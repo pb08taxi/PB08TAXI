@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, ArrowUp } from 'lucide-react';
+import { MessageCircle, ArrowUp, Phone } from 'lucide-react';
 import { useSiteSettings } from '../context/SiteSettingsContext';
-import { trackWhatsAppClick } from '../utils/analytics';
+import { trackWhatsAppClick, trackCallClick } from '../utils/analytics';
 
 export default function FloatingWhatsApp({ onOpenBooking }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -26,10 +26,13 @@ export default function FloatingWhatsApp({ onOpenBooking }) {
     });
   };
 
-  const handleClick = () => {
+  const phone = settings?.support_phone || '+91 98880 79736';
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const telLink = `tel:${phone.replace(/\s+/g, '')}`;
+
+  const handleWhatsAppClick = () => {
     trackWhatsAppClick('Floating WhatsApp Button');
-    // Open official WhatsApp direct chat link with prefilled booking intent
-    const rawNumber = settings?.whatsapp_number || '919876543210';
+    const rawNumber = settings?.whatsapp_number || '+919888079736';
     const cleanNumber = rawNumber.replace(/[^0-9]/g, '');
     const message = encodeURIComponent("Hi PB08 TAXI, I want to book a taxi ride.");
     window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
@@ -58,10 +61,33 @@ export default function FloatingWhatsApp({ onOpenBooking }) {
         <ArrowUp className="w-5 h-5 stroke-[2.5] group-hover:-translate-y-0.5 transition-transform" />
       </button>
 
-      {/* Floating Action Button with clear 'Chat Support' Text */}
+      {/* Floating 24/7 Phone Call Button (High Conversion) */}
+      <a
+        href={telLink}
+        onClick={() => trackCallClick('Floating Call Button')}
+        aria-label={`Call PB08 TAXI 24/7 Helpline ${phone}`}
+        title={`Call 24/7 Helpline: ${phone}`}
+        className="pointer-events-auto group flex items-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellowHover text-black px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full shadow-2xl shadow-yellow-500/30 border-2 border-yellow-300 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400 font-black text-xs sm:text-sm"
+      >
+        <div className="relative flex items-center justify-center">
+          <Phone className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-black text-black group-hover:rotate-12 transition-transform duration-300 animate-pulse" />
+        </div>
+        
+        <span className="font-black text-xs sm:text-sm tracking-wide text-black drop-shadow-sm whitespace-nowrap">
+          Call: 98880-79736
+        </span>
+
+        {/* Live status pulsing dot */}
+        <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0" title="24/7 Helpline Active">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-black"></span>
+        </span>
+      </a>
+
+      {/* Floating WhatsApp Action Button */}
       <button
         type="button"
-        onClick={handleClick}
+        onClick={handleWhatsAppClick}
         aria-label="Chat Support on WhatsApp"
         className="pointer-events-auto group flex items-center space-x-2 sm:space-x-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white px-3.5 sm:px-4.5 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-emerald-500/30 border-2 border-white/20 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400 animate-bounce-gentle"
       >
@@ -70,7 +96,7 @@ export default function FloatingWhatsApp({ onOpenBooking }) {
         </div>
         
         <span className="font-extrabold text-xs sm:text-sm tracking-wide text-white drop-shadow-sm whitespace-nowrap">
-          Chat Support
+          WhatsApp
         </span>
 
         {/* Live status pulsing dot */}

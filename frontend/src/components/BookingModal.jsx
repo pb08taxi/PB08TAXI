@@ -632,6 +632,18 @@ export default function BookingModal({ isOpen, onClose }) {
               </div>
             </div>
 
+            {/* Quick Direct Call Helpline */}
+            <div className="mb-4 px-3.5 py-2.5 bg-taxi-yellow/10 border border-taxi-yellow/30 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-zinc-300 font-medium">Need urgent cab in 10 mins?</span>
+              <a
+                href="tel:+919888079736"
+                className="font-black text-taxi-yellow hover:underline flex items-center space-x-1"
+              >
+                <Phone className="w-3.5 h-3.5 fill-taxi-yellow" />
+                <span>Call +91-9888-079-736</span>
+              </a>
+            </div>
+
             {error && (
               <div className="mb-4 p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-red-200 text-xs flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />

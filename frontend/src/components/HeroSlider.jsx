@@ -48,7 +48,7 @@ export default function HeroSlider({ onOpenBooking }) {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
 
-  const phone = settings?.support_phone || '+91 98765 43210';
+  const phone = settings?.support_phone || '+91 98880 79736';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
   useEffect(() => {
@@ -221,9 +221,10 @@ export default function HeroSlider({ onOpenBooking }) {
 
             <a
               href={telLink}
-              className="inline-flex items-center justify-center bg-zinc-900/90 hover:bg-zinc-800 text-white font-bold text-base px-6 py-4 rounded-2xl border border-zinc-700 transition-colors"
+              className="inline-flex items-center justify-center space-x-2 bg-zinc-900/90 hover:bg-zinc-800 text-white hover:text-taxi-yellow font-extrabold text-base px-6 py-4 sm:py-5 rounded-2xl border-2 border-zinc-700 hover:border-taxi-yellow transition-all shadow-lg"
             >
-              Call 24/7: {phone}.
+              <Phone className="w-5 h-5 text-taxi-yellow animate-pulse" />
+              <span>Call 24/7: {phone}</span>
             </a>
 
           </div>

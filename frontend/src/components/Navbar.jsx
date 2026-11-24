@@ -19,7 +19,7 @@ export default function Navbar({ onOpenBooking }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const phone = settings?.support_phone || '+91 98765 43210';
+  const phone = settings?.support_phone || '+91 98880 79736';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
   const brandTitle = settings?.brand_title || 'PB08 TAXI';
@@ -95,14 +95,19 @@ export default function Navbar({ onOpenBooking }) {
         Skip to main content
       </a>
 
-      {/* Top micro banner */}
-      <div className="bg-taxi-yellow text-black text-xs font-bold py-1 px-4 text-center tracking-wide flex items-center justify-center space-x-3">
-        <span className="flex items-center space-x-1">
-          <ShieldCheck className="w-3.5 h-3.5 inline" />
-          <span>{brandTitle} — PUNJAB'S TRUSTED 24/7 CAB SERVICE.</span>
-        </span>
+      {/* Top micro banner with Direct Click-to-Call */}
+      <div className="bg-taxi-yellow text-black text-xs font-bold py-1.5 px-4 text-center tracking-wide flex items-center justify-center space-x-2 sm:space-x-3">
+        <a 
+          href={telLink}
+          onClick={() => trackCallClick('Top Micro Banner')}
+          className="inline-flex items-center space-x-1.5 hover:underline font-black cursor-pointer"
+          title={`Call 24/7 Helpline ${phone}`}
+        >
+          <Phone className="w-3.5 h-3.5 fill-black text-black animate-pulse" />
+          <span>24/7 HELPLINE: {phone} (TAP TO CALL)</span>
+        </a>
         <span className="hidden md:inline">•</span>
-        <span className="hidden md:inline">JALANDHAR • AMRITSAR • CHANDIGARH • DELHI AIRPORT.</span>
+        <span className="hidden md:inline font-bold">10-MIN PICKUP IN JALANDHAR & OUTSTATION</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,10 +192,10 @@ export default function Navbar({ onOpenBooking }) {
             <a
               href={telLink}
               onClick={() => trackCallClick('Desktop Navbar Helpline')}
-              className="flex items-center space-x-2 text-zinc-200 hover:text-taxi-yellow px-3 py-2 text-sm font-semibold transition-colors"
+              className="flex items-center space-x-2 text-zinc-100 hover:text-taxi-yellow px-3.5 py-2 text-sm font-extrabold bg-zinc-900 border border-zinc-700/80 hover:border-taxi-yellow rounded-full transition-all"
             >
-              <Phone className="w-4 h-4 text-taxi-yellow" />
-              <span>{phone}</span>
+              <Phone className="w-4 h-4 text-taxi-yellow fill-taxi-yellow animate-pulse" />
+              <span>Call: {phone}</span>
             </a>
 
             <button
@@ -205,11 +210,23 @@ export default function Navbar({ onOpenBooking }) {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center space-x-2">
+          {/* Mobile Action Buttons */}
+          <div className="flex md:hidden items-center space-x-1.5">
+            <a
+              href={telLink}
+              onClick={() => trackCallClick('Mobile Header Call Button')}
+              aria-label={`Call ${phone}`}
+              className="bg-taxi-yellow/20 hover:bg-taxi-yellow/30 text-taxi-yellow border border-taxi-yellow/50 font-black px-2.5 py-1.5 rounded-full text-xs min-h-[38px] flex items-center space-x-1 active:scale-95 transition-transform"
+            >
+              <Phone className="w-3.5 h-3.5 fill-taxi-yellow" />
+              <span>Call</span>
+            </a>
             <button
-              onClick={onOpenBooking}
-              className="bg-taxi-yellow text-black font-extrabold px-4 py-2 rounded-full text-xs min-h-[42px] flex items-center justify-center active:scale-95 transition-transform"
+              onClick={() => {
+                trackBookRideClick('Mobile Header Book Button');
+                onOpenBooking();
+              }}
+              className="bg-taxi-yellow text-black font-extrabold px-3 py-1.5 rounded-full text-xs min-h-[38px] flex items-center justify-center active:scale-95 transition-transform"
             >
               Book
             </button>
@@ -245,10 +262,10 @@ export default function Navbar({ onOpenBooking }) {
             <a
               href={telLink}
               onClick={() => trackCallClick('Mobile Drawer Helpline')}
-              className="flex items-center space-x-2 text-zinc-300 py-1 font-semibold"
+              className="flex items-center justify-center space-x-2 bg-zinc-900 border border-taxi-yellow/40 text-taxi-yellow py-3 rounded-xl font-black text-sm hover:bg-zinc-800 transition-colors"
             >
-              <Phone className="w-4 h-4 text-taxi-yellow" />
-              <span>Call: {phone}</span>
+              <Phone className="w-4 h-4 fill-taxi-yellow" />
+              <span>Call 24/7 Helpline: {phone}</span>
             </a>
             <button
               onClick={() => {

@@ -93,8 +93,8 @@ export default function AdminSettingsPage() {
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Contact & Brand settings
-  const [supportPhone, setSupportPhone] = useState('+919876543210');
-  const [whatsappNumber, setWhatsappNumber] = useState('+919876543210');
+  const [supportPhone, setSupportPhone] = useState('+919888079736');
+  const [whatsappNumber, setWhatsappNumber] = useState('+919888079736');
   const [physicalAddress, setPhysicalAddress] = useState('Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
   const [siteFaviconUrl, setSiteFaviconUrl] = useState('');
@@ -239,8 +239,8 @@ export default function AdminSettingsPage() {
   // Sync settings when data changes
   useEffect(() => {
     if (data) {
-      setSupportPhone(data.support_phone || '+919876543210');
-      setWhatsappNumber(data.whatsapp_number || '+919876543210');
+      setSupportPhone(data.support_phone || '+919888079736');
+      setWhatsappNumber(data.whatsapp_number || '+919888079736');
       setPhysicalAddress(data.physical_address || 'Model Town, Near BMC Chowk, Jalandhar, Punjab 144001, India');
       setSiteLogoUrl(data.site_logo_url || '');
       setSiteFaviconUrl(data.site_favicon_url || '');
@@ -478,7 +478,7 @@ export default function AdminSettingsPage() {
                     required
                     value={supportPhone}
                     onChange={(e) => setSupportPhone(e.target.value)}
-                    placeholder="+919876543210"
+                    placeholder="+919888079736"
                     className="w-full bg-zinc-900 border border-zinc-800 focus:border-taxi-yellow rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
                   />
                 </div>
@@ -499,7 +499,7 @@ export default function AdminSettingsPage() {
                     required
                     value={whatsappNumber}
                     onChange={(e) => setWhatsappNumber(e.target.value)}
-                    placeholder="+919876543210"
+                    placeholder="+919888079736"
                     className="w-full bg-zinc-900 border border-zinc-800 focus:border-[#25D366] rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none font-mono"
                   />
                 </div>

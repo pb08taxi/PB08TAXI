@@ -4,9 +4,9 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export default function ContactSection({ onOpenBooking }) {
   const { settings } = useSiteSettings();
-  const phone = settings?.support_phone || '+91 98765 43210';
+  const phone = settings?.support_phone || '+91 98880 79736';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
-  const rawWa = settings?.whatsapp_number || '919876543210';
+  const rawWa = settings?.whatsapp_number || '919888079736';
   const cleanWa = rawWa.replace(/[^0-9]/g, '');
   return (
     <section id="contact" className="py-24 bg-[#0A0A0A] border-t border-zinc-900 relative">

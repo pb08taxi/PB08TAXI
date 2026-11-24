@@ -47,7 +47,7 @@ import { useToast } from '../context/ToastContext';
 
 const SAMPLE_PREVIEW_DATA = {
   customer_name: 'Rahul Sharma',
-  customer_contact: '+919876543210',
+  customer_contact: '+919888079736',
   booking_ref: 'PB08-26-8942',
   trip_type: 'One Way Trip',
   car_name: 'Toyota Innova Crysta',
@@ -61,7 +61,7 @@ const SAMPLE_PREVIEW_DATA = {
   taxi_number: 'PB01CC1372',
   driver_contact: '+919162841982',
   booked_at: '12-Oct-2026, 09:15 AM',
-  support_phone: '+919876543210',
+  support_phone: '+919888079736',
   notes: 'AC Sedan, Flight departure at 2:30 PM'
 };
 
@@ -567,7 +567,7 @@ export default function AdminWhatsAppPage() {
                     required
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="98765 43210"
+                    placeholder="98880 79736"
                     className="w-full bg-zinc-900 py-2.5 px-3.5 text-xs text-white placeholder-zinc-500 outline-none font-mono tracking-wider"
                   />
                   {testPhone.length === 10 && (
@@ -1306,7 +1306,7 @@ export default function AdminWhatsAppPage() {
                       `📌 *Booking Ref:* #PB08-26-8942\n` +
                       `🛣️ *Trip Type:* {trip_type}\n` +
                       `👤 *Customer Name:* Rahul Sharma\n` +
-                      `📞 *Contact Number:* +919876543210\n` +
+                      `📞 *Contact Number:* +919888079736\n` +
                       `🚘 *Selected Car:* Toyota Innova Crysta\n` +
                       `📅 *Pickup Date:* 12-Oct-2026\n` +
                       `⏰ *Pickup Time:* 10:30 AM\n` +

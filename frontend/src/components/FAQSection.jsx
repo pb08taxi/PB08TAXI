@@ -32,7 +32,7 @@ const FAQS = [
 export default function FAQSection({ onOpenBooking }) {
   const [openIndex, setOpenIndex] = useState(0); // Open first item by default
   const { settings } = useSiteSettings();
-  const phone = settings?.support_phone || '+91 98765 43210';
+  const phone = settings?.support_phone || '+91 98880 79736';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
   const toggleFAQ = (index) => {
@@ -128,7 +128,7 @@ export default function FAQSection({ onOpenBooking }) {
               className="inline-flex items-center space-x-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-3 rounded-xl text-sm transition-all border border-zinc-700"
             >
               <PhoneCall className="w-4 h-4 text-taxi-yellow" />
-              <span>Call Now</span>
+              <span>Call: {phone}</span>
             </a>
 
             <button

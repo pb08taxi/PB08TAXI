@@ -280,7 +280,7 @@ export default function AdminCustomersPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search customers by name or WhatsApp number (e.g., Harpreet, 9876543210)..."
+          placeholder="Search customers by name or WhatsApp number (e.g., Harpreet, 9888079736)..."
           className="w-full bg-transparent border-none text-sm text-white placeholder-zinc-500 outline-none"
         />
         {searchQuery && (
@@ -584,7 +584,7 @@ export default function AdminCustomersPage() {
                       setPhoneDigits(digits);
                       setFormError('');
                     }}
-                    placeholder={countryCode === '+91' && !isCustomCountry ? '98765 43210' : 'Mobile number'}
+                    placeholder={countryCode === '+91' && !isCustomCountry ? '98880 79736' : 'Mobile number'}
                     className="w-full bg-transparent py-2.5 px-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 font-mono tracking-wider outline-none"
                   />
                   {phoneDigits.length >= 7 && (

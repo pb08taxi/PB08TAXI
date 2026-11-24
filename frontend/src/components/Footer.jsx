@@ -7,7 +7,7 @@ import DeveloperModal from './DeveloperModal';
 export default function Footer({ onOpenBooking }) {
   const [isDeveloperModalOpen, setIsDeveloperModalOpen] = useState(false);
   const { settings } = useSiteSettings();
-  const phone = settings?.support_phone || '+91 98765 43210';
+  const phone = settings?.support_phone || '+91 98880 79736';
   const telLink = `tel:${phone.replace(/\s+/g, '')}`;
 
   const brandTitle = settings?.brand_title || 'PB08 TAXI';
@@ -19,6 +19,38 @@ export default function Footer({ onOpenBooking }) {
       <div className="h-1.5 taxi-checker opacity-80" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                {/* High-Conversion 24/7 Callout Banner */}
+        <div className="mb-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 border-2 border-taxi-yellow/40 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="inline-flex items-center space-x-2 bg-taxi-yellow text-black px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+              <Phone className="w-3.5 h-3.5 inline animate-pulse" />
+              <span>24/7 Jalandhar Taxi Dispatch Helpline</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Need an Instant Taxi in Jalandhar or Outstation?
+            </h3>
+            <p className="text-zinc-300 text-sm">
+              Cabs arrive at your doorstep in 10-15 minutes. Call direct for immediate dispatch with zero surge charges.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-shrink-0">
+            <a
+              href={telLink}
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2.5 bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-black text-base px-7 py-3.5 rounded-2xl shadow-xl shadow-yellow-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              <Phone className="w-5 h-5 fill-black" />
+              <span>Call: {phone}</span>
+            </a>
+            <button
+              onClick={onOpenBooking}
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-sm px-6 py-3.5 rounded-2xl border border-zinc-700 hover:border-taxi-yellow transition-all cursor-pointer"
+            >
+              <Car className="w-4 h-4 text-taxi-yellow" />
+              <span>Book Online</span>
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           
           {/* Brand Info */}
