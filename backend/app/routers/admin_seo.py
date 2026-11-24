@@ -288,43 +288,71 @@ CANONICAL_INDEXING_URLS = [
 ]
 
 def _get_google_service_account_credentials(db: Session):
-    """Retrieve service account credentials from DB or filesystem."""
+    """Retrieve service account credentials from DB or filesystem using standard JWT exchange."""
     import json
     import glob
-    from google.oauth2 import service_account
-    import google.auth.transport.requests
+    import time
+    import jwt
 
-    # 1. From database system_settings
+    info = None
+
+    # 1. From database system_settings (check google_indexing_credentials_json or ga4_service_account_json)
     key_setting = db.query(SystemSetting).filter(SystemSetting.key == "google_indexing_credentials_json").first()
+    if not (key_setting and key_setting.value and "private_key" in key_setting.value):
+        key_setting = db.query(SystemSetting).filter(SystemSetting.key == "ga4_service_account_json").first()
     if key_setting and key_setting.value and "private_key" in key_setting.value:
         try:
             info = json.loads(key_setting.value)
-            creds = service_account.Credentials.from_service_account_info(
-                info, scopes=["https://www.googleapis.com/auth/indexing"]
-            )
-            auth_req = google.auth.transport.requests.Request()
-            creds.refresh(auth_req)
-            return creds.token, info.get("client_email")
         except Exception as e:
             print(f"[!] Warning: Failed to parse DB Google credentials: {e}")
 
-    # 2. From filesystem
-    candidates = glob.glob("charged-camera*.json") + glob.glob("../*.json") + glob.glob("*.json")
-    for c in candidates:
-        try:
-            with open(c, "r", encoding="utf-8") as f:
-                info = json.load(f)
-                if info.get("type") == "service_account" and "private_key" in info:
-                    creds = service_account.Credentials.from_service_account_info(
-                        info, scopes=["https://www.googleapis.com/auth/indexing"]
-                    )
-                    auth_req = google.auth.transport.requests.Request()
-                    creds.refresh(auth_req)
-                    return creds.token, info.get("client_email")
-        except Exception:
-            continue
+    # 2. Fallback to filesystem
+    if not info:
+        candidates = glob.glob("charged-camera*.json") + glob.glob("../*.json") + glob.glob("*.json")
+        for cand in candidates:
+            try:
+                with open(cand, "r", encoding="utf-8") as f:
+                    candidate_info = json.load(f)
+                    if candidate_info.get("type") == "service_account" and "private_key" in candidate_info:
+                        info = candidate_info
+                        break
+            except Exception:
+                continue
 
-    return None, None
+    if not info or not info.get("client_email") or not info.get("private_key"):
+        return None, None
+
+    client_email = info.get("client_email")
+    private_key = info.get("private_key")
+
+    try:
+        now = int(time.time())
+        jwt_payload = {
+            "iss": client_email,
+            "scope": "https://www.googleapis.com/auth/indexing",
+            "aud": "https://oauth2.googleapis.com/token",
+            "exp": now + 3600,
+            "iat": now
+        }
+        signed_jwt = jwt.encode(jwt_payload, private_key, algorithm="RS256")
+        
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                    "assertion": signed_jwt
+                }
+            )
+            if resp.status_code == 200:
+                token_data = resp.json()
+                return token_data.get("access_token"), client_email
+            else:
+                print(f"[!] Google OAuth token error ({resp.status_code}): {resp.text[:200]}")
+    except Exception as ex:
+        print(f"[!] Google credentials exchange exception: {ex}")
+
+    return None, client_email
 
 
 @router.get("/admin/seo/indexing-status")
@@ -357,7 +385,6 @@ def trigger_google_indexing(
     """
     import json
     import time
-    import requests
 
     token, email = _get_google_service_account_credentials(db)
     if not token:
@@ -374,18 +401,19 @@ def trigger_google_indexing(
     submitted = []
     failed = []
 
-    for url in CANONICAL_INDEXING_URLS:
-        try:
-            payload = {"url": url, "type": "URL_UPDATED"}
-            res = requests.post(INDEXING_PUBLISH_URL, json=payload, headers=headers, timeout=10)
-            if res.status_code == 200:
-                submitted.append(url)
-            else:
-                err_text = res.text[:200]
-                failed.append({"url": url, "status": res.status_code, "error": err_text})
-        except Exception as e:
-            failed.append({"url": url, "error": str(e)})
-        time.sleep(0.15)
+    with httpx.Client(timeout=15.0) as client:
+        for url in CANONICAL_INDEXING_URLS:
+            try:
+                payload = {"url": url, "type": "URL_UPDATED"}
+                res = client.post(INDEXING_PUBLISH_URL, json=payload, headers=headers)
+                if res.status_code == 200:
+                    submitted.append(url)
+                else:
+                    err_text = res.text[:200]
+                    failed.append({"url": url, "status": res.status_code, "error": err_text})
+            except Exception as e:
+                failed.append({"url": url, "error": str(e)})
+            time.sleep(0.12)
 
     now_iso = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     summary = f"{len(submitted)} succeeded, {len(failed)} failed out of {len(CANONICAL_INDEXING_URLS)} URLs"
