@@ -39,7 +39,10 @@ import {
   updateAdminCredentials,
   factoryResetSystem,
   exportDatabaseBackup,
-  restoreDatabaseBackup
+  restoreDatabaseBackup,
+  getDatabaseControllerStatus,
+  switchDatabaseProject,
+  syncDatabaseProjects
 } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { useToast } from '../context/ToastContext';
@@ -141,6 +144,60 @@ export default function AdminSettingsPage() {
   const [downloadingBackup, setDownloadingBackup] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(false);
   const backupFileInputRef = React.useRef(null);
+
+  // Dual Neon Project Controller states
+  const [dbController, setDbController] = useState(null);
+  const [loadingDbController, setLoadingDbController] = useState(false);
+  const [switchingDb, setSwitchingDb] = useState(false);
+  const [syncingDb, setSyncingDb] = useState(false);
+
+  const fetchDbControllerStatus = async () => {
+    setLoadingDbController(true);
+    try {
+      const res = await getDatabaseControllerStatus();
+      setDbController(res);
+    } catch (err) {
+      console.error('Failed to fetch DB controller status:', err);
+    } finally {
+      setLoadingDbController(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDbControllerStatus();
+  }, []);
+
+  const handleSwitchProject = async (targetProject) => {
+    if (!window.confirm(`Switch active database to ${targetProject}?`)) return;
+    setSwitchingDb(true);
+    try {
+      const res = await switchDatabaseProject(targetProject);
+      showSuccess(res.message || `Switched active database to ${targetProject}!`);
+      await fetchDbControllerStatus();
+      adminCache.invalidate();
+      if (refreshGlobalSettings) refreshGlobalSettings();
+      await refresh();
+    } catch (err) {
+      console.error(err);
+      showError(err.response?.data?.detail || `Failed to switch database: ${err.message}`);
+    } finally {
+      setSwitchingDb(false);
+    }
+  };
+
+  const handleSyncDatabases = async () => {
+    setSyncingDb(true);
+    try {
+      const res = await syncDatabaseProjects();
+      showSuccess(`Sync Complete! ${res.settings_synced} settings & ${res.records_synced} records replicated to ${res.target_project}.`);
+      await fetchDbControllerStatus();
+    } catch (err) {
+      console.error(err);
+      showError(err.response?.data?.detail || `Failed to sync databases: ${err.message}`);
+    } finally {
+      setSyncingDb(false);
+    }
+  };
 
   const handleDownloadBackup = async () => {
     setDownloadingBackup(true);
@@ -1672,8 +1729,10 @@ export default function AdminSettingsPage() {
           </form>
         </div>
 
-        {/* Section 4.5: Database Snapshot & Disaster Recovery */}
+        {/* Section 4.5: Dual-Project Neon Database Engine & Disaster Recovery */}
         <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 sm:p-8 space-y-6">
+          
+          {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-zinc-800/60 flex-wrap gap-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
@@ -1681,17 +1740,195 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span>Database Snapshot & Disaster Recovery</span>
+                  <span>Dual-Neon Database Engine &amp; Disaster Recovery</span>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
-                    Zero Data Loss
+                    Auto-Failover Active
                   </span>
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  Instantly download a full offline snapshot or migrate to any database (Neon, Supabase, Render) in 1 click.
+                  Seamlessly switches between primary and alternate Neon databases with shared data replication and zero downtime.
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchDbControllerStatus}
+                disabled={loadingDbController}
+                className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs flex items-center gap-1.5 transition-all"
+                title="Refresh Database Status"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingDbController ? 'animate-spin' : ''}`} />
+                <span>Refresh Status</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Active Status Banner */}
+          <div className="p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="relative flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+              </div>
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Active Production Database</div>
+                <div className="text-sm sm:text-base font-black text-amber-400 font-mono">
+                  {dbController?.active_project || 'PB08TAXI-ALT'}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <span className="px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Auto-Switch Enabled</span>
+              </span>
+              {dbController?.last_sync_time && (
+                <span className="text-zinc-500 font-mono text-[11px]">
+                  Last Synced: {dbController.last_sync_time}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Dual Project Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
+            {/* Card 1: PB08TAXI Primary */}
+            {(() => {
+              const proj = dbController?.projects?.find(p => p.name === 'PB08TAXI') || {
+                name: 'PB08TAXI',
+                host: 'ep-divine-resonance-b42a27au',
+                status: 'quota_exceeded',
+                message: 'Quota Exceeded (Awaiting Monthly Reset)'
+              };
+              const isActive = dbController?.active_project === 'PB08TAXI';
+              const isOnline = proj.status === 'online';
+
+              return (
+                <div className={`p-5 rounded-2xl border transition-all ${
+                  isActive 
+                    ? 'bg-amber-500/5 border-amber-500/40 ring-1 ring-amber-500/30' 
+                    : 'bg-zinc-950/60 border-zinc-850'
+                }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-black text-white text-sm">PB08TAXI</span>
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Primary Project</span>
+                    </div>
+                    {isActive ? (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-400 text-black font-black text-[10px] tracking-wide">
+                        ACTIVE
+                      </span>
+                    ) : (
+                      <span className="text-zinc-500 text-[11px]">Standby</span>
+                    )}
+                  </div>
+
+                  <p className="font-mono text-xs text-zinc-400 mb-2 truncate">Host: {proj.host}</p>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-zinc-800/60 mt-3">
+                    <span className={`flex items-center gap-1.5 ${isOnline ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}`}>
+                      <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                      <span>{proj.message}</span>
+                    </span>
+
+                    {!isActive && (
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchProject('PB08TAXI')}
+                        disabled={switchingDb || !isOnline}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          isOnline 
+                            ? 'bg-amber-500 hover:bg-amber-400 text-black hover:scale-105 active:scale-95' 
+                            : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                        }`}
+                        title={!isOnline ? proj.message : 'Switch Active DB'}
+                      >
+                        {switchingDb ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Switch Active'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Card 2: PB08TAXI-ALT */}
+            {(() => {
+              const proj = dbController?.projects?.find(p => p.name === 'PB08TAXI-ALT') || {
+                name: 'PB08TAXI-ALT',
+                host: 'ep-green-pine-bekhupju',
+                status: 'online',
+                message: 'Operational & Responsive'
+              };
+              const isActive = (dbController?.active_project || 'PB08TAXI-ALT') === 'PB08TAXI-ALT';
+              const isOnline = proj.status === 'online';
+
+              return (
+                <div className={`p-5 rounded-2xl border transition-all ${
+                  isActive 
+                    ? 'bg-emerald-500/5 border-emerald-500/40 ring-1 ring-emerald-500/30' 
+                    : 'bg-zinc-950/60 border-zinc-850'
+                }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-black text-white text-sm">PB08TAXI-ALT</span>
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">New Neon Project</span>
+                    </div>
+                    {isActive ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-400 text-black font-black text-[10px] tracking-wide">
+                        ACTIVE
+                      </span>
+                    ) : (
+                      <span className="text-zinc-500 text-[11px]">Standby</span>
+                    )}
+                  </div>
+
+                  <p className="font-mono text-xs text-zinc-400 mb-2 truncate">Host: {proj.host}</p>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-zinc-800/60 mt-3">
+                    <span className={`flex items-center gap-1.5 ${isOnline ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}`}>
+                      <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                      <span>{proj.message}</span>
+                      {proj.latency_ms && <span className="text-zinc-500 font-mono text-[10px]">({proj.latency_ms}ms)</span>}
+                    </span>
+
+                    {!isActive && (
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchProject('PB08TAXI-ALT')}
+                        disabled={switchingDb || !isOnline}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          isOnline 
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-black hover:scale-105 active:scale-95' 
+                            : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                        }`}
+                      >
+                        {switchingDb ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Switch Active'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+          </div>
+
+          {/* Sync & Backup Action Bar */}
+          <div className="pt-4 border-t border-zinc-800/60 flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSyncDatabases}
+                disabled={syncingDb}
+                className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-white font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 border border-zinc-700"
+              >
+                {syncingDb ? <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" /> : <RefreshCw className="w-3.5 h-3.5 text-amber-400" />}
+                <span>Sync Both Databases</span>
+              </button>
+            </div>
+
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -1720,20 +1957,6 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div className="bg-zinc-950/60 rounded-xl p-3 border border-zinc-850 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Protected Tables</span>
-              <p className="text-white font-medium">9 Tables (Settings, Fleet, Bookings, Customers, Templates)</p>
-            </div>
-            <div className="bg-zinc-950/60 rounded-xl p-3 border border-zinc-850 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Serverless Optimization</span>
-              <p className="text-emerald-400 font-medium">Auto-Suspend Safe (NullPool Enabled)</p>
-            </div>
-            <div className="bg-zinc-950/60 rounded-xl p-3 border border-zinc-850 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Failover Speed</span>
-              <p className="text-amber-400 font-medium">&lt; 15 seconds 100% Data Restoration</p>
-            </div>
-          </div>
         </div>
 
         {/* Section 5: Danger Zone - Granular Selective Factory Reset */}

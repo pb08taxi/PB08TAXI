@@ -201,6 +201,9 @@ export const factoryResetSystem = (secretPin, options = {}) =>
   api.post('/api/admin/settings/factory-reset', { secret_pin: secretPin, ...options }).then(r => r.data);
 export const exportDatabaseBackup = () => api.get('/api/admin/settings/backup').then(r => r.data);
 export const restoreDatabaseBackup = (payload) => api.post('/api/admin/settings/restore', payload || {}).then(r => r.data);
+export const getDatabaseControllerStatus = () => api.get('/api/admin/database/controller').then(r => r.data);
+export const switchDatabaseProject = (projectName) => api.post('/api/admin/database/switch', { project_name: projectName }).then(r => r.data);
+export const syncDatabaseProjects = () => api.post('/api/admin/database/sync').then(r => r.data);
 
 // Advance SEO & Omnichannel Injections
 export const getPublicSEOSettings = () => api.get('/api/seo').then(r => r.data);

@@ -565,3 +565,47 @@ def restore_database_backup(
         "restored_settings": restored_settings,
         "restored_items": restored_items
     }
+
+
+@router.get("/admin/database/controller")
+def get_database_controller_status(
+    admin: AdminUser = Depends(get_current_admin)
+):
+    """Get live multi-project status, active database, and health metrics."""
+    from app.database import dual_neon_mgr, PRIMARY_PROJECT_NAME, ALT_PROJECT_NAME
+
+    h_primary = dual_neon_mgr.check_project_health(PRIMARY_PROJECT_NAME)
+    h_alt = dual_neon_mgr.check_project_health(ALT_PROJECT_NAME)
+
+    return {
+        "active_project": dual_neon_mgr.active_project_name,
+        "auto_switch_enabled": dual_neon_mgr.auto_switch_enabled,
+        "last_sync_time": dual_neon_mgr.last_sync_time,
+        "projects": [h_primary, h_alt]
+    }
+
+@router.post("/admin/database/switch")
+def switch_database_project(
+    payload: Dict[str, str],
+    admin: AdminUser = Depends(get_current_admin)
+):
+    """Switch active database between PB08TAXI and PB08TAXI-ALT."""
+    from app.database import dual_neon_mgr
+    target = payload.get("project_name")
+    if not target:
+        raise HTTPException(status_code=400, detail="Missing project_name in payload.")
+    try:
+        return dual_neon_mgr.switch_active_project(target)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/admin/database/sync")
+def sync_database_projects(
+    admin: AdminUser = Depends(get_current_admin)
+):
+    """Synchronize all data from active database to partner database."""
+    from app.database import dual_neon_mgr
+    try:
+        return dual_neon_mgr.sync_between_projects()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

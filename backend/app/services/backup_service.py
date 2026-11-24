@@ -1,16 +1,16 @@
 import os
 import json
-from datetime import datetime
 from typing import Dict, Any, Tuple
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-BACKUP_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "backups")
+BACKUP_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backups")
 os.makedirs(BACKUP_DIR, exist_ok=True)
 LATEST_BACKUP_PATH = os.path.join(BACKUP_DIR, "latest_db_backup.json")
 
 def dump_database_to_dict(db: Session) -> Dict[str, Any]:
-    """Extract all active tables and settings into a clean serializable dictionary."""
+    """Export complete snapshot of all tables and records."""
     tables = [
         'system_settings',
         'message_templates',
@@ -58,7 +58,8 @@ def restore_database_from_dict(db: Session, data: Dict[str, Any]) -> Tuple[int, 
     """
     from app.models import SystemSetting, MessageTemplate, FleetCar, SliderImage, Driver, Customer, Booking, AdminUser, MarketingConsent
 
-    tables_data = data.get("tables", data) # support raw tables or wrapped dump
+    raw_tables = data.get("tables")
+    tables_data = raw_tables if isinstance(raw_tables, dict) else data
     restored_settings = 0
     restored_items = 0
 
@@ -79,13 +80,13 @@ def restore_database_from_dict(db: Session, data: Dict[str, Any]) -> Tuple[int, 
     # 2. Message Templates
     templates_list = tables_data.get("message_templates", [])
     for t in templates_list:
-        tk = t.get("template_key")
-        if tk:
-            existing = db.query(MessageTemplate).filter(MessageTemplate.template_key == tk).first()
+        k = t.get("template_key")
+        if k:
+            existing = db.query(MessageTemplate).filter(MessageTemplate.template_key == k).first()
             if not existing:
                 db.add(MessageTemplate(
-                    template_key=tk,
-                    title=t.get("title", tk),
+                    template_key=k,
+                    title=t.get("title", k),
                     content=t.get("content", ""),
                     variables_hint=t.get("variables_hint"),
                     updated_at=datetime.utcnow()
@@ -104,11 +105,7 @@ def restore_database_from_dict(db: Session, data: Dict[str, Any]) -> Tuple[int, 
                 db.add(FleetCar(
                     name=name,
                     category=c.get("category", "Sedan"),
-                    seating_capacity=c.get("seating_capacity", "4+1"),
-                    luggage_capacity=c.get("luggage_capacity", "2 Bags"),
-                    per_km_rate=float(c.get("per_km_rate", 12.0)) if c.get("per_km_rate") else 12.0,
-                    features=c.get("features", "AC, Music"),
-                    image_url=c.get("image_url"),
+                    seating_capacity=c.get("seating_capacity", "4+1 Seater"),
                     is_active=str(c.get("is_active", "True")).lower() in ("true", "1")
                 ))
                 restored_items += 1
@@ -129,7 +126,37 @@ def restore_database_from_dict(db: Session, data: Dict[str, Any]) -> Tuple[int, 
                 ))
                 restored_items += 1
 
-    # 5. Customers
+    # 5. Drivers
+    drivers_list = tables_data.get("drivers", [])
+    for d in drivers_list:
+        reg = d.get("taxi_registration")
+        if reg:
+            existing = db.query(Driver).filter(Driver.taxi_registration == reg).first()
+            if not existing:
+                db.add(Driver(
+                    name=d.get("name", "Driver"),
+                    taxi_registration=reg,
+                    contact_number=d.get("contact_number", ""),
+                    car_name=d.get("car_name"),
+                    is_active=str(d.get("is_active", "True")).lower() in ("true", "1")
+                ))
+                restored_items += 1
+
+    # 6. Admin Users
+    admin_list = tables_data.get("admin_users", [])
+    for a in admin_list:
+        uname = a.get("username")
+        if uname:
+            existing = db.query(AdminUser).filter(AdminUser.username == uname).first()
+            if not existing:
+                db.add(AdminUser(
+                    username=uname,
+                    email=a.get("email", f"{uname}@pb08taxi.com"),
+                    hashed_password=a.get("hashed_password")
+                ))
+                restored_items += 1
+
+    # 7. Customers
     cust_map = {}
     customers_list = tables_data.get("customers", [])
     for c in customers_list:
@@ -151,7 +178,7 @@ def restore_database_from_dict(db: Session, data: Dict[str, Any]) -> Tuple[int, 
                 cust_map[c.get("id")] = existing.id
             restored_items += 1
 
-    # 6. Bookings
+    # 8. Bookings
     bookings_list = tables_data.get("bookings", [])
     for b in bookings_list:
         ref = b.get("booking_reference")
