@@ -6,7 +6,7 @@ export const SETTINGS_STORAGE_KEY = 'pb08_site_settings_cache';
 const DEFAULT_SETTINGS = {
   support_phone: "+919888079736",
   whatsapp_number: "+919888079736",
-  site_logo_url: '/Logo/Logo_PB08TAXI.webp',
+  site_logo_url: '/Logo/pb08taxi-logo-1791754759.png',
   site_favicon_url: '/Logo/pb08taxi-favicon-1791752586.png',
   site_logo_size: 48,
   brand_title: "PB08 TAXI",
@@ -29,7 +29,7 @@ function normalizeSettings(obj) {
   if (!obj || typeof obj !== 'object') return obj;
   const copy = { ...obj };
   if (!copy.site_logo_url) {
-    copy.site_logo_url = '/Logo/Logo_PB08TAXI.webp';
+    copy.site_logo_url = '/Logo/pb08taxi-logo-1791754759.png';
   }
   if (!copy.site_favicon_url) {
     copy.site_favicon_url = '/Logo/pb08taxi-favicon-1791752586.png';
