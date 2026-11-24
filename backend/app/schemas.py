@@ -161,6 +161,28 @@ class DriverOut(DriverBase):
     class Config:
         from_attributes = True
 
+class AdminBookingCreate(BaseModel):
+    customer_name: str = Field(..., min_length=2, max_length=150)
+    whatsapp_number: str = Field(..., min_length=5, max_length=50)
+    trip_type: Optional[str] = Field("One Way Trip", max_length=50)
+    car_name: Optional[str] = Field(None, max_length=100)
+    pickup_location: Optional[str] = Field(None, max_length=255)
+    destination: Optional[str] = Field(None, max_length=255)
+    pickup_date: Optional[str] = Field(None, max_length=50)
+    pickup_time: Optional[str] = Field(None, max_length=50)
+    pickup_lat: Optional[float] = None
+    pickup_lng: Optional[float] = None
+    driver_id: Optional[int] = None
+    status: Optional[str] = Field("PENDING", pattern="^(PENDING|CONFIRMED|COMPLETED|CANCELLED)$")
+    notes: Optional[str] = None
+    send_whatsapp: bool = True
+
+    @field_validator("whatsapp_number")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        return clean_phone(v)
+
+
 class BookingStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(PENDING|CONFIRMED|COMPLETED|CANCELLED)$")
     notes: Optional[str] = None

@@ -11,7 +11,8 @@ import {
   TrendingUp, 
   ArrowRight,
   RefreshCw,
-  Car
+  Car,
+  Plus
 } from 'lucide-react';
 import { getAdminStats, getBookings } from '../api/client';
 import { useAdminQuery } from '../utils/adminCache';
@@ -20,14 +21,18 @@ import { formatISTDateTime } from '../utils/dateTime';
 
 export default function AdminDashboardPage() {
   const fetchDashboardData = async () => {
-    const [statsData, bookingsData] = await Promise.all([
-      getAdminStats(),
-      getBookings('', '')
-    ]);
-    return {
-      stats: statsData,
-      recentBookings: bookingsData.slice(0, 5)
-    };
+    try {
+      const [statsData, bookingsData] = await Promise.all([
+        getAdminStats().catch(() => ({})),
+        getBookings('', '').catch(() => [])
+      ]);
+      return {
+        stats: statsData,
+        recentBookings: Array.isArray(bookingsData) ? bookingsData.slice(0, 5) : []
+      };
+    } catch (e) {
+      return { stats: {}, recentBookings: [] };
+    }
   };
 
   const { data, loading, isRevalidating, refresh } = useAdminQuery('admin_dashboard', fetchDashboardData, {
@@ -35,7 +40,7 @@ export default function AdminDashboardPage() {
   });
 
   const stats = data?.stats;
-  const recentBookings = data?.recentBookings || [];
+  const recentBookings = Array.isArray(data?.recentBookings) ? data.recentBookings : [];
 
   return (
     <div className="space-y-8">
@@ -48,14 +53,23 @@ export default function AdminDashboardPage() {
               Real-time taxi operations, customer records, and WhatsApp delivery performance.
             </p>
           </div>
-          <button
-            onClick={() => refresh()}
-            disabled={loading || isRevalidating}
-            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
-            <span>{isRevalidating ? 'Updating...' : 'Refresh Metrics'}</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+            <Link
+              to="/admin/bookings"
+              className="inline-flex items-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellow/90 text-black px-4 py-2 rounded-xl text-xs font-black shadow-lg shadow-taxi-yellow/20 active:scale-95 transition-all"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>+ New Booking</span>
+            </Link>
+            <button
+              onClick={() => refresh()}
+              disabled={loading || isRevalidating}
+              className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+              <span>{isRevalidating ? 'Updating...' : 'Refresh Metrics'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Primary Metric Cards */}

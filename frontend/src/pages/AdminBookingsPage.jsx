@@ -19,9 +19,14 @@ import {
   Send,
   ShieldCheck,
   ArrowRight,
-  Repeat
+  Repeat,
+  Plus,
+  Download,
+  Trash2,
+  Sparkles,
+  Calendar
 } from 'lucide-react';
-import { getBookings, updateBookingStatus, getDrivers } from '../api/client';
+import { getBookings, updateBookingStatus, getDrivers, adminCreateBooking, adminDeleteBooking } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 import { useOpenWAChat } from '../context/ChatContext';
@@ -29,12 +34,64 @@ import { formatISTDateTime, formatISTDate, formatISTTime } from '../utils/dateTi
 
 const STATUS_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
+const DATE_FILTER_TABS = [
+  { id: 'ALL', label: 'All Dates' },
+  { id: 'TODAY', label: "Today's Rides" },
+  { id: 'TOMORROW', label: "Tomorrow" },
+  { id: 'UPCOMING', label: "Upcoming (7D)" },
+];
+
+const getTodayIST = () => {
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const ist = new Date(utc + (3600000 * 5.5));
+  return ist.toISOString().split('T')[0];
+};
+
+const getTomorrowIST = () => {
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const ist = new Date(utc + (3600000 * 5.5) + (24 * 3600000));
+  return ist.toISOString().split('T')[0];
+};
+
+const QUICK_ROUTES = [
+  { label: 'Jalandhar ➔ Delhi Airport', pickup: 'Jalandhar, Punjab', drop: 'Indira Gandhi International Airport, Delhi' },
+  { label: 'Jalandhar ➔ Amritsar Airport', pickup: 'Jalandhar, Punjab', drop: 'Sri Guru Ram Dass Jee International Airport, Amritsar' },
+  { label: 'Jalandhar ➔ Chandigarh Airport', pickup: 'Jalandhar, Punjab', drop: 'Shaheed Bhagat Singh International Airport, Chandigarh' },
+  { label: 'Jalandhar Local (City Ride)', pickup: 'Jalandhar City', drop: 'Local Sightseeing / Market Tour' },
+];
+
 export default function AdminBookingsPage() {
   const { showSuccess, showError } = useToast();
   const { openChat } = useOpenWAChat();
-  const [activeTab, setActiveTab] = useState('ALL');
+const [activeTab, setActiveTab] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Create Booking Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    customer_name: '',
+    whatsapp_number: '',
+    trip_type: 'One Way Trip',
+    car_name: 'Swift Dzire (Sedan)',
+    pickup_location: '',
+    destination: '',
+    pickup_date: getTodayIST(),
+    pickup_time: '10:00',
+    driver_id: '',
+    status: 'CONFIRMED',
+    notes: '',
+    send_whatsapp: true
+  });
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  // Delete Booking Modal state
+  const [bookingToDelete, setBookingToDelete] = useState(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   // Status & Driver Assign Modal states
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -66,7 +123,162 @@ export default function AdminBookingsPage() {
     { ttl: 2 * 60 * 1000 }
   );
 
-  const bookings = data || [];
+// Filter bookings by activeTab and dateFilter
+  const allFetchedBookings = data || [];
+  const bookings = allFetchedBookings.filter((b) => {
+    if (dateFilter === 'ALL') return true;
+    const pickup = b.pickup_date || '';
+    const today = getTodayIST();
+    const tomorrow = getTomorrowIST();
+    if (dateFilter === 'TODAY') return pickup === today;
+    if (dateFilter === 'TOMORROW') return pickup === tomorrow;
+    if (dateFilter === 'UPCOMING') return pickup >= today;
+    return true;
+  });
+
+  const handleOpenCreateModal = () => {
+    setCreateForm({
+      customer_name: '',
+      whatsapp_number: '',
+      trip_type: 'One Way Trip',
+      car_name: 'Swift Dzire (Sedan)',
+      pickup_location: '',
+      destination: '',
+      pickup_date: getTodayIST(),
+      pickup_time: '10:00',
+      driver_id: '',
+      status: 'CONFIRMED',
+      notes: '',
+      send_whatsapp: true
+    });
+    setCreateError('');
+    fetchActiveDrivers();
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!createForm.customer_name.trim()) {
+      setCreateError('Please enter passenger name');
+      return;
+    }
+    if (!createForm.whatsapp_number.trim()) {
+      setCreateError('Please enter passenger WhatsApp / contact number');
+      return;
+    }
+    setCreateSubmitting(true);
+    setCreateError('');
+
+    try {
+      const payload = {
+        customer_name: createForm.customer_name.trim(),
+        whatsapp_number: createForm.whatsapp_number.trim(),
+        trip_type: createForm.trip_type,
+        car_name: createForm.car_name,
+        pickup_location: createForm.pickup_location.trim() || null,
+        destination: createForm.destination.trim() || null,
+        pickup_date: createForm.pickup_date || null,
+        pickup_time: createForm.pickup_time || null,
+        driver_id: createForm.driver_id ? parseInt(createForm.driver_id) : null,
+        status: createForm.status,
+        notes: createForm.notes.trim() || null,
+        send_whatsapp: createForm.send_whatsapp
+      };
+
+      const newBooking = await adminCreateBooking(payload);
+      adminCache.invalidatePrefix('admin_bookings');
+      adminCache.invalidatePrefix('admin_dashboard');
+      await refresh();
+      showSuccess(`Booking #${newBooking.booking_reference} created successfully!`);
+      setIsCreateModalOpen(false);
+    } catch (err) {
+      console.error('Failed to create booking:', err);
+      const msg = err.response?.data?.detail || err.message || 'Failed to create booking';
+      setCreateError(msg);
+      showError(msg);
+    } finally {
+      setCreateSubmitting(false);
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return;
+    setDeleteSubmitting(true);
+    try {
+      await adminDeleteBooking(bookingToDelete.id);
+      adminCache.invalidatePrefix('admin_bookings');
+      adminCache.invalidatePrefix('admin_dashboard');
+      await refresh();
+      showSuccess(`Booking #${bookingToDelete.booking_reference} deleted successfully.`);
+      setBookingToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete booking:', err);
+      showError('Failed to delete booking');
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (bookings.length === 0) {
+      showError('No bookings match the current filter to export.');
+      return;
+    }
+
+    const escapeCSV = (val) => {
+      if (val === null || val === undefined) return '""';
+      const s = String(val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    const headers = [
+      'Booking Reference',
+      'Customer Name',
+      'WhatsApp Number',
+      'Trip Type',
+      'Car Type',
+      'Pickup Location',
+      'Destination',
+      'Pickup Date',
+      'Pickup Time',
+      'Status',
+      'Assigned Driver',
+      'Taxi Reg',
+      'Driver Contact',
+      'Notes',
+      'Created Date'
+    ];
+
+    const rows = bookings.map((b) => [
+      escapeCSV(b.booking_reference),
+      escapeCSV(b.customer_name),
+      escapeCSV(b.whatsapp_number),
+      escapeCSV(b.trip_type || 'One Way Trip'),
+      escapeCSV(b.car_name || 'Dzire / Sedan'),
+      escapeCSV(b.pickup_location || ''),
+      escapeCSV(b.destination || ''),
+      escapeCSV(b.pickup_date || ''),
+      escapeCSV(b.pickup_time || ''),
+      escapeCSV(b.status),
+      escapeCSV(b.driver_name || 'Unassigned'),
+      escapeCSV(b.driver_taxi_registration || ''),
+      escapeCSV(b.driver_contact || ''),
+      escapeCSV(b.notes || ''),
+      escapeCSV(formatISTDateTime(b.created_at))
+    ].join(','));
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `PB08_Bookings_${getTodayIST()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showSuccess(`Exported ${bookings.length} bookings to CSV successfully!`);
+  };
 
   // Fetch active drivers when modal opens or assignDriverEnabled toggles
   const fetchActiveDrivers = async () => {
@@ -181,45 +393,92 @@ export default function AdminBookingsPage() {
             Dispatch reservations, assign verified fleet drivers, and send real-time WhatsApp updates.
           </p>
         </div>
-        <button
-          onClick={() => refresh()}
-          disabled={loading || isRevalidating}
-          className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-4 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors self-start"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
-          <span>{isRevalidating ? 'Updating...' : 'Refresh'}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-zinc-800 transition-colors cursor-pointer active:scale-95"
+            title="Download CSV report of current bookings"
+          >
+            <Download className="w-3.5 h-3.5 text-taxi-yellow" />
+            <span>Export CSV</span>
+          </button>
+          <button
+            onClick={handleOpenCreateModal}
+            className="inline-flex items-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellow/90 text-black px-4 py-2.5 rounded-xl text-xs font-black shadow-lg shadow-taxi-yellow/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>+ New Booking</span>
+          </button>
+          <button
+            onClick={() => refresh()}
+            disabled={loading || isRevalidating}
+            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-zinc-800 transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || isRevalidating ? 'animate-spin' : ''}`} />
+            <span>{isRevalidating ? 'Updating...' : 'Refresh'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs & Search */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Tabs */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-2 lg:pb-0">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                activeTab === tab
-                  ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-850'
-              }`}
-            >
-              {tab === 'CONFIRMED' ? 'CONFIRMED (Driver Assigned)' : tab === 'COMPLETED' ? 'COMPLETED (Finished)' : tab}
-            </button>
-          ))}
+      <div className="space-y-3">
+        {/* Row 1: Status Tabs & Search Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center space-x-2 overflow-x-auto pb-2 lg:pb-0">
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === tab
+                    ? 'bg-taxi-yellow text-black shadow-md shadow-taxi-yellow/20'
+                    : 'bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-850'
+                }`}
+              >
+                {tab === 'CONFIRMED' ? 'CONFIRMED (Driver Assigned)' : tab === 'COMPLETED' ? 'COMPLETED (Finished)' : tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-zinc-950 border border-zinc-850 rounded-2xl px-4 py-2.5 flex items-center space-x-3 w-full lg:w-96">
+            <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search reference, customer, or phone..."
+              className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 outline-none"
+            />
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="bg-zinc-950 border border-zinc-850 rounded-2xl px-4 py-2.5 flex items-center space-x-3 w-full lg:w-96">
-          <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search reference, customer, or phone..."
-            className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 outline-none"
-          />
+        {/* Row 2: Date Quick Filter Chips */}
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mr-1 flex items-center space-x-1 shrink-0">
+            <Calendar className="w-3.5 h-3.5 text-taxi-yellow" />
+            <span>Pickup Date:</span>
+          </span>
+          {DATE_FILTER_TABS.map((dTab) => (
+            <button
+              key={dTab.id}
+              onClick={() => setDateFilter(dTab.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                dateFilter === dTab.id
+                  ? 'bg-zinc-800 text-taxi-yellow border border-taxi-yellow/50 shadow-sm'
+                  : 'bg-zinc-900/60 text-zinc-400 hover:text-white border border-zinc-850'
+              }`}
+            >
+              {dTab.label}
+            </button>
+          ))}
+          {dateFilter !== 'ALL' && (
+            <button
+              onClick={() => setDateFilter('ALL')}
+              className="text-[10px] text-zinc-400 hover:text-white underline cursor-pointer ml-1"
+            >
+              Clear filter
+            </button>
+          )}
         </div>
       </div>
 
@@ -434,6 +693,14 @@ export default function AdminBookingsPage() {
                         title={`Chat with Customer ${b.customer_name} via OpenWA`}
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBookingToDelete(b)}
+                        className="inline-flex items-center justify-center p-1.5 text-zinc-500 hover:text-rose-400 bg-zinc-900/60 hover:bg-rose-950/30 rounded-lg border border-zinc-800 hover:border-rose-900/40 transition-colors cursor-pointer"
+                        title="Delete booking permanently"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -939,6 +1206,341 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       )}
+
+      {/* Create New Booking Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 relative text-white shadow-2xl animate-scale-up my-8 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-850">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-taxi-yellow/15 text-taxi-yellow flex items-center justify-center">
+                  <Plus className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">Record New Taxi Booking</h3>
+                  <p className="text-xs text-zinc-400">Direct phone, WhatsApp or walk-in reservation entry</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-zinc-400 hover:text-white p-1.5 rounded-lg border border-zinc-850 hover:bg-zinc-900 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {createError && (
+              <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{createError}</span>
+              </div>
+            )}
+
+            {/* Quick Route Fill Buttons */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Quick Route Presets:</span>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_ROUTES.map((qr, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, pickup_location: qr.pickup, destination: qr.drop })}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-taxi-yellow transition-colors cursor-pointer"
+                  >
+                    {qr.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Passenger Name */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <User className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Passenger Name *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.customer_name}
+                    onChange={(e) => setCreateForm({ ...createForm, customer_name: e.target.value })}
+                    placeholder="e.g. Gurpreet Singh"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+
+                {/* WhatsApp Phone */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>WhatsApp / Mobile Number *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.whatsapp_number}
+                    onChange={(e) => setCreateForm({ ...createForm, whatsapp_number: e.target.value })}
+                    placeholder="e.g. 9888079736 or +919888079736"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+              </div>
+
+              {/* Trip Type & Car Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <Repeat className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Trip Type</span>
+                  </label>
+                  <select
+                    value={createForm.trip_type}
+                    onChange={(e) => setCreateForm({ ...createForm, trip_type: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  >
+                    <option value="One Way Trip">One Way Trip</option>
+                    <option value="Round Trip">Round Trip</option>
+                    <option value="Airport Transfer">Airport Transfer (DEL / ATQ / IXC)</option>
+                    <option value="Local City Rental">Local City Rental (8h / 80km)</option>
+                    <option value="Outstation Tour">Outstation Himachal / Kashmir Tour</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <Car className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Vehicle Class</span>
+                  </label>
+                  <select
+                    value={createForm.car_name}
+                    onChange={(e) => setCreateForm({ ...createForm, car_name: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  >
+                    <option value="Swift Dzire (Sedan)">Swift Dzire (Sedan - 4+1)</option>
+                    <option value="Toyota Innova Crysta (SUV)">Toyota Innova Crysta (SUV - 6+1)</option>
+                    <option value="Maruti Ertiga (SUV)">Maruti Ertiga (SUV - 6+1)</option>
+                    <option value="Hyundai Aura (Sedan)">Hyundai Aura (Sedan - 4+1)</option>
+                    <option value="Honda City (Sedan)">Honda City (Sedan - 4+1)</option>
+                    <option value="Toyota Fortuner (Luxury)">Toyota Fortuner (Luxury - 6+1)</option>
+                    <option value="Tempo Traveller (12+1)">Tempo Traveller (12+1 Seater)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Pickup & Destination */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Pickup Address / Landmark</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.pickup_location}
+                    onChange={(e) => setCreateForm({ ...createForm, pickup_location: e.target.value })}
+                    placeholder="e.g. Model Town, BMC Chowk, Jalandhar"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Drop Destination</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.destination}
+                    onChange={(e) => setCreateForm({ ...createForm, destination: e.target.value })}
+                    placeholder="e.g. Terminal 3, IGI Airport, New Delhi"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+              </div>
+
+              {/* Pickup Date & Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <CalendarCheck className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Pickup Date</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={createForm.pickup_date}
+                    onChange={(e) => setCreateForm({ ...createForm, pickup_date: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <Clock className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Pickup Time</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={createForm.pickup_time}
+                    onChange={(e) => setCreateForm({ ...createForm, pickup_time: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  />
+                </div>
+              </div>
+
+              {/* Driver Assignment & Initial Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <UserCheck className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Assign Fleet Driver (Optional)</span>
+                  </label>
+                  <select
+                    value={createForm.driver_id}
+                    onChange={(e) => setCreateForm({ ...createForm, driver_id: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  >
+                    <option value="">-- Assign Later (Unassigned) --</option>
+                    {availableDrivers.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} ({d.taxi_registration}) - {d.car_name || 'Fleet'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300 flex items-center space-x-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-taxi-yellow" />
+                    <span>Initial Status</span>
+                  </label>
+                  <select
+                    value={createForm.status}
+                    onChange={(e) => setCreateForm({ ...createForm, status: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-taxi-yellow/60"
+                  >
+                    <option value="CONFIRMED">CONFIRMED (Booking Accepted)</option>
+                    <option value="PENDING">PENDING (Awaiting Confirmation)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Notes / Fare agreed */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-300">Notes / Agreed Fare / Special Requests</label>
+                <textarea
+                  rows={2}
+                  value={createForm.notes}
+                  onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+                  placeholder="e.g. Agreed fare ₹4,500 all inclusive. Toll tax extra. Flight No AI-102."
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-taxi-yellow/60 resize-none"
+                />
+              </div>
+
+              {/* WhatsApp Toggle */}
+              <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-white flex items-center space-x-1.5">
+                    <Send className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Dispatch Instant WhatsApp Confirmation</span>
+                  </span>
+                  <p className="text-[11px] text-zinc-400">
+                    Sends automated booking confirmation card to passenger (and driver if assigned)
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={createForm.send_whatsapp}
+                  onChange={(e) => setCreateForm({ ...createForm, send_whatsapp: e.target.checked })}
+                  className="w-4 h-4 accent-taxi-yellow rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-zinc-850">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-taxi-yellow hover:bg-taxi-yellow/90 text-black text-xs font-black shadow-lg shadow-taxi-yellow/20 active:scale-95 transition-all cursor-pointer flex items-center space-x-2"
+                >
+                  {createSubmitting ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Recording...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>Confirm & Record Booking</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {bookingToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-md w-full p-6 space-y-4 relative text-white shadow-2xl animate-scale-up">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-950/60 border border-rose-800/40 text-rose-400 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Delete Booking?</h3>
+                <p className="text-xs text-zinc-400">This action permanently deletes the reservation record.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-850 space-y-1 text-xs">
+              <div><strong className="text-taxi-yellow">Ref:</strong> #{bookingToDelete.booking_reference}</div>
+              <div><strong className="text-zinc-400">Passenger:</strong> {bookingToDelete.customer_name} ({bookingToDelete.whatsapp_number})</div>
+              <div><strong className="text-zinc-400">Route:</strong> {bookingToDelete.pickup_location || 'Pickup'} ➔ {bookingToDelete.destination || 'Drop'}</div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setBookingToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 transition-colors cursor-pointer"
+              >
+                Keep Booking
+              </button>
+              <button
+                type="button"
+                disabled={deleteSubmitting}
+                onClick={handleDeleteBooking}
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-lg shadow-rose-600/20 active:scale-95 transition-all cursor-pointer flex items-center space-x-1.5"
+              >
+                {deleteSubmitting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -25,7 +25,7 @@ import {
   Edit3,
   Loader2
 } from 'lucide-react';
-import { getAdminSEOSettings, updateAdminSEOSettings, resetAdminSEODefaults, uploadSEOBanner } from '../api/client';
+import { getAdminSEOSettings, updateAdminSEOSettings, resetAdminSEODefaults, uploadSEOBanner, triggerGoogleIndexing, getGoogleIndexingStatus } from '../api/client';
 import { useAdminQuery, adminCache } from '../utils/adminCache';
 import { useToast } from '../context/ToastContext';
 
@@ -42,6 +42,33 @@ export default function AdminSEOPage() {
 
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
+const [indexingStatus, setIndexingStatus] = useState(null);
+  const [triggeringIndexing, setTriggeringIndexing] = useState(false);
+  const [indexingResult, setIndexingResult] = useState(null);
+
+  useEffect(() => {
+    getGoogleIndexingStatus()
+      .then(setIndexingStatus)
+      .catch(() => {});
+  }, []);
+
+  const handleTriggerIndexing = async () => {
+    setTriggeringIndexing(true);
+    setIndexingResult(null);
+    try {
+      const res = await triggerGoogleIndexing();
+      setIndexingResult(res);
+      showSuccess(`Google received bulk crawl notification for ${res.count} pages!`);
+      getGoogleIndexingStatus().then(setIndexingStatus);
+    } catch (err) {
+      console.error('Failed to trigger indexing:', err);
+      const msg = err.response?.data?.detail || 'Failed to trigger Google Indexing API.';
+      showError(msg);
+    } finally {
+      setTriggeringIndexing(false);
+    }
+  };
+
   const [activePreviewTab, setActivePreviewTab] = useState('google'); // 'google' | 'whatsapp'
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const bannerFileInputRef = React.useRef(null);
@@ -257,6 +284,92 @@ export default function AdminSEOPage() {
             <span>Reset Defaults</span>
           </button>
         </div>
+      </div>
+
+
+      {/* Google Web Search Indexing API Automation Card */}
+      <div className="bg-gradient-to-r from-zinc-950 via-zinc-900/80 to-zinc-950 border border-taxi-yellow/30 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-taxi-yellow/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-taxi-yellow text-black flex items-center justify-center font-black shadow-lg shadow-taxi-yellow/20 flex-shrink-0">
+              <Sparkles className="w-6 h-6 stroke-[2.5]" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-black text-white">Google Search Indexing API</h2>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  GSC Verified Owner
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Directly notify Googlebot to crawl and index all 15 website pages instantly without waiting in the Search Console crawl queue.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTriggerIndexing}
+            disabled={triggeringIndexing}
+            className="inline-flex items-center justify-center space-x-2 bg-taxi-yellow hover:bg-taxi-yellow/90 text-black px-5 py-3 rounded-2xl text-xs font-black shadow-xl shadow-taxi-yellow/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto"
+          >
+            {triggeringIndexing ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin stroke-[2.5]" />
+                <span>Notifying Googlebot...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 stroke-[2.5]" />
+                <span>🚀 Trigger Google Indexing Now</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Status info bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-zinc-800/80 text-xs">
+          <div className="bg-zinc-950/80 rounded-xl p-3 border border-zinc-850">
+            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Service Account</span>
+            <p className="text-white font-mono text-[11px] truncate mt-0.5">
+              {indexingStatus?.service_account_email || 'pb08-analytics@charged-camera-511514-f7...'}
+            </p>
+          </div>
+          <div className="bg-zinc-950/80 rounded-xl p-3 border border-zinc-850">
+            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Pages Covered</span>
+            <p className="text-taxi-yellow font-bold text-sm mt-0.5">
+              {indexingStatus?.total_canonical_pages || 15} Canonical URLs + Sitemap
+            </p>
+          </div>
+          <div className="bg-zinc-950/80 rounded-xl p-3 border border-zinc-850">
+            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Last Indexing Notification</span>
+            <p className="text-zinc-300 font-mono text-[11px] mt-0.5 truncate">
+              {indexingStatus?.last_run || 'Ready to trigger'}
+            </p>
+          </div>
+        </div>
+
+        {/* Live Indexing Execution Results Card */}
+        {indexingResult && (
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-emerald-800/40 space-y-2 text-xs animate-fade-in">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-emerald-400 flex items-center space-x-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Googlebot successfully notified for {indexingResult.count} pages!</span>
+              </span>
+              <span className="font-mono text-zinc-500 text-[10px]">{indexingResult.timestamp}</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {indexingResult.submitted?.map((url, i) => (
+                <span key={i} className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 font-mono text-[10px] text-zinc-300">
+                  {url.replace('https://www.pb08taxi.com', '') || '/'}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Live SERP & Social Sharing Card Simulator */}

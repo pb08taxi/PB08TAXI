@@ -262,3 +262,143 @@ async def upload_seo_banner(
         "github_path": github_path
     }
 
+
+
+# =====================================================================
+# Google Search Indexing API Trigger & Status Endpoints
+# =====================================================================
+INDEXING_PUBLISH_URL = "https://indexing.googleapis.com/v3/urlNotifications:publish"
+CANONICAL_INDEXING_URLS = [
+    "https://www.pb08taxi.com/",
+    "https://www.pb08taxi.com/popular-routes",
+    "https://www.pb08taxi.com/jalandhar-taxi-service",
+    "https://www.pb08taxi.com/jalandhar-taxi",
+    "https://www.pb08taxi.com/near-me-taxi-service",
+    "https://www.pb08taxi.com/near-me-taxi",
+    "https://www.pb08taxi.com/taxi-near-me",
+    "https://www.pb08taxi.com/one-way-taxi-service",
+    "https://www.pb08taxi.com/airport-taxi-jalandhar",
+    "https://www.pb08taxi.com/safe-travel-guidelines",
+    "https://www.pb08taxi.com/privacy-policy",
+    "https://www.pb08taxi.com/terms-of-service",
+    "https://www.pb08taxi.com/editorial-policy",
+    "https://www.pb08taxi.com/about",
+    "https://www.pb08taxi.com/contact",
+    "https://pb08taxi.com/"
+]
+
+def _get_google_service_account_credentials(db: Session):
+    """Retrieve service account credentials from DB or filesystem."""
+    import json
+    import glob
+    from google.oauth2 import service_account
+    import google.auth.transport.requests
+
+    # 1. From database system_settings
+    key_setting = db.query(SystemSetting).filter(SystemSetting.key == "google_indexing_credentials_json").first()
+    if key_setting and key_setting.value and "private_key" in key_setting.value:
+        try:
+            info = json.loads(key_setting.value)
+            creds = service_account.Credentials.from_service_account_info(
+                info, scopes=["https://www.googleapis.com/auth/indexing"]
+            )
+            auth_req = google.auth.transport.requests.Request()
+            creds.refresh(auth_req)
+            return creds.token, info.get("client_email")
+        except Exception as e:
+            print(f"[!] Warning: Failed to parse DB Google credentials: {e}")
+
+    # 2. From filesystem
+    candidates = glob.glob("charged-camera*.json") + glob.glob("../*.json") + glob.glob("*.json")
+    for c in candidates:
+        try:
+            with open(c, "r", encoding="utf-8") as f:
+                info = json.load(f)
+                if info.get("type") == "service_account" and "private_key" in info:
+                    creds = service_account.Credentials.from_service_account_info(
+                        info, scopes=["https://www.googleapis.com/auth/indexing"]
+                    )
+                    auth_req = google.auth.transport.requests.Request()
+                    creds.refresh(auth_req)
+                    return creds.token, info.get("client_email")
+        except Exception:
+            continue
+
+    return None, None
+
+
+@router.get("/admin/seo/indexing-status")
+def get_indexing_status(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Check Google Indexing API configuration and latest submission history."""
+    last_run = _get_val(db, "seo_last_indexing_time", "")
+    last_summary = _get_val(db, "seo_last_indexing_summary", "")
+    token, email = _get_google_service_account_credentials(db)
+
+    return {
+        "is_configured": token is not None,
+        "service_account_email": email or "pb08-analytics@charged-camera-511514-f7.iam.gserviceaccount.com",
+        "last_run": last_run or None,
+        "last_summary": last_summary or None,
+        "total_canonical_pages": len(CANONICAL_INDEXING_URLS)
+    }
+
+
+@router.post("/admin/seo/trigger-indexing")
+def trigger_google_indexing(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Trigger Google Web Search Indexing API for all canonical website pages.
+    Notifies Googlebot immediately to crawl and index all URLs in bulk.
+    """
+    import json
+    import time
+    import requests
+
+    token, email = _get_google_service_account_credentials(db)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google Indexing Service Account key is not configured or missing."
+        )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    submitted = []
+    failed = []
+
+    for url in CANONICAL_INDEXING_URLS:
+        try:
+            payload = {"url": url, "type": "URL_UPDATED"}
+            res = requests.post(INDEXING_PUBLISH_URL, json=payload, headers=headers, timeout=10)
+            if res.status_code == 200:
+                submitted.append(url)
+            else:
+                err_text = res.text[:200]
+                failed.append({"url": url, "status": res.status_code, "error": err_text})
+        except Exception as e:
+            failed.append({"url": url, "error": str(e)})
+        time.sleep(0.15)
+
+    now_iso = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    summary = f"{len(submitted)} succeeded, {len(failed)} failed out of {len(CANONICAL_INDEXING_URLS)} URLs"
+
+    _set_val(db, "seo_last_indexing_time", now_iso)
+    _set_val(db, "seo_last_indexing_summary", summary)
+
+    return {
+        "success": len(failed) == 0,
+        "count": len(submitted),
+        "total": len(CANONICAL_INDEXING_URLS),
+        "submitted": submitted,
+        "failed": failed,
+        "timestamp": now_iso,
+        "summary": summary
+    }

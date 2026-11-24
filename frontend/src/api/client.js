@@ -126,6 +126,8 @@ export const updateBookingStatus = (id, status, notes = '', driverId = null, sen
     driver_id: driverId, 
     send_whatsapp: sendWhatsApp 
   }).then(r => r.data);
+export const adminCreateBooking = (data) => api.post('/api/admin/bookings', data).then(r => r.data);
+export const adminDeleteBooking = (id) => api.delete(`/api/admin/bookings/${id}`).then(r => r.data);
 
 // Admin Slider
 export const getAdminSliders = () => api.get('/api/admin/slider-images').then(r => r.data);
@@ -203,6 +205,8 @@ export const getPublicSEOSettings = () => api.get('/api/seo').then(r => r.data);
 export const getAdminSEOSettings = () => api.get('/api/admin/seo').then(r => r.data);
 export const updateAdminSEOSettings = (payload) => api.post('/api/admin/seo', payload).then(r => r.data);
 export const resetAdminSEODefaults = () => api.post('/api/admin/seo/reset').then(r => r.data);
+export const triggerGoogleIndexing = () => api.post('/api/admin/seo/trigger-indexing').then(r => r.data);
+export const getGoogleIndexingStatus = () => api.get('/api/admin/seo/indexing-status').then(r => r.data);
 export const uploadSEOBanner = (file) => {
   const formData = new FormData();
   formData.append('file', file);

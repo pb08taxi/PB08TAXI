@@ -14,7 +14,8 @@ import {
   X, 
   AlertTriangle,
   UserPlus,
-  ChevronDown
+  ChevronDown,
+  Download
 } from 'lucide-react';
 import { 
   getCustomers, 
@@ -218,6 +219,38 @@ export default function AdminCustomersPage() {
     }
   };
 
+const handleExportCSV = () => {
+    if (customers.length === 0) {
+      showError('No customer records to export.');
+      return;
+    }
+    const escapeCSV = (val) => {
+      if (val === null || val === undefined) return '""';
+      const s = String(val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+    const headers = ['Customer Name', 'WhatsApp Number', 'Marketing Consent', 'Total Bookings', 'Created At'];
+    const rows = customers.map((c) => [
+      escapeCSV(c.name),
+      escapeCSV(c.whatsapp_number),
+      escapeCSV(c.marketing_consent ? 'Opted In' : 'Opted Out'),
+      escapeCSV(c.total_bookings ?? 0),
+      escapeCSV(formatISTDate(c.created_at))
+    ].join(','));
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `PB08_Customers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showSuccess(`Exported ${customers.length} customer records to CSV!`);
+  };
+
   const handleDeleteCustomer = async () => {
     if (!deletingCustomer) return;
     try {
@@ -253,7 +286,16 @@ export default function AdminCustomersPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold border border-zinc-800 transition-colors cursor-pointer active:scale-95"
+            title="Download CSV export of customer directory"
+          >
+            <Download className="w-3.5 h-3.5 text-taxi-yellow" />
+            <span>Export CSV</span>
+          </button>
+
           <button
             onClick={() => refresh()}
             disabled={loading || isRevalidating}

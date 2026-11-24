@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Zap, ArrowRight, ShieldCheck, Clock, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, ArrowRight, ShieldCheck, Clock, MapPin, Phone } from 'lucide-react';
 import { fetchPublicSliders } from '../api/client';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
