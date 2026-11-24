@@ -65,7 +65,7 @@ export default function ServicesSection({ onOpenBooking }) {
             return (
               <div
                 key={index}
-                className="group bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-taxi-yellow/50 rounded-3xl p-8 transition-all duration-300 hover:-translate-y-1.5 shadow-lg hover:shadow-taxi-yellow/5 flex flex-col justify-between"
+                className="group glass-card-luxury rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">

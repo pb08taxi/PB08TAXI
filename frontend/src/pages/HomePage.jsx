@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import HeroSlider from '../components/HeroSlider';
+import LiveStatsBanner from '../components/LiveStatsBanner';
 import ServicesSection from '../components/ServicesSection';
+import FleetShowcaseSection from '../components/FleetShowcaseSection';
 import PopularRoutesSection from '../components/PopularRoutesSection';
 import WhyChooseUs from '../components/WhyChooseUs';
+import CustomerReviewsSection from '../components/CustomerReviewsSection';
 import FAQSection from '../components/FAQSection';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
+import LiveActivityToast from '../components/LiveActivityToast';
 import SEOHead from '../components/SEOHead';
 import CookieConsent from '../components/CookieConsent';
 import { trackPageView, trackModalOpen } from '../utils/analytics';
@@ -59,14 +63,23 @@ export default function HomePage() {
         {/* Hero Slider with 'One Click Book Your Ride' CTA */}
         <HeroSlider onOpenBooking={handleOpenBooking} />
 
+        {/* Live Dispatch Statistics & Active Radar Counter */}
+        <LiveStatsBanner onOpenBooking={handleOpenBooking} />
+
         {/* Services Section */}
         <ServicesSection onOpenBooking={handleOpenBooking} />
 
-        {/* Popular Routes Section (One Way Jalandhar, Delhi, Amritsar, Chandigarh, Ludhiana, Hoshiarpur, Airport Taxi) */}
+        {/* Interactive Luxury Fleet Showcase */}
+        <FleetShowcaseSection onOpenBooking={handleOpenBooking} />
+
+        {/* Popular Routes Section with Animated Highway Route Beams */}
         <PopularRoutesSection onOpenBooking={handleOpenBooking} />
 
         {/* Why Choose PB08 TAXI Section */}
         <WhyChooseUs onOpenBooking={handleOpenBooking} />
+
+        {/* Verified Customer Reviews & Google Rating Wall of Love */}
+        <CustomerReviewsSection onOpenBooking={handleOpenBooking} />
 
         {/* Frequently Asked Questions Section */}
         <FAQSection onOpenBooking={handleOpenBooking} />
@@ -77,6 +90,9 @@ export default function HomePage() {
 
       {/* Footer */}
       <Footer onOpenBooking={handleOpenBooking} />
+
+      {/* Real-time Live Activity Toast (Social Proof) */}
+      <LiveActivityToast onOpenBooking={handleOpenBooking} />
 
       {/* Floating WhatsApp Action Button */}
       <FloatingWhatsApp onOpenBooking={handleOpenBooking} />

@@ -211,7 +211,7 @@ export default function HeroSlider({ onOpenBooking }) {
             {/* EXACT TEXT REQUIRED: "One Click Book Your Ride" */}
             <button
               onClick={onOpenBooking}
-              className="group relative inline-flex items-center justify-center bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-black text-lg sm:text-xl px-8 py-4 sm:py-5 rounded-2xl shadow-xl shadow-taxi-yellow/30 hover:shadow-taxi-yellow/50 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 border-2 border-yellow-300 animate-glow-pulse"
+              className="group relative inline-flex items-center justify-center bg-taxi-yellow hover:bg-taxi-yellowHover text-black font-black text-lg sm:text-xl px-8 py-4 sm:py-5 rounded-2xl shadow-xl shadow-taxi-yellow/30 hover:shadow-taxi-yellow/50 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 border-2 border-yellow-300 animate-glow-pulse animate-luxury-streak overflow-hidden"
             >
               <span className="flex items-center space-x-3">
                 <span className="tracking-tight">One Click Book Your Ride</span>

@@ -110,7 +110,7 @@ export default function PopularRoutesSection({ onOpenBooking }) {
           {POPULAR_ROUTES.map((route, idx) => (
             <article
               key={idx}
-              className="group bg-zinc-900/70 hover:bg-zinc-900 border border-zinc-800/90 hover:border-taxi-yellow/50 rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col justify-between"
+              className="group glass-card-luxury rounded-3xl p-7 flex flex-col justify-between relative overflow-hidden"
             >
               <div>
                 {/* Top Badge & Icon */}
@@ -130,9 +130,14 @@ export default function PopularRoutesSection({ onOpenBooking }) {
                 </h3>
 
                 {/* Distance & Duration */}
-                <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-400 mb-3">
+                <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-400 mb-2">
                   <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>{route.distance}</span>
+                </div>
+
+                {/* Animated Highway Route Beam */}
+                <div className="w-full h-1 bg-zinc-800/80 rounded-full mb-4 overflow-hidden relative">
+                  <div className="absolute top-0 bottom-0 w-28 bg-gradient-to-r from-transparent via-taxi-yellow to-transparent animate-route-beam" />
                 </div>
 
                 {/* Description */}
