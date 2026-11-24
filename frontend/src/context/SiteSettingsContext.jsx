@@ -6,8 +6,8 @@ export const SETTINGS_STORAGE_KEY = 'pb08_site_settings_cache';
 const DEFAULT_SETTINGS = {
   support_phone: "+919888079736",
   whatsapp_number: "+919888079736",
-  site_logo_url: null,
-  site_favicon_url: null,
+  site_logo_url: '/Logo/Logo_PB08TAXI.webp',
+  site_favicon_url: '/Logo/pb08taxi-favicon-1791752586.png',
   site_logo_size: 48,
   brand_title: "PB08 TAXI",
   brand_tagline: "Fast • Safe • Reliable",
@@ -28,6 +28,12 @@ const DEFAULT_SETTINGS = {
 function normalizeSettings(obj) {
   if (!obj || typeof obj !== 'object') return obj;
   const copy = { ...obj };
+  if (!copy.site_logo_url) {
+    copy.site_logo_url = '/Logo/Logo_PB08TAXI.webp';
+  }
+  if (!copy.site_favicon_url) {
+    copy.site_favicon_url = '/Logo/pb08taxi-favicon-1791752586.png';
+  }
   if (copy.site_logo_url && typeof copy.site_logo_url === 'string' && copy.site_logo_url.includes('raw.githubusercontent.com') && copy.site_logo_url.includes('Logo/')) {
     const filename = copy.site_logo_url.split('Logo/')[1];
     copy.site_logo_url = `/Logo/${filename}`;
