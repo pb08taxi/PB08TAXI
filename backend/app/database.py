@@ -12,21 +12,36 @@ if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 if db_url:
-    # Neon PostgreSQL connection
-    # Ensure sslmode=require for Neon PostgreSQL if not already specified
+    from sqlalchemy.pool import NullPool, QueuePool
+
+    # Ensure sslmode=require for Neon / cloud PostgreSQL
     connect_args = {}
     if "postgresql" in db_url and "sslmode" not in db_url:
         connect_args["sslmode"] = "require"
-        
-    engine = create_engine(
-        db_url,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        pool_size=10,
-        max_overflow=20,
-        pool_timeout=30,
-        connect_args=connect_args
-    )
+
+    is_serverless = "neon.tech" in db_url or "supabase" in db_url
+
+    if is_serverless:
+        # Serverless PostgreSQL optimization (Neon / Supabase):
+        # NullPool ensures connections are immediately closed after each request.
+        # This allows Neon to auto-suspend after 5 min of inactivity,
+        # preserving 100% of the free tier quota (0 compute hours wasted when idle)!
+        engine = create_engine(
+            db_url,
+            poolclass=NullPool,
+            connect_args=connect_args
+        )
+    else:
+        # Dedicated PostgreSQL (Render / Self-hosted)
+        engine = create_engine(
+            db_url,
+            pool_pre_ping=True,
+            pool_recycle=1800,
+            pool_size=5,
+            max_overflow=10,
+            pool_timeout=30,
+            connect_args=connect_args
+        )
 else:
     # Local fallback for development when Neon DATABASE_URL is not set
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

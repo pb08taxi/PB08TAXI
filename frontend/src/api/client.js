@@ -199,6 +199,8 @@ export const uploadSiteAsset = (file, assetType = 'logo') => {
 export const updateAdminCredentials = (payload) => api.post('/api/admin/settings/credentials', payload).then(r => r.data);
 export const factoryResetSystem = (secretPin, options = {}) => 
   api.post('/api/admin/settings/factory-reset', { secret_pin: secretPin, ...options }).then(r => r.data);
+export const exportDatabaseBackup = () => api.get('/api/admin/settings/backup').then(r => r.data);
+export const restoreDatabaseBackup = (payload) => api.post('/api/admin/settings/restore', payload || {}).then(r => r.data);
 
 // Advance SEO & Omnichannel Injections
 export const getPublicSEOSettings = () => api.get('/api/seo').then(r => r.data);

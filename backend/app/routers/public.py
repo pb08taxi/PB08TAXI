@@ -93,14 +93,23 @@ def generate_booking_reference(db: Session) -> str:
     return f"PB08-{int(datetime.utcnow().timestamp())}"
 
 @router.api_route("/health", methods=["GET", "HEAD"])
-def health_check(db: Session = Depends(get_db)):
-    """Health check endpoint for Render and uptime monitoring."""
-    try:
-        # Simple database ping
-        db.execute(text("SELECT 1"))
-        db_status = "connected"
-    except Exception:
-        db_status = "error"
+def health_check(check_db: bool = False):
+    """
+    Zero-Compute Health check endpoint for Render, Vercel, and uptime monitors.
+    Does NOT open database sessions on background polling, allowing serverless
+    databases (Neon) to auto-suspend and consume ZERO compute units.
+    Pass ?check_db=true only for manual diagnostics.
+    """
+    db_status = "healthy"
+    if check_db:
+        try:
+            from app.database import SessionLocal
+            with SessionLocal() as db:
+                db.execute(text("SELECT 1"))
+            db_status = "connected"
+        except Exception as e:
+            db_status = f"error: {str(e)[:100]}"
+
     return {
         "status": "ok",
         "service": "PB08 TAXI API",

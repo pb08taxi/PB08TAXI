@@ -530,3 +530,38 @@ def factory_reset_system(
             detail=f"Factory reset failed: {str(e)}"
         )
 
+@router.get("/admin/settings/backup")
+def export_database_backup(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Download full snapshot backup of all tables, settings, fleet, and templates."""
+    from app.services.backup_service import dump_database_to_dict
+    return dump_database_to_dict(db)
+
+
+@router.post("/admin/settings/restore")
+def restore_database_backup(
+    payload: Optional[Dict[str, Any]] = None,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Restore database from provided backup payload or latest server snapshot."""
+    import json
+    from app.services.backup_service import restore_database_from_dict, LATEST_BACKUP_PATH
+
+    data_to_restore = payload
+    if not data_to_restore:
+        if os.path.exists(LATEST_BACKUP_PATH):
+            with open(LATEST_BACKUP_PATH, "r", encoding="utf-8") as f:
+                data_to_restore = json.load(f)
+        else:
+            raise HTTPException(status_code=400, detail="No backup snapshot found on server to restore.")
+
+    restored_settings, restored_items = restore_database_from_dict(db, data_to_restore)
+    return {
+        "success": True,
+        "message": f"Database restored successfully! ({restored_settings} settings, {restored_items} items restored)",
+        "restored_settings": restored_settings,
+        "restored_items": restored_items
+    }
