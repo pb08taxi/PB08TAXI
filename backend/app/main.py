@@ -59,6 +59,18 @@ def initialize_database():
 
     db = SessionLocal()
     try:
+        # Pre-seed in-memory WhatsApp watchdog cache to completely eliminate 24/7 background DB queries
+        try:
+            from app.services.whatsapp_service import whatsapp_service
+            sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
+            logged_out_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_user_logged_out").first()
+            if sess_item and sess_item.value:
+                whatsapp_service._cached_session_id = sess_item.value
+            if logged_out_item and logged_out_item.value == "true":
+                whatsapp_service._cached_is_logged_out = True
+        except Exception:
+            pass
+
         # 1. Seed initial admin user if none exists
         admin_count = db.query(AdminUser).count()
         if admin_count == 0:
@@ -145,29 +157,22 @@ async def keep_alive_background_worker():
                 except Exception as ex:
                     print(f"[KeepAlive] OpenWA ping notice: {ex}")
 
-                # 2. OpenWA Session Auto-Revive Watchdog
+                # 2. OpenWA Session Auto-Revive Watchdog (PURE IN-MEMORY, ZERO-DB COMPUTE)
                 try:
-                    db = SessionLocal()
-                    try:
-                        sess_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_session_id").first()
-                        logged_out_item = db.query(SystemSetting).filter(SystemSetting.key == "openwa_user_logged_out").first()
-                        is_logged_out = logged_out_item and logged_out_item.value == "true"
+                    from app.services.whatsapp_service import whatsapp_service
+                    sid, is_logged_out = whatsapp_service.get_cached_session_info()
 
-                        if sess_item and sess_item.value and not is_logged_out:
-                            sid = sess_item.value
-                            s_res = await client.get(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}", headers=wa_headers)
-                            if s_res.status_code == 200:
-                                s_state = str(s_res.json().get("status", "")).lower()
-                                # If stopped or idle, automatically start the session
-                                if s_state in ("stopped", "inactive", "disconnected", "failed"):
-                                    print(f"[KeepAlive] Auto-reviving stopped WhatsApp session {sid[:8]} (state: {s_state})...")
-                                    await client.post(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}/start", headers=wa_headers)
-                    finally:
-                        db.close()
-                except Exception as db_ex:
-                    print(f"[KeepAlive] Watchdog check notice: {db_ex}")
+                    if sid and not is_logged_out:
+                        s_res = await client.get(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}", headers=wa_headers)
+                        if s_res.status_code == 200:
+                            s_state = str(s_res.json().get("status", "")).lower()
+                            if s_state in ("stopped", "inactive", "disconnected", "failed"):
+                                print(f"[KeepAlive] Auto-reviving stopped WhatsApp session {sid[:8]} (state: {s_state})...")
+                                await client.post(f"{settings.OPENWA_BASE_URL.rstrip('/')}/sessions/{sid}/start", headers=wa_headers)
+                except Exception as wa_ex:
+                    pass
 
-                # 3. Ping Backend KeepAlive
+                # 3. Ping Backend KeepAlive (HTTP Only, Zero DB connection)
                 try:
                     res_be = await client.get(backend_keepalive)
                     print(f"[KeepAlive] Pinged Backend: HTTP {res_be.status_code}")
@@ -176,7 +181,7 @@ async def keep_alive_background_worker():
         except Exception as e:
             print(f"[KeepAlive] Worker loop exception: {e}")
 
-        await asyncio.sleep(120)  # Ping every 2 minutes (120s) to strictly prevent 15-min sleep
+        await asyncio.sleep(300)  # Ping every 5 minutes (300s) to keep Render awake without overwhelming resources
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -25,6 +25,7 @@ class WhatsAppService:
         self.session_name = settings.OPENWA_SESSION_NAME
         self.simulator_mode = settings.OPENWA_SIMULATOR_MODE
         self._cached_session_id = None
+        self._cached_is_logged_out = False
         self._session_cache_timestamp = 0
 
     def _headers(self) -> Dict[str, str]:
@@ -47,8 +48,16 @@ class WhatsAppService:
         db.commit()
 
     def _get_active_session_id(self, db: Session) -> str:
-        """Fetch saved session ID from system settings or default to session name."""
-        return self._get_setting(db, "openwa_session_id", self.session_name)
+        """Fetch saved session ID with in-memory caching to prevent database wake-locks."""
+        if self._cached_session_id:
+            return self._cached_session_id
+        val = self._get_setting(db, "openwa_session_id", self.session_name)
+        self._cached_session_id = val
+        return val
+
+    def get_cached_session_info(self) -> Tuple[Optional[str], bool]:
+        """Return (session_id, is_logged_out) purely from in-memory cache with ZERO database compute."""
+        return self._cached_session_id or self.session_name, getattr(self, "_cached_is_logged_out", False)
 
     def _save_active_session_id(self, db: Session, session_id: str):
         self._cached_session_id = session_id

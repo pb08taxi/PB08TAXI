@@ -88,13 +88,11 @@ class DualNeonManager:
         return self._sessionmakers[project_name]
 
     def get_active_session(self) -> Session:
-        """Returns a database session from the active project with auto-failover."""
+        """Returns a database session from the active project with auto-failover (Zero-Compute, no proactive SELECT 1)."""
         # Try active project first
         try:
             sm = self.get_sessionmaker(self.active_project_name)
             session = sm()
-            # Fast ping test
-            session.execute(text("SELECT 1"))
             return session
         except Exception as e:
             err_str = str(e)

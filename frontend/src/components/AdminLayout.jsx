@@ -199,16 +199,24 @@ export default function AdminLayout({ children }) {
     }
   }, []);
 
-  // Quick polling of WhatsApp connection status
+  // Smart WhatsApp status check (Only when tab is actively visible; zero pings in background)
   useEffect(() => {
     const checkStatus = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       getWhatsAppStatus()
         .then(setWaStatus)
         .catch(() => setWaStatus({ connected: false, status: 'offline' }));
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(checkStatus, 120000); // 120s interval
+    const handleVis = () => {
+      if (typeof document !== 'undefined' && !document.hidden) checkStatus();
+    };
+    document.addEventListener('visibilitychange', handleVis);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVis);
+    };
   }, []);
 
   const handlePrefetch = (path) => {

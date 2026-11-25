@@ -28,9 +28,14 @@ async def get_whatsapp_status(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Retrieve live status from the configured OpenWA WhatsApp gateway."""
+    """Retrieve live status from the configured OpenWA WhatsApp gateway (Sub-5ms RAM Cache to prevent DB wake-locks)."""
+    from app.services.cache_service import cache_service
+    cached = cache_service.get("admin:whatsapp_status")
+    if cached is not None:
+        return WhatsAppStatusOut(**cached)
+
     data = await whatsapp_service.get_status(db)
-    return WhatsAppStatusOut(
+    res = WhatsAppStatusOut(
         connected=data.get("connected", False),
         status=data.get("status", "unknown"),
         session_id=data.get("session_id"),
@@ -39,6 +44,8 @@ async def get_whatsapp_status(
         details=data.get("details"),
         provider=data.get("provider", "OpenWA")
     )
+    cache_service.set("admin:whatsapp_status", res.model_dump(), ttl=60)
+    return res
 
 @router.post("/connect")
 async def connect_whatsapp_session(
